@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import ReactPlayer from 'react-player';
 
-// Function to resolve IPFS URI with a CORS proxy
-const resolveIpfsUriWithCors = (uri) => {
-  // Use the CORS proxy for the IPFS URI
-  const corsProxy = 'https://cors-anywhere.herokuapp.com/';
+// Function to resolve IPFS URIs via Cloudflare IPFS gateway
+const resolveIpfsUri = (uri) => {
   if (uri.startsWith("ipfs://")) {
-    const ipfsHash = uri.replace("ipfs://", "");
-    return `${corsProxy}https://ipfs.io/ipfs/${ipfsHash}`;
+    return uri.replace("ipfs://", "https://cloudflare-ipfs.com/ipfs/");
   }
   return uri;
 };
@@ -32,7 +29,7 @@ const AudioPlayer = ({ playlist }) => {
         <div>
           <h3>{playlist[currentIndex].title}</h3>
           <ReactPlayer
-            url={resolveIpfsUriWithCors(playlist[currentIndex].uri)}  // Resolve IPFS URI with CORS proxy
+            url={resolveIpfsUri(playlist[currentIndex].uri)}  // Use the resolved IPFS URI
             controls
             playing
             config={{
@@ -55,3 +52,4 @@ const AudioPlayer = ({ playlist }) => {
 };
 
 export default AudioPlayer;
+
