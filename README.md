@@ -1,70 +1,140 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Web3 Audio Player DApp
 
-## Available Scripts
+This project is a decentralized web application (DApp) that allows users to upload songs to the InterPlanetary File System (IPFS) via [Pinata.cloud](https://pinata.cloud/) and interact with a smart contract deployed on the Ethereum blockchain. Users can submit songs, view a playlist, and remove songs they've submitted. A connected Ethereum wallet (e.g., MetaMask) is required to interact with the DApp.
 
-In the project directory, you can run:
+## Features
 
-### `npm start`
+- **Upload Songs**: Users can upload songs (e.g., `.mp3`, `.wav`, `.ogg` files) to IPFS using Pinata and submit them to the playlist.
+- **Audio Player**: A playlist that fetches songs from IPFS and allows users to listen to them.
+- **User-Specific Actions**: Users can remove the songs they have submitted, and whitelisted users can remove any song.
+- **Web3 Integration**: MetaMask is used to connect with the Ethereum network, and smart contracts handle song submissions and removals.
+  
+## Requirements
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+To run this project, you will need the following:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+1. **Node.js**: Make sure you have Node.js installed. You can download it [here](https://nodejs.org/).
+2. **MetaMask**: Install the MetaMask browser extension from [here](https://metamask.io/).
+3. **Pinata Account**: Sign up for [Pinata](https://pinata.cloud/) and generate API keys for uploading files to IPFS.
 
-### `npm test`
+## Installation
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 1. Clone the Repository
 
-### `npm run build`
+```bash
+git clone https://github.com/spaghettETH/web3-audio-player.git
+cd web3-audio-player
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 2. Install Dependencies
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Run the following command to install the necessary packages:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+npm install
+```
 
-### `npm run eject`
+The key libraries and dependencies used in this project are:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+- **React**: JavaScript library for building the user interface.
+- **Ethers.js**: A library for interacting with the Ethereum blockchain.
+- **Axios**: HTTP client for uploading files to Pinata's IPFS service.
+- **ReactPlayer**: A React component to embed media players.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### 3. Create Environment Variables
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+To securely store your Pinata API key and secret, create a `.env` file in the root directory with the following content:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```
+REACT_APP_PINATA_API_KEY=your_pinata_api_key
+REACT_APP_PINATA_SECRET_API_KEY=your_pinata_secret_key
+```
 
-## Learn More
+Replace `your_pinata_api_key` and `your_pinata_secret_key` with the values from your Pinata account.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### 4. Compile Smart Contracts
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+You will need to deploy the smart contracts to an Ethereum testnet (such as Rinkeby or Goerli) or a local blockchain using tools like **Hardhat** or **Truffle**. The smart contract used in this project handles:
+- Adding songs to a playlist.
+- Removing songs (either by the submitter or a whitelisted address).
 
-### Code Splitting
+After deploying the smart contract, update the contract address and ABI in your project.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### 5. Run the Application
 
-### Analyzing the Bundle Size
+Once everything is set up, you can start the application with:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+```bash
+npm start
+```
 
-### Making a Progressive Web App
+The app will be available at `http://localhost:3000`.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Project Structure
 
-### Advanced Configuration
+- `src/components/`: Contains all the React components, including the form for submitting songs, the audio player, and the user's song management interface.
+- `src/contracts/`: Contains the Solidity smart contracts (optional if you decide to include them here).
+- `public/`: The public folder for the app's assets and index file.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### Key Components
 
-### Deployment
+- **App.js**: The main component that connects to MetaMask, manages the contract instance, and handles state for the playlist and user's songs.
+- **SubmitSongForm.js**: The form that allows users to upload and submit songs to the playlist.
+- **AudioPlayer.js**: The audio player component that streams songs from IPFS.
+- **RemoveOwnSong.js**: Allows users to manage and remove the songs they have submitted.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## How it Works
 
-### `npm run build` fails to minify
+1. **Connect MetaMask**: The app connects to MetaMask when launched. Ensure that you are connected to the correct Ethereum network (e.g., Goerli testnet).
+2. **Upload Song**: Users can choose a song file and upload it to IPFS via Pinata. Once uploaded, the IPFS hash is returned and stored on the Ethereum blockchain by calling the smart contract’s `addSong()` function.
+3. **View Playlist**: The playlist is updated with the newly uploaded song, and users can stream songs directly from IPFS.
+4. **Remove Song**: Users can remove their own submitted songs via the `removeOwnSong()` function in the contract.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Dependencies
+
+Make sure the following dependencies are installed in your project:
+
+```json
+{
+  "dependencies": {
+    "axios": "^0.27.2",
+    "ethers": "^5.7.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-scripts": "5.0.1",
+    "react-player": "^2.10.1"
+  }
+}
+```
+
+## Pinata API Setup
+
+To upload files to IPFS, create a Pinata account and generate an API key:
+
+1. Go to [Pinata](https://pinata.cloud/), sign up, and log in.
+2. Navigate to **API Keys** and create a new key with the necessary permissions:
+   - `pinFileToIPFS`
+   - `pinList`
+   - `unpin` (optional)
+3. Copy the **API key** and **API secret** into your `.env` file as shown above.
+
+## Smart Contract
+
+The smart contract is written in **Solidity** and deployed on the Ethereum blockchain. You can find the contract in the `contracts` folder. Key features include:
+- `addSong`: Allows users to submit a song (IPFS URI) and its title to the blockchain.
+- `removeOwnSong`: Allows users to remove songs they have submitted.
+- `generatePlaylist`: Returns the shuffled playlist with songs and their metadata (IPFS URI and title).
+
+You will need to deploy this contract to a blockchain (e.g., a testnet or a local environment) and use the contract address in the app.
+
+## Future Enhancements
+
+- Implement a search or filter functionality for the playlist.
+- Integrate a pinning service that ensures files stay pinned on IPFS.
+- Add support for different audio formats and improved player controls.
+- Add user authentication using NFT ownership.
+
+## License
+
+This project is licensed under the MIT License.
