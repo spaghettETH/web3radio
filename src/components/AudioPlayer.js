@@ -4,7 +4,7 @@ import ReactPlayer from 'react-player';
 // Function to resolve IPFS URIs via Cloudflare IPFS gateway
 const resolveIpfsUri = (uri) => {
   if (uri.startsWith("ipfs://")) {
-    return uri.replace("ipfs://", "https://cloudflare-ipfs.com/ipfs/");
+    return uri.replace("ipfs://", "https://spaghetteth.mypinata.cloud/ipfs/");
   }
   return uri;
 };
