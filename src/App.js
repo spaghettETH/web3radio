@@ -260,65 +260,81 @@ const contractABI = [
 const contractAddress = "0x69A1129b3122f313027452779d6E1B90f62C552a";
 
 const App = () => {
-  const [provider, setProvider] = useState(null);
-  const [contract, setContract] = useState(null);
-  const [playlist, setPlaylist] = useState([]);
-  const [isConnected, setIsConnected] = useState(false);
-
-  useEffect(() => {
-    const initializeProvider = async () => {
-      if (window.ethereum) {
-        const _provider = new BrowserProvider(window.ethereum);
-        await _provider.send('eth_requestAccounts', []);
-        const signer = await _provider.getSigner();
-        const _contract = new Contract(contractAddress, contractABI, signer);
-        setProvider(_provider);
-        setContract(_contract);
-        setIsConnected(true);
-      } else {
-        alert("Please install MetaMask!");
-      }
-    };
-    initializeProvider();
-  }, []);
-
-  const fetchPlaylist = async () => {
-    if (contract) {
-      try {
-        const [uris, titles] = await contract.generatePlaylist();
-        const fetchedPlaylist = uris.map((uri, index) => ({
-          uri,
-          title: titles[index],
-        }));
-        setPlaylist(fetchedPlaylist);
-      } catch (error) {
-        console.error("Error fetching playlist:", error);
-      }
-    }
+	const [provider, setProvider] = useState(null);
+	const [contract, setContract] = useState(null);
+	const [playlist, setPlaylist] = useState([]);
+	const [mySongs, setMySongs] = useState([]);  // Track user's submitted songs
+	const [isConnected, setIsConnected] = useState(false);
+  
+	useEffect(() => {
+	  const initializeProvider = async () => {
+		if (window.ethereum) {
+		  const _provider = new BrowserProvider(window.ethereum);
+		  await _provider.send('eth_requestAccounts', []);
+		  const signer = await _provider.getSigner();
+		  const _contract = new Contract(contractAddress, contractABI, signer);
+		  setProvider(_provider);
+		  setContract(_contract);
+		  setIsConnected(true);
+		} else {
+		  alert("Please install MetaMask!");
+		}
+	  };
+	  initializeProvider();
+	}, []);
+  
+	const fetchPlaylist = async () => {
+	  if (contract) {
+		try {
+		  const [uris, titles] = await contract.generatePlaylist();
+		  const fetchedPlaylist = uris.map((uri, index) => ({
+			uri,
+			title: titles[index],
+		  }));
+		  setPlaylist(fetchedPlaylist);
+		} catch (error) {
+		  console.error("Error fetching playlist:", error);
+		}
+	  }
+	};
+  
+	const fetchUserSongs = async () => {
+	  if (contract) {
+		try {
+		  const [uris, titles] = await contract.mySongs();
+		  const fetchedMySongs = uris.map((uri, index) => ({
+			uri,
+			title: titles[index],
+		  }));
+		  setMySongs(fetchedMySongs);
+		} catch (error) {
+		  console.error("Error fetching user's songs:", error);
+		}
+	  }
+	};
+  
+	useEffect(() => {
+	  if (contract) {
+		fetchPlaylist();
+		fetchUserSongs();  // Fetch user's songs on initial load
+	  }
+	}, [contract]);
+  
+	return (
+	  <div>
+		<h1>Web3 Playlist Player</h1>
+		{isConnected ? (
+		  <>
+			<AudioPlayer playlist={playlist} />
+			<Playlist playlist={playlist} />
+			<SubmitSongForm contract={contract} fetchPlaylist={fetchPlaylist} fetchUserSongs={fetchUserSongs} />  {/* Pass fetchUserSongs */}
+			<RemoveOwnSong contract={contract} mySongs={mySongs} fetchUserSongs={fetchUserSongs} />
+			</>
+		) : (
+		  <p>Please connect to MetaMask.</p>
+		)}
+	  </div>
+	);
   };
-
-  useEffect(() => {
-    if (contract) {
-      fetchPlaylist();
-    }
-  }, [contract]);
-
-  return (
-    <div>
-      <h1>Web3 Playlist Player</h1>
-      {isConnected ? (
-        <>
-          <AudioPlayer playlist={playlist} />
-          <Playlist playlist={playlist} />
-          <SubmitSongForm contract={contract} fetchPlaylist={fetchPlaylist} />
-          {/* Add the RemoveOwnSong component and pass the contract as a prop */}
-          <RemoveOwnSong contract={contract} />
-        </>
-      ) : (
-        <p>Please connect to MetaMask.</p>
-      )}
-    </div>
-  );
-};
-
-export default App;
+  
+  export default App;

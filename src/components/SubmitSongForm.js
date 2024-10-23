@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const SubmitSongForm = ({ contract, fetchPlaylist }) => {
+const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {  // Add fetchUserSongs as a prop
   const [title, setTitle] = useState('');
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -31,7 +31,9 @@ const SubmitSongForm = ({ contract, fetchPlaylist }) => {
       const tx = await contract.addSong(ipfsUri, title);
       await tx.wait();
       alert('Song submitted successfully!');
-      fetchPlaylist(); // Refresh the playlist after submission
+      
+      fetchPlaylist();  // Refresh the playlist after submission
+      fetchUserSongs(); // Refresh user's submitted songs after submission
     } catch (error) {
       console.error('Error uploading or submitting song:', error);
       alert('Failed to upload the song or submit to the contract.');

@@ -1,45 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 
-const RemoveOwnSong = ({ contract }) => {
-  const [mySongs, setMySongs] = useState([]);
-  const [loading, setLoading] = useState(true);
+const RemoveOwnSong = ({ contract, mySongs, fetchUserSongs }) => {
 
   useEffect(() => {
-    fetchMySongs(); // Fetch the user's songs when the component loads
-  }, [contract]);
-
-  const fetchMySongs = async () => {
-    try {
-      setLoading(true);
-      const [uris, titles] = await contract.mySongs();
-      const songs = uris.map((uri, index) => ({
-        uri,
-        title: titles[index],
-        index
-      }));
-      setMySongs(songs);
-    } catch (error) {
-      console.error("Error fetching songs:", error);
-    } finally {
-      setLoading(false);
+    if (contract) {
+      fetchUserSongs();  // Fetch user's songs when the component mounts or contract changes
     }
-  };
+  }, [contract, fetchUserSongs]);
 
   const removeSong = async (index) => {
     try {
       const tx = await contract.removeOwnSong(index);
       await tx.wait();
       alert(`Song at index ${index} removed successfully!`);
-      fetchMySongs(); // Refresh the song list after removal
+      fetchUserSongs();  // Refresh the song list after removal
     } catch (error) {
       console.error("Error removing song:", error);
       alert("Failed to remove the song. Make sure you are authorized to remove it.");
     }
   };
-
-  if (loading) {
-    return <p>Loading your songs...</p>;
-  }
 
   return (
     <div>
@@ -49,7 +28,7 @@ const RemoveOwnSong = ({ contract }) => {
           {mySongs.map((song, index) => (
             <li key={index}>
               <strong>{song.title}</strong> - {song.uri}
-              <button onClick={() => removeSong(song.index)}>Remove Song</button>
+              <button onClick={() => removeSong(index)}>Remove Song</button>
             </li>
           ))}
         </ul>
