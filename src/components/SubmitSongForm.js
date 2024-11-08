@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {  // Add fetchUserSongs as a prop
+const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {
   const [title, setTitle] = useState('');
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [disclaimerChecked, setDisclaimerChecked] = useState(false);  // New state for checkbox
 
   // Your Pinata API keys (replace with your own)
   const PINATA_API_KEY = '139e973f6c2a51531dc5';
@@ -16,8 +17,8 @@ const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {  // Ad
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title || !file) {
-      alert('Please provide both a title and a file');
+    if (!title || !file || !disclaimerChecked) {  // Ensure checkbox is checked
+      alert('Please provide a title, a file, and check the disclaimer box.');
       return;
     }
 
@@ -87,7 +88,19 @@ const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {  // Ad
           />
         </div>
         <div>
-          <button type="submit" disabled={loading}>
+          <label>
+            <input 
+              type="checkbox" 
+              checked={disclaimerChecked} 
+              onChange={(e) => setDisclaimerChecked(e.target.checked)} 
+            />
+            {' '}
+            I have read the{' '}
+            <a href="https://ipfs.io/ipfs/QmWTiPuw52UK2FQFDbnwABE8oJfnSps4VHCCzPkWXY8ZtF?filename=disclaimer.html" target="_blank" rel="noopener noreferrer">disclaimer</a>
+          </label>
+        </div>
+        <div>
+          <button type="submit" disabled={loading || !disclaimerChecked}>
             {loading ? 'Uploading...' : 'Submit Song'}
           </button>
         </div>
