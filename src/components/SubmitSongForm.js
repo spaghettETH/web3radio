@@ -95,7 +95,7 @@ const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {
               onChange={(e) => setDisclaimerChecked(e.target.checked)} 
             />
             {' '}
-            I have read the{' '}
+            I own the © of this audio and I have read the{' '}
             <a href="https://ipfs.io/ipfs/QmWTiPuw52UK2FQFDbnwABE8oJfnSps4VHCCzPkWXY8ZtF?filename=disclaimer.html" target="_blank" rel="noopener noreferrer">disclaimer</a>
           </label>
         </div>
