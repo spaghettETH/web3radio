@@ -3,48 +3,67 @@ import axios from 'axios';
 
 const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {
   const [title, setTitle] = useState('');
-  const [file, setFile] = useState(null);
+  const [audioFile, setAudioFile] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [disclaimerChecked, setDisclaimerChecked] = useState(false);  // New state for checkbox
+  const [disclaimerChecked, setDisclaimerChecked] = useState(false);
 
-  // Your Pinata API keys (replace with your own)
+  // Pinata API keys
   const PINATA_API_KEY = '139e973f6c2a51531dc5';
   const PINATA_SECRET_API_KEY = '13a730d6457d587268607b43b7d227644af51e9fa95bdae1bf047a79b0a01fb4';
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+  // File change handlers with size checks
+  const handleAudioFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file.size > 100 * 1024 * 1024) { // 100 MB limit
+      alert("Audio file size must be 100MB or smaller.");
+      return;
+    }
+    setAudioFile(file);
+  };
+
+  const handleImageFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file.size > 1 * 1024 * 1024) { // 1 MB limit
+      alert("Image file size must be 1MB or smaller.");
+      return;
+    }
+    setImageFile(file);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title || !file || !disclaimerChecked) {  // Ensure checkbox is checked
-      alert('Please provide a title, a file, and check the disclaimer box.');
+
+    if (!title || !audioFile || !imageFile || !disclaimerChecked) {
+      alert('Please provide a title, audio file, image file, and check the disclaimer box.');
       return;
     }
 
     setLoading(true);
 
     try {
-      // Upload file to Pinata
-      const ipfsUri = await uploadToPinata(file);
-      
-      // After the file is uploaded, submit the title and IPFS URI to the smart contract
-      const tx = await contract.addSong(ipfsUri, title);
+      // Upload audio and image files to Pinata
+      const audioUri = await uploadToPinata(audioFile, "audio");
+      const imageUri = await uploadToPinata(imageFile, "image");
+
+      // Submit song with audio, image, and title to the smart contract
+      const tx = await contract.addSong(audioUri, imageUri, title);
       await tx.wait();
-      alert('Song submitted successfully!');
-      
-      fetchPlaylist();  // Refresh the playlist after submission
-      fetchUserSongs(); // Refresh user's submitted songs after submission
+      alert('Audio submitted successfully!');
+
+      // Refresh playlists
+      fetchPlaylist();
+      fetchUserSongs();
     } catch (error) {
-      console.error('Error uploading or submitting song:', error);
-      alert('Failed to upload the song or submit to the contract.');
+      console.error('Error uploading or submitting:', error);
+      alert('Failed to upload files or submit to the smart contract.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Function to upload the file to Pinata
-  const uploadToPinata = async (file) => {
+  // Function to upload file to Pinata
+  const uploadToPinata = async (file, type) => {
     const url = `https://api.pinata.cloud/pinning/pinFileToIPFS`;
     const data = new FormData();
     data.append('file', file);
@@ -58,50 +77,73 @@ const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {
         },
       });
       const ipfsHash = response.data.IpfsHash;
+      console.log(`${type} file uploaded successfully: ipfs://${ipfsHash}`);
       return `ipfs://${ipfsHash}`;
     } catch (error) {
-      console.error('Error uploading to Pinata:', error);
+      console.error(`Error uploading ${type} file to Pinata:`, error);
       throw error;
     }
   };
 
   return (
     <div>
-      <h2>Submit a New Song</h2>
+      <h2>Submit a New Audio</h2>
       <form onSubmit={handleSubmit}>
+        {/* Title Input */}
         <div>
-          <label>Song Title:</label>
-          <input 
-            type="text" 
-            value={title} 
-            onChange={(e) => setTitle(e.target.value)} 
-            required 
+          <label>Audio Title:</label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
           />
         </div>
+
+        {/* Audio File Input */}
         <div>
-          <label>Upload Song File:</label>
-          <input 
-            type="file" 
-            onChange={handleFileChange} 
-            accept=".mp3,.wav,.ogg" 
-            required 
+          <label>Upload Audio File (Max: 100MB):</label>
+          <input
+            type="file"
+            accept=".mp3,.wav,.ogg"
+            onChange={handleAudioFileChange}
+            required
           />
         </div>
+
+        {/* Image File Input */}
+        <div>
+          <label>Upload Cover Image (Max: 1MB):</label>
+          <input
+            type="file"
+            accept=".jpg,.jpeg,.png"
+            onChange={handleImageFileChange}
+            required
+          />
+        </div>
+
+        {/* Disclaimer Checkbox */}
         <div>
           <label>
-            <input 
-              type="checkbox" 
-              checked={disclaimerChecked} 
-              onChange={(e) => setDisclaimerChecked(e.target.checked)} 
+            <input
+              type="checkbox"
+              checked={disclaimerChecked}
+              onChange={(e) => setDisclaimerChecked(e.target.checked)}
             />
             {' '}
             I own the © of this audio and I have read the{' '}
-            <a href="https://ipfs.io/ipfs/QmWTiPuw52UK2FQFDbnwABE8oJfnSps4VHCCzPkWXY8ZtF?filename=disclaimer.html" target="_blank" rel="noopener noreferrer">disclaimer</a>
+            <a href="https://ipfs.io/ipfs/QmWTiPuw52UK2FQFDbnwABE8oJfnSps4VHCCzPkWXY8ZtF?filename=disclaimer.html" 
+              target="_blank" 
+              rel="noopener noreferrer">
+              disclaimer
+            </a>
           </label>
         </div>
+
+        {/* Submit Button */}
         <div>
           <button type="submit" disabled={loading || !disclaimerChecked}>
-            {loading ? 'Uploading...' : 'Submit Song'}
+            {loading ? 'Uploading...' : 'Submit Audio'}
           </button>
         </div>
       </form>

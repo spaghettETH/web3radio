@@ -1,57 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserProvider, Contract } from 'ethers';
-import Playlist from './components/Playlist';
-import AudioPlayer from './components/AudioPlayer';
-import SubmitSongForm from './components/SubmitSongForm';
-import RemoveOwnSong from './components/RemoveOwnSong'; // Import the RemoveOwnSong component
-
+import React, { useState, useEffect } from "react";
+import { BrowserProvider, Contract } from "ethers";
+import Playlist from "./components/Playlist";
+import AudioPlayer from "./components/AudioPlayer";
+import SubmitSongForm from "./components/SubmitSongForm";
+import RemoveOwnSong from "./components/RemoveOwnSong";
+import MySaves from "./components/MySaves";
+import SavesLeaderboard from "./components/SavesLeaderboard";
 
 // Contract ABI and address
 const contractABI = [
-	{
-		"inputs": [
-			{
-				"internalType": "string",
-				"name": "uri",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "title",
-				"type": "string"
-			}
-		],
-		"name": "addSong",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			}
-		],
-		"name": "addToWhitelist",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "index",
-				"type": "uint256"
-			}
-		],
-		"name": "removeAnySong",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
 	{
 		"inputs": [
 			{
@@ -85,12 +42,22 @@ const contractABI = [
 	{
 		"inputs": [
 			{
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
+				"internalType": "string",
+				"name": "uri",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "img",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "title",
+				"type": "string"
 			}
 		],
-		"name": "removeFromWhitelist",
+		"name": "addSong",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -99,18 +66,11 @@ const contractABI = [
 		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "index",
+				"name": "_id",
 				"type": "uint256"
 			}
 		],
-		"name": "removeOwnSong",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "renounceOwnership",
+		"name": "addToMySaves",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -119,28 +79,29 @@ const contractABI = [
 		"inputs": [
 			{
 				"internalType": "address",
-				"name": "newOwner",
+				"name": "user",
 				"type": "address"
 			}
 		],
-		"name": "transferOwnership",
+		"name": "addToWhitelist",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "generatePlaylist",
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "getUserSongs",
 		"outputs": [
 			{
-				"internalType": "string[]",
-				"name": "uris",
-				"type": "string[]"
-			},
-			{
-				"internalType": "string[]",
-				"name": "titles",
-				"type": "string[]"
+				"internalType": "uint256[]",
+				"name": "",
+				"type": "uint256[]"
 			}
 		],
 		"stateMutability": "view",
@@ -148,17 +109,57 @@ const contractABI = [
 	},
 	{
 		"inputs": [],
-		"name": "mySongs",
+		"name": "mostSaved",
 		"outputs": [
 			{
-				"internalType": "string[]",
-				"name": "myUris",
-				"type": "string[]"
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "uri",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "img",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "title",
+						"type": "string"
+					},
+					{
+						"internalType": "address",
+						"name": "submitter",
+						"type": "address"
+					}
+				],
+				"internalType": "struct DecentraPlaylist.Song[]",
+				"name": "",
+				"type": "tuple[]"
 			},
 			{
-				"internalType": "string[]",
-				"name": "titles",
-				"type": "string[]"
+				"internalType": "uint256[]",
+				"name": "",
+				"type": "uint256[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "nextSongId",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
@@ -201,8 +202,18 @@ const contractABI = [
 		"name": "playlist",
 		"outputs": [
 			{
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
 				"internalType": "string",
 				"name": "uri",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "img",
 				"type": "string"
 			},
 			{
@@ -220,12 +231,222 @@ const contractABI = [
 		"type": "function"
 	},
 	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "removeAnySong",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "removeFromWhitelist",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "songId",
+				"type": "uint256"
+			}
+		],
+		"name": "removeOwnSong",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "renounceOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "retrieveMySaves",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "uri",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "img",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "title",
+						"type": "string"
+					},
+					{
+						"internalType": "address",
+						"name": "submitter",
+						"type": "address"
+					}
+				],
+				"internalType": "struct DecentraPlaylist.Song[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "songScores",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "songsById",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "uri",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "img",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "title",
+				"type": "string"
+			},
+			{
+				"internalType": "address",
+				"name": "submitter",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "userSaves",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "userSongs",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
 		"inputs": [],
 		"name": "viewPlaylist",
 		"outputs": [
 			{
 				"internalType": "string[]",
 				"name": "uris",
+				"type": "string[]"
+			},
+			{
+				"internalType": "string[]",
+				"name": "imgs",
 				"type": "string[]"
 			},
 			{
@@ -257,20 +478,21 @@ const contractABI = [
 		"type": "function"
 	}
 ];
-const contractAddress = "0x69A1129b3122f313027452779d6E1B90f62C552a";
+const contractAddress = "0x1b79a251DfD2ec21eBAaA82b75c0B93a7D801677";
 
 const App = () => {
 	const [provider, setProvider] = useState(null);
 	const [contract, setContract] = useState(null);
 	const [playlist, setPlaylist] = useState([]);
-	const [mySongs, setMySongs] = useState([]);  // Track user's submitted songs
+	const [mySongs, setMySongs] = useState([]);
+	const [currentSong, setCurrentSong] = useState(null); // Tracks the current audio
 	const [isConnected, setIsConnected] = useState(false);
   
 	useEffect(() => {
 	  const initializeProvider = async () => {
 		if (window.ethereum) {
 		  const _provider = new BrowserProvider(window.ethereum);
-		  await _provider.send('eth_requestAccounts', []);
+		  await _provider.send("eth_requestAccounts", []);
 		  const signer = await _provider.getSigner();
 		  const _contract = new Contract(contractAddress, contractABI, signer);
 		  setProvider(_provider);
@@ -280,18 +502,22 @@ const App = () => {
 		  alert("Please install MetaMask!");
 		}
 	  };
+  
 	  initializeProvider();
 	}, []);
   
 	const fetchPlaylist = async () => {
 	  if (contract) {
 		try {
-		  const [uris, titles] = await contract.generatePlaylist();
-		  const fetchedPlaylist = uris.map((uri, index) => ({
+		  const [uris, imgs, titles] = await contract.viewPlaylist();
+		  const combinedPlaylist = uris.map((uri, index) => ({
+			id: index,
 			uri,
+			img: imgs[index],
 			title: titles[index],
 		  }));
-		  setPlaylist(fetchedPlaylist);
+		  const shuffledPlaylist = combinedPlaylist.sort(() => Math.random() - 0.5);
+		  setPlaylist(shuffledPlaylist);
 		} catch (error) {
 		  console.error("Error fetching playlist:", error);
 		}
@@ -301,12 +527,20 @@ const App = () => {
 	const fetchUserSongs = async () => {
 	  if (contract) {
 		try {
-		  const [uris, titles] = await contract.mySongs();
-		  const fetchedMySongs = uris.map((uri, index) => ({
-			uri,
-			title: titles[index],
-		  }));
-		  setMySongs(fetchedMySongs);
+		  const signer = await provider.getSigner();
+		  const userAddress = await signer.getAddress();
+		  const userSongIds = await contract.getUserSongs(userAddress);
+		  const userSongs = await Promise.all(
+			userSongIds.map(async (id) => {
+			  const song = await contract.playlist(id);
+			  return {
+				id: song.id.toString(),
+				title: song.title,
+				uri: song.uri,
+			  };
+			})
+		  );
+		  setMySongs(userSongs);
 		} catch (error) {
 		  console.error("Error fetching user's songs:", error);
 		}
@@ -316,20 +550,22 @@ const App = () => {
 	useEffect(() => {
 	  if (contract) {
 		fetchPlaylist();
-		fetchUserSongs();  // Fetch user's songs on initial load
+		fetchUserSongs();
 	  }
 	}, [contract]);
   
 	return (
 	  <div>
-		<h1>Web3 Playlist Player</h1>
+		<h1>Decentralized Playlist Player</h1>
 		{isConnected ? (
 		  <>
-			<AudioPlayer playlist={playlist} />
+			<AudioPlayer playlist={playlist} setCurrentSong={setCurrentSong} />
 			<Playlist playlist={playlist} />
-			<SubmitSongForm contract={contract} fetchPlaylist={fetchPlaylist} fetchUserSongs={fetchUserSongs} />  {/* Pass fetchUserSongs */}
+			<SubmitSongForm contract={contract} fetchPlaylist={fetchPlaylist} fetchUserSongs={fetchUserSongs} />
 			<RemoveOwnSong contract={contract} mySongs={mySongs} fetchUserSongs={fetchUserSongs} />
-			</>
+			<MySaves contract={contract} currentSong={currentSong} />
+			<SavesLeaderboard contract={contract} />
+		  </>
 		) : (
 		  <p>Please connect to MetaMask.</p>
 		)}
@@ -338,3 +574,4 @@ const App = () => {
   };
   
   export default App;
+  

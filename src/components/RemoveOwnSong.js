@@ -1,39 +1,38 @@
 import React, { useEffect } from 'react';
 
 const RemoveOwnSong = ({ contract, mySongs, fetchUserSongs }) => {
-
   useEffect(() => {
     if (contract) {
-      fetchUserSongs();  // Fetch user's songs when the component mounts or contract changes
+      fetchUserSongs();
     }
   }, [contract, fetchUserSongs]);
 
-  const removeSong = async (index) => {
+  const removeSong = async (songId) => {
     try {
-      const tx = await contract.removeOwnSong(index);
+      const tx = await contract.removeOwnSong(songId);
       await tx.wait();
-      alert(`Song at index ${index} removed successfully!`);
-      fetchUserSongs();  // Refresh the song list after removal
+      alert(`Song removed successfully!`);
+      fetchUserSongs(); // Refresh song list
     } catch (error) {
       console.error("Error removing song:", error);
-      alert("Failed to remove the song. Make sure you are authorized to remove it.");
+      alert("Failed to remove the song.");
     }
   };
 
   return (
     <div>
-      <h2>Your Submitted Songs</h2>
-      {mySongs.length > 0 ? (
+      <h2>Your Submitted Audios</h2>
+      {mySongs && mySongs.length > 0 ? (
         <ul>
-          {mySongs.map((song, index) => (
-            <li key={index}>
+          {mySongs.map((song) => (
+            <li key={song.id}>
               <strong>{song.title}</strong> - {song.uri}
-              <button onClick={() => removeSong(index)}>Remove Song</button>
+              <button onClick={() => removeSong(song.id)}>Remove Audio</button>
             </li>
           ))}
         </ul>
       ) : (
-        <p>You have not submitted any songs yet.</p>
+        <p>You have not submitted any audio yet.</p>
       )}
     </div>
   );
