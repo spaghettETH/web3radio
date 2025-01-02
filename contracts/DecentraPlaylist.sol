@@ -156,19 +156,32 @@ contract DecentraPlaylist is Ownable {
     }
 
     // View the playlist without shuffle
-    function viewPlaylist() external view returns (string[] memory uris, string[] memory imgs, string[] memory titles) {
-        uris = new string[](playlist.length);
-        imgs = new string[](playlist.length);
-        titles = new string[](playlist.length);
+    function viewPlaylist()
+    external
+    view
+    returns (
+        string[] memory uris,
+        string[] memory imgs,
+        string[] memory titles,
+        address[] memory submitters
+    )
+{
+    uint length = playlist.length;
+    uris = new string[](length);
+    imgs = new string[](length);
+    titles = new string[](length);
+    submitters = new address[](length);
 
-        for (uint i = 0; i < playlist.length; i++) {
-            uris[i] = playlist[i].uri;
-            imgs[i] = playlist[i].img;
-            titles[i] = playlist[i].title;
-        }
-
-        return (uris, imgs, titles);
+    for (uint i = 0; i < length; i++) {
+        uris[i] = playlist[i].uri;
+        imgs[i] = playlist[i].img;
+        titles[i] = playlist[i].title;
+        submitters[i] = playlist[i].submitter;
     }
+
+    return (uris, imgs, titles, submitters);
+}
+
 
     function getUserSongs(address user) external view returns (uint[] memory) {
         return userSongs[user];
