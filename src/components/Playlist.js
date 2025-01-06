@@ -1,4 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+
+// Helper to resolve IPFS URIs
+const resolveIpfsUri = (uri) => {
+  if (!uri) {
+    console.error("Invalid URI:", uri);
+    return null;
+  }
+  return uri.startsWith("ipfs://")
+    ? `https://dweb.link/ipfs/${uri.slice(7)}`
+    : uri;
+};
 
 // Fisher-Yates Shuffle Algorithm
 const shuffleArray = (array) => {
@@ -13,13 +24,19 @@ const shuffleArray = (array) => {
 const Playlist = ({ playlist }) => {
   const [shuffledPlaylist, setShuffledPlaylist] = useState([]);
 
-  // Shuffle the playlist only once when the component mounts
+  // Shuffle the playlist and filter out inactive songs when it updates
   useEffect(() => {
-    if (playlist.length > 0) {
-      const shuffled = shuffleArray(playlist);
+    if (playlist?.length > 0) {
+      console.log("Shuffling and filtering active playlist:", playlist); // Debugging
+      const activeSongs = playlist.filter((song) => song?.isActive !== false); // Check for active songs
+      const shuffled = shuffleArray(activeSongs);
       setShuffledPlaylist(shuffled);
+    } else {
+      console.log("Empty or invalid playlist prop."); // Debugging
+      setShuffledPlaylist([]);
     }
   }, [playlist]);
+  
 
   return (
     <div>
@@ -27,12 +44,12 @@ const Playlist = ({ playlist }) => {
       {shuffledPlaylist.length === 0 ? (
         <p>No audios available yet.</p>
       ) : (
-        <ul style={{ listStyleType: 'none', padding: 0 }}>
+        <ul style={{ listStyleType: "none", padding: 0 }}>
           {shuffledPlaylist.map((song) => (
-            <li key={song.id} style={{ marginBottom: '10px' }}>
-              <strong>{song.title}</strong> -{" "}
+            <li key={song.id} style={{ marginBottom: "10px" }}>
+              <strong>{song.title || "Untitled"}</strong> -{" "}
               <a
-                href={`https://cloudflare-ipfs.com/ipfs/${song.uri.replace("ipfs://", "")}`}
+                href={resolveIpfsUri(song.uri)}
                 target="_blank"
                 rel="noopener noreferrer"
               >

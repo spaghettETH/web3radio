@@ -14,9 +14,10 @@ const resolveIpfsUri = (uri) => {
 const AudioPlayer = ({ playlist, setCurrentSong }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Update the current song when index changes
+  // Update the current song when the index changes
   useEffect(() => {
     if (playlist.length > 0 && playlist[currentIndex]) {
+      console.log("Setting current song:", playlist[currentIndex]); // Debugging
       setCurrentSong(playlist[currentIndex]);
     }
   }, [currentIndex, playlist, setCurrentSong]);

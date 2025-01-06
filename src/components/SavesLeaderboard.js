@@ -1,26 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 
 const SavesLeaderboard = ({ contract }) => {
   const [leaderboard, setLeaderboard] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // Fetch the leaderboard data from the smart contract
-  const fetchLeaderboard = async () => {
+  const fetchLeaderboard = useCallback(async () => {
     if (!contract) return;
 
+    setLoading(true);
+    setError(null);
+
     try {
-      setLoading(true);
-      setError(null);
       const [songs, scores] = await contract.mostSaved();
 
-      // Format the leaderboard data for display
-      const leaderboardData = songs.map((song, index) => ({
-        id: index, // Optional: unique key for React rendering
-        title: song.title,
-        uri: song.uri,
-        score: scores[index].toString(), // Convert score to string for safe rendering
-      }));
+      // Filter only active songs and format the leaderboard data
+      const leaderboardData = songs
+        .filter((song) => song.isActive) // Only include active songs
+        .map((song, index) => ({
+          id: song.id, // Use song ID for React keys
+          title: song.title,
+          uri: song.uri,
+          score: scores[index].toString(), // Convert score to string for safe rendering
+        }));
 
       setLeaderboard(leaderboardData);
     } catch (err) {
@@ -29,12 +32,12 @@ const SavesLeaderboard = ({ contract }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [contract]);
 
   // Fetch leaderboard data when the component mounts or the contract changes
   useEffect(() => {
     fetchLeaderboard();
-  }, [contract]);
+  }, [fetchLeaderboard]);
 
   return (
     <div>
@@ -52,10 +55,11 @@ const SavesLeaderboard = ({ contract }) => {
           {leaderboard.map((song) => (
             <li key={song.id} style={{ marginBottom: "10px" }}>
               <strong>{song.title}</strong> -{" "}
-              <a 
-                href={song.uri.startsWith("ipfs://")
-                  ? song.uri.replace("ipfs://", "https://cloudflare-ipfs.com/ipfs/")
-                  : song.uri
+              <a
+                href={
+                  song.uri.startsWith("ipfs://")
+                    ? `https://cloudflare-ipfs.com/ipfs/${song.uri.slice(7)}`
+                    : song.uri
                 }
                 target="_blank"
                 rel="noopener noreferrer"

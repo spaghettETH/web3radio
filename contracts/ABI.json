@@ -38,12 +38,12 @@
 	{
 		"inputs": [
 			{
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
+				"internalType": "uint256",
+				"name": "songId",
+				"type": "uint256"
 			}
 		],
-		"name": "addToWhitelist",
+		"name": "removeAnySong",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -51,12 +51,12 @@
 	{
 		"inputs": [
 			{
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
+				"internalType": "uint256",
+				"name": "songId",
+				"type": "uint256"
 			}
 		],
-		"name": "removeFromWhitelist",
+		"name": "removeOwnSong",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -105,36 +105,23 @@
 		"type": "event"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "index",
-				"type": "uint256"
-			}
-		],
-		"name": "removeAnySong",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "songId",
-				"type": "uint256"
-			}
-		],
-		"name": "removeOwnSong",
+		"inputs": [],
+		"name": "renounceOwnership",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
 		"inputs": [],
-		"name": "renounceOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
+		"name": "getPlaylistLength",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -186,6 +173,11 @@
 						"internalType": "address",
 						"name": "submitter",
 						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "isActive",
+						"type": "bool"
 					}
 				],
 				"internalType": "struct DecentraPlaylist.Song[]",
@@ -274,6 +266,11 @@
 				"internalType": "address",
 				"name": "submitter",
 				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "isActive",
+				"type": "bool"
 			}
 		],
 		"stateMutability": "view",
@@ -309,6 +306,11 @@
 						"internalType": "address",
 						"name": "submitter",
 						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "isActive",
+						"type": "bool"
 					}
 				],
 				"internalType": "struct DecentraPlaylist.Song[]",
@@ -353,6 +355,11 @@
 				"internalType": "address",
 				"name": "submitter",
 				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "isActive",
+				"type": "bool"
 			}
 		],
 		"stateMutability": "view",

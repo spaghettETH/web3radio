@@ -1,48 +1,72 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+
+// Helper to resolve IPFS URIs
+const resolveIpfsUri = (uri) => {
+  if (!uri) {
+    console.error("Invalid URI:", uri);
+    return null;
+  }
+  return uri.startsWith("ipfs://")
+    ? `https://dweb.link/ipfs/${uri.slice(7)}`
+    : uri;
+};
 
 const MySaves = ({ contract, currentSong }) => {
   const [savedSongs, setSavedSongs] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // Fetch user's saved songs from the smart contract
-  const fetchMySaves = async () => {
-    if (contract) {
-      try {
-        console.log("Fetching saved songs...");
-        const mySaves = await contract.retrieveMySaves();
-        const formattedSaves = mySaves.map((song) => ({
+  const fetchMySaves = useCallback(async () => {
+    if (!contract) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      console.log("Fetching saved songs...");
+      const mySaves = await contract.retrieveMySaves();
+      const formattedSaves = mySaves
+        .map((song) => ({
           id: song.id,
           title: song.title,
           uri: song.uri,
-        }));
-        setSavedSongs(formattedSaves);
-      } catch (error) {
-        console.error("Error fetching saved songs:", error);
-      }
+          isActive: song.isActive, // Respect active status
+        }))
+        .filter((song) => song.isActive); // Exclude inactive songs
+      setSavedSongs(formattedSaves);
+    } catch (error) {
+      console.error("Error fetching saved songs:", error);
+      setError("Failed to fetch saved songs. Please try again.");
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [contract]);
 
   // Save the currently playing song to the user's saves
   const handleSaveSong = async () => {
-    if (currentSong && currentSong.id && contract) {
-      try {
-        console.log(`Saving song: ${currentSong.title}`);
-        const tx = await contract.addToMySaves(currentSong.id);
-        await tx.wait();
-
-        alert(`Song "${currentSong.title}" saved successfully!`);
-        fetchMySaves(); // Refresh the saved songs list after saving
-      } catch (error) {
-        console.error("Error saving the song:", error);
-        alert("Failed to save the song. Ensure you're connected and authorized.");
-      }
-    } else {
+    if (!currentSong || !currentSong.id || !contract) {
       alert("No song is currently playing or the song data is incomplete.");
+      return;
+    }
+
+    try {
+      console.log(`Saving song: ${currentSong.title}`);
+      const tx = await contract.addToMySaves(currentSong.id);
+      await tx.wait();
+
+      alert(`Song "${currentSong.title}" saved successfully!`);
+      fetchMySaves(); // Refresh the saved songs list after saving
+    } catch (error) {
+      console.error("Error saving the song:", error);
+      alert("Failed to save the song. Ensure you're connected and authorized.");
     }
   };
 
+  // Fetch saved songs when the contract updates
   useEffect(() => {
-    fetchMySaves(); // Fetch saved songs when the contract updates
-  }, [contract]);
+    console.log("Fetching saved songs..."); // Debugging
+    fetchMySaves();
+  }, [fetchMySaves]);
 
   return (
     <div>
@@ -54,13 +78,17 @@ const MySaves = ({ contract, currentSong }) => {
       >
         Save Current Audio
       </button>
-      {savedSongs.length > 0 ? (
+      {loading ? (
+        <p>Loading your saved audios...</p>
+      ) : error ? (
+        <p style={{ color: "red" }}>{error}</p>
+      ) : savedSongs.length > 0 ? (
         <ul>
           {savedSongs.map((song) => (
             <li key={song.id}>
               <strong>{song.title}</strong> -{" "}
               <a
-                href={`https://cloudflare-ipfs.com/ipfs/${song.uri.replace("ipfs://", "")}`}
+                href={resolveIpfsUri(song.uri)}
                 target="_blank"
                 rel="noopener noreferrer"
               >
