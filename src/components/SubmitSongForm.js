@@ -6,50 +6,53 @@ const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {
   const [imageUri, setImageUri] = useState("");
   const [loading, setLoading] = useState(false);
   const [disclaimerChecked, setDisclaimerChecked] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
 
-  // Normalize external links (Dropbox and Google Drive)
   const normalizeLink = (url) => {
     if (url.includes("dropbox.com")) {
-      return url.replace("dl=0", "raw=1"); // Convert Dropbox share link to direct link
+      return url.replace("dl=0", "raw=1");
     }
     if (url.includes("drive.google.com")) {
-      const match = url.match(/\/file\/d\/([^/]+)\//); // Extract file ID
+      const match = url.match(/\/file\/d\/([^/]+)\//);
       if (match && match[1]) {
-        return `https://drive.google.com/uc?id=${match[1]}&export=download`; // Direct download link
+        return `https://drive.google.com/uc?id=${match[1]}&export=download`;
       }
-      const altMatch = url.match(/id=([^&]+)/); // Handle alternative formats
+      const altMatch = url.match(/id=([^&]+)/);
       if (altMatch && altMatch[1]) {
         return `https://drive.google.com/uc?id=${altMatch[1]}&export=download`;
       }
     }
-    return url; // Return unchanged if not Dropbox or Google Drive
+    return url;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!title || !audioUri || !imageUri || !disclaimerChecked) {
-      alert("Please provide a title, audio URL, image URL, and check the disclaimer box.");
+      setErrorMessage("All fields are required and the disclaimer must be checked.");
       return;
     }
 
     setLoading(true);
+    setErrorMessage(null);
 
     try {
-      // Normalize provided URLs
       const normalizedAudioUri = normalizeLink(audioUri);
       const normalizedImageUri = normalizeLink(imageUri);
 
-      // Submit song to the smart contract
       const tx = await contract.addSong(normalizedAudioUri, normalizedImageUri, title);
       await tx.wait();
 
       alert("Audio submitted successfully!");
       fetchPlaylist();
       fetchUserSongs();
+      setTitle("");
+      setAudioUri("");
+      setImageUri("");
+      setDisclaimerChecked(false);
     } catch (error) {
       console.error("Error submitting audio:", error);
-      alert("Failed to submit audio to the smart contract.");
+      setErrorMessage("Failed to submit audio to the smart contract.");
     } finally {
       setLoading(false);
     }
@@ -58,8 +61,8 @@ const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {
   return (
     <div>
       <h2>Submit a New Audio</h2>
+      {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
       <form onSubmit={handleSubmit}>
-        {/* Title Input */}
         <div>
           <label htmlFor="title">Audio Title:</label>
           <input
@@ -68,12 +71,12 @@ const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
+            aria-label="Audio Title"
           />
         </div>
 
-        {/* Audio URI Input */}
         <div>
-          <label htmlFor="audioUri">Audio File URL (e.g., IPFS, Dropbox, or Google Drive):</label>
+          <label htmlFor="audioUri">Audio File URL:</label>
           <input
             id="audioUri"
             type="url"
@@ -81,12 +84,12 @@ const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {
             onChange={(e) => setAudioUri(e.target.value)}
             required
             placeholder="https://..."
+            aria-label="Audio File URL"
           />
         </div>
 
-        {/* Image URI Input */}
         <div>
-          <label htmlFor="imageUri">Cover Image URL (e.g., IPFS, Dropbox, or Google Drive):</label>
+          <label htmlFor="imageUri">Cover Image URL:</label>
           <input
             id="imageUri"
             type="url"
@@ -94,10 +97,10 @@ const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {
             onChange={(e) => setImageUri(e.target.value)}
             required
             placeholder="https://..."
+            aria-label="Cover Image URL"
           />
         </div>
 
-        {/* Disclaimer Checkbox */}
         <div>
           <label htmlFor="disclaimer">
             <input
@@ -117,7 +120,6 @@ const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {
           </label>
         </div>
 
-        {/* Submit Button */}
         <div>
           <button type="submit" disabled={loading || !disclaimerChecked}>
             {loading ? "Submitting..." : "Submit Audio"}

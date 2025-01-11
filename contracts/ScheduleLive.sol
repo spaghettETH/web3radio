@@ -7,23 +7,25 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract DecentraLiveSchedule is Ownable {
     IERC721 public nftContract;
 
-    uint256 public nextEventId;
+    uint256 public constant SLOT_DURATION = 1800; // 30 minutes in seconds
+    mapping(uint256 => address) public slotToOwner; // Maps slot timestamp to the owner's address
+    mapping(uint256 => uint256) public slotToEventId; // Maps slot timestamp to event ID
 
     struct LiveEvent {
         uint256 id;
         string title;
         string imageUrl;
         string livestreamUrl;
-        uint256 startTime;
-        uint256 duration;
-        address creator;
+        uint256 startTime; // Start time of the event
+        uint256 endTime;   // End time of the event
+        address creator;   // Creator of the event
     }
 
-    mapping(uint256 => LiveEvent) public eventsById;
-    mapping(uint256 => bool) public isSlotTaken;
-    mapping(address => uint256[]) public userEvents;
+    mapping(uint256 => LiveEvent) public eventsById; // Maps event ID to details
+    mapping(address => uint256[]) public userEvents; // Tracks user-created event IDs
+    uint256 public nextEventId; // Counter for unique event IDs
 
-    LiveEvent[] public events;
+    event EventScheduled(uint256 indexed id, uint256 indexed startTime, address indexed creator);
 
     constructor(address _nftContract) {
         nftContract = IERC721(_nftContract);
@@ -37,8 +39,10 @@ contract DecentraLiveSchedule is Ownable {
         _;
     }
 
-    modifier validEventId(uint256 eventId) {
-        require(eventId < nextEventId, "Invalid event ID");
+    modifier validSlot(uint256 slot) {
+        require(slot % SLOT_DURATION == 0, "Slot must align with 30-minute intervals");
+        require(slot > block.timestamp, "Slot must be in the future");
+        require(slotToOwner[slot] == address(0), "Slot is already booked");
         _;
     }
 
@@ -46,126 +50,78 @@ contract DecentraLiveSchedule is Ownable {
         string memory title,
         string memory imageUrl,
         string memory livestreamUrl,
-        uint256 startTime,
-        uint256 duration
-    ) external onlyNFTHolder {
+        uint256 slot,
+        uint256 slotCount
+    ) external onlyNFTHolder validSlot(slot) {
+        require(slotCount > 0, "Slot count must be greater than zero");
         require(bytes(title).length > 0, "Title is required");
         require(bytes(imageUrl).length > 0, "Image URL is required");
         require(bytes(livestreamUrl).length > 0, "Livestream URL is required");
-        require(startTime > block.timestamp, "Start time must be in the future");
-        require(
-            duration == 15 * 60 || duration == 30 * 60 || duration == 60 * 60,
-            "Invalid duration"
-        );
 
-        uint256 endTime = startTime + duration;
-        for (uint256 time = startTime; time < endTime; time += 60) {
-            require(!isSlotTaken[time], "Slot is already booked");
+        uint256 endTime = slot + (slotCount * SLOT_DURATION); // Calculate event end time
+
+        // Check that all slots in the range are available
+        for (uint256 i = 0; i < slotCount; i++) {
+            uint256 currentSlot = slot + (i * SLOT_DURATION);
+            require(slotToOwner[currentSlot] == address(0), "One or more slots are already booked");
         }
 
-        for (uint256 time = startTime; time < endTime; time += 60) {
-            isSlotTaken[time] = true;
-        }
-
+        // Create the event
         LiveEvent memory newEvent = LiveEvent({
             id: nextEventId,
             title: title,
             imageUrl: imageUrl,
             livestreamUrl: livestreamUrl,
-            startTime: startTime,
-            duration: duration,
+            startTime: slot,
+            endTime: endTime, // Set the end time
             creator: msg.sender
         });
 
-        events.push(newEvent);
+        // Book all slots and map them to the event
+        for (uint256 i = 0; i < slotCount; i++) {
+            uint256 currentSlot = slot + (i * SLOT_DURATION);
+            slotToOwner[currentSlot] = msg.sender;
+            slotToEventId[currentSlot] = nextEventId;
+        }
+
+        // Store the event and update user mapping
         eventsById[nextEventId] = newEvent;
         userEvents[msg.sender].push(nextEventId);
 
+        emit EventScheduled(nextEventId, slot, msg.sender);
+
         nextEventId++;
     }
-    // Get user's shows
-    function getMyBookedShows() external view returns (
-    uint256[] memory ids,
-    string[] memory titles,
-    string[] memory imageUrls,
-    string[] memory livestreamUrls,
-    uint256[] memory startTimes,
-    uint256[] memory durations,
-    address[] memory creators
-) {
-    uint256[] memory myEventIds = userEvents[msg.sender];
-    uint256 count = myEventIds.length;
 
-    ids = new uint256[](count);
-    titles = new string[](count);
-    imageUrls = new string[](count);
-    livestreamUrls = new string[](count);
-    startTimes = new uint256[](count);
-    durations = new uint256[](count);
-    creators = new address[](count);
-
-    for (uint256 i = 0; i < count; i++) {
-        LiveEvent storage eventDetail = eventsById[myEventIds[i]];
-        ids[i] = eventDetail.id;
-        titles[i] = eventDetail.title;
-        imageUrls[i] = eventDetail.imageUrl;
-        livestreamUrls[i] = eventDetail.livestreamUrl;
-        startTimes[i] = eventDetail.startTime;
-        durations[i] = eventDetail.duration;
-        creators[i] = eventDetail.creator;
+    function getMyBookedShows() external view returns (uint256[] memory) {
+        return userEvents[msg.sender];
     }
-}
 
-    
-    // Simplified getter for all events
-    function getAllEventsSimplified()
-        external
-        view
-        returns (
-            uint256[] memory ids,
-            string[] memory titles,
-            string[] memory imageUrls,
-            string[] memory livestreamUrls,
-            uint256[] memory startTimes,
-            uint256[] memory durations,
-            address[] memory creators
-        )
-    {
-        uint256 eventCount = events.length;
+    function getAllEventIds() external view returns (uint256[] memory) {
+        uint256[] memory allEventIds = new uint256[](nextEventId);
 
-        ids = new uint256[](eventCount);
-        titles = new string[](eventCount);
-        imageUrls = new string[](eventCount);
-        livestreamUrls = new string[](eventCount);
-        startTimes = new uint256[](eventCount);
-        durations = new uint256[](eventCount);
-        creators = new address[](eventCount);
-
-        for (uint256 i = 0; i < eventCount; i++) {
-            LiveEvent memory liveEvent = events[i];
-            ids[i] = liveEvent.id;
-            titles[i] = liveEvent.title;
-            imageUrls[i] = liveEvent.imageUrl;
-            livestreamUrls[i] = liveEvent.livestreamUrl;
-            startTimes[i] = liveEvent.startTime;
-            durations[i] = liveEvent.duration;
-            creators[i] = liveEvent.creator;
+        for (uint256 i = 0; i < nextEventId; i++) {
+            allEventIds[i] = i;
         }
+
+        return allEventIds;
     }
 
-    function onAirNow()
-        external
-        view
-        returns (bool, LiveEvent memory)
-    {
+    function getEventDetails(uint256 eventId) external view returns (LiveEvent memory) {
+        require(eventId < nextEventId, "Invalid event ID");
+        return eventsById[eventId];
+    }
+
+    function onAirNow() external view returns (bool, LiveEvent memory) {
         uint256 currentTime = block.timestamp;
 
-        for (uint256 i = 0; i < events.length; i++) {
+        for (uint256 i = 0; i < nextEventId; i++) {
+            LiveEvent memory eventDetails = eventsById[i];
             if (
-                events[i].startTime <= currentTime &&
-                (events[i].startTime + events[i].duration) > currentTime
+                eventDetails.startTime <= currentTime &&
+                eventDetails.endTime > currentTime
             ) {
-                return (true, events[i]);
+                return (true, eventDetails);
             }
         }
 

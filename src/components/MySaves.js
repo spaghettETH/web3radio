@@ -23,17 +23,24 @@ const MySaves = ({ contract, currentSong }) => {
     setError(null);
 
     try {
-      console.log("Fetching saved songs...");
-      const mySaves = await contract.retrieveMySaves();
-      const formattedSaves = mySaves
-        .map((song) => ({
-          id: song.id,
-          title: song.title,
-          uri: song.uri,
-          isActive: song.isActive, // Respect active status
-        }))
-        .filter((song) => song.isActive); // Exclude inactive songs
-      setSavedSongs(formattedSaves);
+      console.log("Fetching saved song IDs...");
+      const savedSongIds = await contract.retrieveMySaves();
+
+      // Fetch details for each saved song
+      const formattedSaves = await Promise.all(
+        savedSongIds.map(async (id) => {
+          const song = await contract.songsById(id);
+          return {
+            id: song.id.toString(),
+            title: song.title,
+            uri: song.uri,
+            img: song.img,
+            isActive: song.isActive, // Respect active status
+          };
+        })
+      );
+
+      setSavedSongs(formattedSaves.filter((song) => song.isActive)); // Exclude inactive songs
     } catch (error) {
       console.error("Error fetching saved songs:", error);
       setError("Failed to fetch saved songs. Please try again.");
@@ -64,7 +71,6 @@ const MySaves = ({ contract, currentSong }) => {
 
   // Fetch saved songs when the contract updates
   useEffect(() => {
-    console.log("Fetching saved songs..."); // Debugging
     fetchMySaves();
   }, [fetchMySaves]);
 

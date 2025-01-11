@@ -14,11 +14,14 @@ const resolveIpfsUri = (uri) => {
 const AudioPlayer = ({ playlist, setCurrentSong }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Update the current song when the index changes
+  // Update the current song when the index changes or playlist changes
   useEffect(() => {
-    if (playlist.length > 0 && playlist[currentIndex]) {
-      console.log("Setting current song:", playlist[currentIndex]); // Debugging
-      setCurrentSong(playlist[currentIndex]);
+    if (playlist.length > 0) {
+      // Validate currentIndex or default to the first song in the shuffled playlist
+      const validIndex = currentIndex < playlist.length ? currentIndex : 0;
+      setCurrentIndex(validIndex);
+      console.log("Setting current song:", playlist[validIndex]); // Debugging
+      setCurrentSong(playlist[validIndex]);
     }
   }, [currentIndex, playlist, setCurrentSong]);
 
@@ -27,7 +30,7 @@ const AudioPlayer = ({ playlist, setCurrentSong }) => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % playlist.length);
   };
 
-  // Guard against empty playlist or invalid index
+  // Get the current song or handle an empty playlist
   const currentSong = playlist[currentIndex] || null;
 
   return (
@@ -57,7 +60,7 @@ const AudioPlayer = ({ playlist, setCurrentSong }) => {
           />
         </div>
       ) : (
-        <p>No songs available in the playlist.</p>
+        <p>No songs available in the playlist. Please add songs to get started.</p>
       )}
     </div>
   );

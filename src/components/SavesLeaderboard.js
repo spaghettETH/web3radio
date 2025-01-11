@@ -1,11 +1,22 @@
 import React, { useState, useEffect, useCallback } from "react";
 
+// Helper to resolve IPFS URIs
+const resolveIpfsUri = (uri) => {
+  if (!uri) {
+    console.error("Invalid URI:", uri);
+    return null;
+  }
+  return uri.startsWith("ipfs://")
+    ? `https://dweb.link/ipfs/${uri.slice(7)}`
+    : uri;
+};
+
 const SavesLeaderboard = ({ contract }) => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch the leaderboard data from the smart contract
+  // Fetch leaderboard data
   const fetchLeaderboard = useCallback(async () => {
     if (!contract) return;
 
@@ -13,17 +24,28 @@ const SavesLeaderboard = ({ contract }) => {
     setError(null);
 
     try {
-      const [songs, scores] = await contract.mostSaved();
+      const songIds = await contract.viewPlaylist(); // Fetch all song IDs
+      const scores = await Promise.all(
+        songIds.map(async (id) => ({
+          id: id.toString(),
+          score: (await contract.songScores(id)).toString(),
+        }))
+      );
 
-      // Filter only active songs and format the leaderboard data
-      const leaderboardData = songs
-        .filter((song) => song.isActive) // Only include active songs
-        .map((song, index) => ({
-          id: song.id, // Use song ID for React keys
-          title: song.title,
-          uri: song.uri,
-          score: scores[index].toString(), // Convert score to string for safe rendering
-        }));
+      const leaderboardData = await Promise.all(
+        songIds.map(async (id, index) => {
+          const song = await contract.songsById(id);
+          return {
+            id: song.id.toString(),
+            title: song.title,
+            uri: song.uri,
+            score: scores[index].score,
+          };
+        })
+      );
+
+      // Sort by score descending
+      leaderboardData.sort((a, b) => b.score - a.score);
 
       setLeaderboard(leaderboardData);
     } catch (err) {
@@ -34,7 +56,7 @@ const SavesLeaderboard = ({ contract }) => {
     }
   }, [contract]);
 
-  // Fetch leaderboard data when the component mounts or the contract changes
+  // Fetch leaderboard data on component mount or when contract changes
   useEffect(() => {
     fetchLeaderboard();
   }, [fetchLeaderboard]);
@@ -54,13 +76,9 @@ const SavesLeaderboard = ({ contract }) => {
         <ol style={{ marginTop: "10px" }}>
           {leaderboard.map((song) => (
             <li key={song.id} style={{ marginBottom: "10px" }}>
-              <strong>{song.title}</strong> -{" "}
+              <strong>{song.title || "Untitled"}</strong> -{" "}
               <a
-                href={
-                  song.uri.startsWith("ipfs://")
-                    ? `https://cloudflare-ipfs.com/ipfs/${song.uri.slice(7)}`
-                    : song.uri
-                }
+                href={resolveIpfsUri(song.uri)}
                 target="_blank"
                 rel="noopener noreferrer"
               >

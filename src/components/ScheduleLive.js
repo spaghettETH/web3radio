@@ -7,33 +7,27 @@ const ScheduleLive = ({ contract }) => {
   const [imageUrl, setImageUrl] = useState("");
   const [streamUrl, setStreamUrl] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [duration, setDuration] = useState(60); // Default duration: 60 mins
+  const [extendSlots, setExtendSlots] = useState(1); // Default to 1 slot (30 minutes)
   const [bookedSlots, setBookedSlots] = useState([]);
   const [upcomingStreams, setUpcomingStreams] = useState([]);
 
   const fetchBookedSlots = useCallback(async () => {
     try {
-      const [
-        ids,
-        titles,
-        imageUrls,
-        livestreamUrls,
-        startTimes,
-        durations,
-        creators,
-      ] = await contract.getMyBookedShows();
-
-      const slots = startTimes.map((time, index) => ({
-        id: ids[index].toString(),
-        title: titles[index],
-        imageUrl: imageUrls[index],
-        livestreamUrl: livestreamUrls[index],
-        start: new Date(Number(time) * 1000).toLocaleString(),
-        end: new Date(
-          (Number(time) + Number(durations[index])) * 1000
-        ).toLocaleString(),
-        creator: creators[index],
-      }));
+      const bookedIds = await contract.getMyBookedShows();
+      const slots = await Promise.all(
+        bookedIds.map(async (id) => {
+          const eventDetails = await contract.getEventDetails(id);
+          return {
+            id: eventDetails.id,
+            title: eventDetails.title,
+            imageUrl: eventDetails.imageUrl,
+            livestreamUrl: eventDetails.livestreamUrl,
+            start: new Date(Number(eventDetails.startTime) * 1000).toLocaleString(),
+            end: new Date(Number(eventDetails.endTime) * 1000).toLocaleString(),
+            creator: eventDetails.creator,
+          };
+        })
+      );
 
       setBookedSlots(slots);
     } catch (error) {
@@ -43,41 +37,32 @@ const ScheduleLive = ({ contract }) => {
 
   const fetchUpcomingStreams = useCallback(async () => {
     try {
-      const [
-        ids,
-        titles,
-        imageUrls,
-        livestreamUrls,
-        startTimes,
-        durations,
-        creators,
-      ] = await contract.getAllEventsSimplified();
-
-      console.log("Raw upcoming events data:", { ids, startTimes });
+      const eventIds = await contract.getAllEventIds();
+      const streams = await Promise.all(
+        eventIds.map(async (id) => {
+          const eventDetails = await contract.getEventDetails(id);
+          return {
+            id: eventDetails.id,
+            title: eventDetails.title,
+            imageUrl: eventDetails.imageUrl,
+            livestreamUrl: eventDetails.livestreamUrl,
+            startTime: new Date(Number(eventDetails.startTime) * 1000).toLocaleString(),
+            endTime: new Date(Number(eventDetails.endTime) * 1000).toLocaleString(),
+            creator: eventDetails.creator,
+          };
+        })
+      );
 
       const currentTime = Math.floor(Date.now() / 1000);
       const next24Hours = currentTime + 24 * 60 * 60;
 
-      const streams = startTimes
-        .map((time, index) => ({
-          id: ids[index].toString(),
-          title: titles[index],
-          imageUrl: imageUrls[index],
-          livestreamUrl: livestreamUrls[index],
-          startTime: new Date(Number(time) * 1000).toLocaleString(),
-          endTime: new Date(
-            (Number(time) + Number(durations[index])) * 1000
-          ).toLocaleString(),
-          duration: Number(durations[index]),
-          creator: creators[index],
-        }))
-        .filter(
+      setUpcomingStreams(
+        streams.filter(
           (stream) =>
-            Number(startTimes[stream.id]) >= currentTime &&
-            Number(startTimes[stream.id]) <= next24Hours
-        );
-
-      setUpcomingStreams(streams);
+            stream.startTime >= currentTime &&
+            stream.startTime <= next24Hours
+        )
+      );
     } catch (error) {
       console.error("Error fetching upcoming streams:", error);
     }
@@ -91,7 +76,7 @@ const ScheduleLive = ({ contract }) => {
       return;
     }
 
-    const startTime = Math.floor(selectedDate.getTime() / 1000); // Convert to Unix timestamp
+    const startTime = Math.floor(selectedDate.getTime() / 1000);
 
     try {
       const tx = await contract.scheduleEvent(
@@ -99,7 +84,7 @@ const ScheduleLive = ({ contract }) => {
         imageUrl,
         streamUrl,
         startTime,
-        duration * 60
+        extendSlots
       );
       await tx.wait();
       alert("Livestream scheduled successfully!");
@@ -117,6 +102,11 @@ const ScheduleLive = ({ contract }) => {
       fetchUpcomingStreams();
     }
   }, [contract, fetchBookedSlots, fetchUpcomingStreams]);
+
+  const filterTimeOptions = (date) => {
+    const minutes = date.getMinutes();
+    return minutes === 0 || minutes === 30; // Only allow 00 and 30 minutes
+  };
 
   return (
     <div>
@@ -150,23 +140,26 @@ const ScheduleLive = ({ contract }) => {
           />
         </div>
         <div>
-          <label>Date:</label>
+          <label>Date and Time:</label>
           <DatePicker
             selected={selectedDate}
             onChange={(date) => setSelectedDate(date)}
             showTimeSelect
             dateFormat="Pp"
+            filterTime={filterTimeOptions} // Restrict time selection to 00 and 30 minutes
           />
         </div>
         <div>
-          <label>Duration:</label>
+          <label>Extend:</label>
           <select
-            value={duration}
-            onChange={(e) => setDuration(Number(e.target.value))}
+            value={extendSlots}
+            onChange={(e) => setExtendSlots(Number(e.target.value))}
           >
-            <option value={60}>1 Hour</option>
-            <option value={30}>30 Minutes</option>
-            <option value={15}>15 Minutes</option>
+            {Array.from({ length: 10 }, (_, i) => (
+              <option key={i} value={i + 1}>
+                {i + 1} Slot{(i + 1) > 1 ? "s" : ""} ({(i + 1) * 30} minutes)
+              </option>
+            ))}
           </select>
         </div>
         <button type="submit">Schedule Livestream</button>

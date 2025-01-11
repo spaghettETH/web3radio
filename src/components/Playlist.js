@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 // Helper to resolve IPFS URIs
 const resolveIpfsUri = (uri) => {
@@ -21,27 +21,59 @@ const shuffleArray = (array) => {
   return shuffled;
 };
 
-const Playlist = ({ playlist }) => {
+const Playlist = ({ contract }) => {
   const [shuffledPlaylist, setShuffledPlaylist] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Shuffle the playlist and filter out inactive songs when it updates
-  useEffect(() => {
-    if (playlist?.length > 0) {
-      console.log("Shuffling and filtering active playlist:", playlist); // Debugging
-      const activeSongs = playlist.filter((song) => song?.isActive !== false); // Check for active songs
-      const shuffled = shuffleArray(activeSongs);
-      setShuffledPlaylist(shuffled);
-    } else {
-      console.log("Empty or invalid playlist prop."); // Debugging
-      setShuffledPlaylist([]);
+  // Fetch and shuffle playlist from the smart contract
+  const fetchPlaylist = useCallback(async () => {
+    if (!contract) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      console.log("Fetching playlist...");
+      const songIds = await contract.viewPlaylist();
+
+      // Fetch song details for each ID
+      const detailedSongs = await Promise.all(
+        songIds.map(async (id) => {
+          const song = await contract.songsById(id);
+          return {
+            id: song.id.toString(),
+            title: song.title,
+            uri: song.uri,
+            img: song.img,
+            isActive: song.isActive,
+          };
+        })
+      );
+
+      // Filter out inactive songs and shuffle
+      const activeSongs = detailedSongs.filter((song) => song.isActive);
+      setShuffledPlaylist(shuffleArray(activeSongs));
+    } catch (error) {
+      console.error("Error fetching playlist:", error);
+      setError("Failed to fetch playlist. Please try again.");
+    } finally {
+      setLoading(false);
     }
-  }, [playlist]);
-  
+  }, [contract]);
+
+  // Fetch playlist when the contract updates
+  useEffect(() => {
+    fetchPlaylist();
+  }, [fetchPlaylist]);
 
   return (
     <div>
       <h2>Playlist</h2>
-      {shuffledPlaylist.length === 0 ? (
+      {loading ? (
+        <p>Loading playlist...</p>
+      ) : error ? (
+        <p style={{ color: "red" }}>{error}</p>
+      ) : shuffledPlaylist.length === 0 ? (
         <p>No audios available yet.</p>
       ) : (
         <ul style={{ listStyleType: "none", padding: 0 }}>

@@ -15,6 +15,31 @@
 		"inputs": [
 			{
 				"indexed": true,
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "startTime",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "creator",
+				"type": "address"
+			}
+		],
+		"name": "EventScheduled",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
 				"internalType": "address",
 				"name": "previousOwner",
 				"type": "address"
@@ -30,49 +55,13 @@
 		"type": "event"
 	},
 	{
-		"inputs": [
+		"inputs": [],
+		"name": "SLOT_DURATION",
+		"outputs": [
 			{
 				"internalType": "uint256",
 				"name": "",
 				"type": "uint256"
-			}
-		],
-		"name": "events",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "id",
-				"type": "uint256"
-			},
-			{
-				"internalType": "string",
-				"name": "title",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "imageUrl",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "livestreamUrl",
-				"type": "string"
-			},
-			{
-				"internalType": "uint256",
-				"name": "startTime",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "duration",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "creator",
-				"type": "address"
 			}
 		],
 		"stateMutability": "view",
@@ -115,7 +104,7 @@
 			},
 			{
 				"internalType": "uint256",
-				"name": "duration",
+				"name": "endTime",
 				"type": "uint256"
 			},
 			{
@@ -129,42 +118,68 @@
 	},
 	{
 		"inputs": [],
-		"name": "getAllEventsSimplified",
+		"name": "getAllEventIds",
 		"outputs": [
 			{
 				"internalType": "uint256[]",
-				"name": "ids",
+				"name": "",
 				"type": "uint256[]"
-			},
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
 			{
-				"internalType": "string[]",
-				"name": "titles",
-				"type": "string[]"
-			},
+				"internalType": "uint256",
+				"name": "eventId",
+				"type": "uint256"
+			}
+		],
+		"name": "getEventDetails",
+		"outputs": [
 			{
-				"internalType": "string[]",
-				"name": "imageUrls",
-				"type": "string[]"
-			},
-			{
-				"internalType": "string[]",
-				"name": "livestreamUrls",
-				"type": "string[]"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "startTimes",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "durations",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "address[]",
-				"name": "creators",
-				"type": "address[]"
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "title",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "imageUrl",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "livestreamUrl",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "startTime",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "endTime",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "creator",
+						"type": "address"
+					}
+				],
+				"internalType": "struct DecentraLiveSchedule.LiveEvent",
+				"name": "",
+				"type": "tuple"
 			}
 		],
 		"stateMutability": "view",
@@ -176,57 +191,8 @@
 		"outputs": [
 			{
 				"internalType": "uint256[]",
-				"name": "ids",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "string[]",
-				"name": "titles",
-				"type": "string[]"
-			},
-			{
-				"internalType": "string[]",
-				"name": "imageUrls",
-				"type": "string[]"
-			},
-			{
-				"internalType": "string[]",
-				"name": "livestreamUrls",
-				"type": "string[]"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "startTimes",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "durations",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "address[]",
-				"name": "creators",
-				"type": "address[]"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
 				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "isSlotTaken",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
+				"type": "uint256[]"
 			}
 		],
 		"stateMutability": "view",
@@ -296,7 +262,7 @@
 					},
 					{
 						"internalType": "uint256",
-						"name": "duration",
+						"name": "endTime",
 						"type": "uint256"
 					},
 					{
@@ -352,18 +318,56 @@
 			},
 			{
 				"internalType": "uint256",
-				"name": "startTime",
+				"name": "slot",
 				"type": "uint256"
 			},
 			{
 				"internalType": "uint256",
-				"name": "duration",
+				"name": "slotCount",
 				"type": "uint256"
 			}
 		],
 		"name": "scheduleEvent",
 		"outputs": [],
 		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "slotToEventId",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "slotToOwner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
