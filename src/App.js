@@ -383,6 +383,25 @@ const scheduleLiveABI = [
 			},
 			{
 				"indexed": true,
+				"internalType": "address",
+				"name": "creator",
+				"type": "address"
+			}
+		],
+		"name": "EventDeleted",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
 				"internalType": "uint256",
 				"name": "startTime",
 				"type": "uint256"
@@ -418,53 +437,58 @@ const scheduleLiveABI = [
 	},
 	{
 		"inputs": [],
-		"name": "renounceOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "string",
-				"name": "title",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "imageUrl",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "livestreamUrl",
-				"type": "string"
-			},
+		"name": "MAX_BOOKINGS_PER_DAY",
+		"outputs": [
 			{
 				"internalType": "uint256",
-				"name": "slot",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "slotCount",
+				"name": "",
 				"type": "uint256"
 			}
 		],
-		"name": "scheduleEvent",
-		"outputs": [],
-		"stateMutability": "nonpayable",
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "SLOT_DURATION",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
 		"inputs": [
 			{
 				"internalType": "address",
-				"name": "newOwner",
+				"name": "",
 				"type": "address"
 			}
 		],
-		"name": "transferOwnership",
+		"name": "dailyBookingCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "eventId",
+				"type": "uint256"
+			}
+		],
+		"name": "deleteEvent",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -513,6 +537,11 @@ const scheduleLiveABI = [
 				"internalType": "address",
 				"name": "creator",
 				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "isActive",
+				"type": "bool"
 			}
 		],
 		"stateMutability": "view",
@@ -577,11 +606,29 @@ const scheduleLiveABI = [
 						"internalType": "address",
 						"name": "creator",
 						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "isActive",
+						"type": "bool"
 					}
 				],
 				"internalType": "struct DecentraLiveSchedule.LiveEvent",
 				"name": "",
 				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getLiveShowsInNext24Hours",
+		"outputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "",
+				"type": "uint256[]"
 			}
 		],
 		"stateMutability": "view",
@@ -595,6 +642,25 @@ const scheduleLiveABI = [
 				"internalType": "uint256[]",
 				"name": "",
 				"type": "uint256[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "lastBookingTime",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
@@ -671,6 +737,11 @@ const scheduleLiveABI = [
 						"internalType": "address",
 						"name": "creator",
 						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "isActive",
+						"type": "bool"
 					}
 				],
 				"internalType": "struct DecentraLiveSchedule.LiveEvent",
@@ -696,15 +767,42 @@ const scheduleLiveABI = [
 	},
 	{
 		"inputs": [],
-		"name": "SLOT_DURATION",
-		"outputs": [
+		"name": "renounceOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "title",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "imageUrl",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "livestreamUrl",
+				"type": "string"
+			},
 			{
 				"internalType": "uint256",
-				"name": "",
+				"name": "slot",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "slotCount",
 				"type": "uint256"
 			}
 		],
-		"stateMutability": "view",
+		"name": "scheduleEvent",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -749,6 +847,19 @@ const scheduleLiveABI = [
 		"inputs": [
 			{
 				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
 				"name": "",
 				"type": "address"
 			},
@@ -770,7 +881,7 @@ const scheduleLiveABI = [
 		"type": "function"
 	}
 ];
-const scheduleLiveAddress = "0x87c60857b21789a90AE8ce613377FcF73Bd97dd4";
+const scheduleLiveAddress = "0x2d02B3c0ab9CBEde7D4BcB78e307C99c1c33e17c";
 
 const App = () => {
   const [provider, setProvider] = useState(null);

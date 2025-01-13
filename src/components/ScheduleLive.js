@@ -7,64 +7,55 @@ const ScheduleLive = ({ contract }) => {
   const [imageUrl, setImageUrl] = useState("");
   const [streamUrl, setStreamUrl] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [extendSlots, setExtendSlots] = useState(1); // Default to 1 slot (30 minutes)
+  const [duration, setDuration] = useState(1); // Default: 30 minutes
   const [bookedSlots, setBookedSlots] = useState([]);
-  const [upcomingStreams, setUpcomingStreams] = useState([]);
+  const [next24HoursEvents, setNext24HoursEvents] = useState([]);
 
   const fetchBookedSlots = useCallback(async () => {
     try {
-      const bookedIds = await contract.getMyBookedShows();
-      const slots = await Promise.all(
-        bookedIds.map(async (id) => {
-          const eventDetails = await contract.getEventDetails(id);
-          return {
-            id: eventDetails.id,
-            title: eventDetails.title,
-            imageUrl: eventDetails.imageUrl,
-            livestreamUrl: eventDetails.livestreamUrl,
-            start: new Date(Number(eventDetails.startTime) * 1000).toLocaleString(),
-            end: new Date(Number(eventDetails.endTime) * 1000).toLocaleString(),
-            creator: eventDetails.creator,
-          };
+      const eventIds = await contract.getMyBookedShows();
+      const events = await Promise.all(
+        eventIds.map(async (eventId) => {
+          const event = await contract.getEventDetails(eventId);
+          return event.isActive
+            ? {
+                id: event.id,
+                title: event.title,
+                imageUrl: event.imageUrl,
+                livestreamUrl: event.livestreamUrl,
+                startTime: new Date(Number(event.startTime) * 1000).toLocaleString(),
+                endTime: new Date(Number(event.endTime) * 1000).toLocaleString(),
+              }
+            : null;
         })
       );
-
-      setBookedSlots(slots);
+      setBookedSlots(events.filter((event) => event !== null));
     } catch (error) {
       console.error("Error fetching booked slots:", error);
     }
   }, [contract]);
 
-  const fetchUpcomingStreams = useCallback(async () => {
+  const fetchNext24HoursEvents = useCallback(async () => {
     try {
-      const eventIds = await contract.getAllEventIds();
-      const streams = await Promise.all(
-        eventIds.map(async (id) => {
-          const eventDetails = await contract.getEventDetails(id);
-          return {
-            id: eventDetails.id,
-            title: eventDetails.title,
-            imageUrl: eventDetails.imageUrl,
-            livestreamUrl: eventDetails.livestreamUrl,
-            startTime: new Date(Number(eventDetails.startTime) * 1000).toLocaleString(),
-            endTime: new Date(Number(eventDetails.endTime) * 1000).toLocaleString(),
-            creator: eventDetails.creator,
-          };
+      const eventIds = await contract.getLiveShowsInNext24Hours();
+      const events = await Promise.all(
+        eventIds.map(async (eventId) => {
+          const event = await contract.getEventDetails(eventId);
+          return event.isActive
+            ? {
+                id: event.id,
+                title: event.title,
+                imageUrl: event.imageUrl,
+                livestreamUrl: event.livestreamUrl,
+                startTime: new Date(Number(event.startTime) * 1000).toLocaleString(),
+                endTime: new Date(Number(event.endTime) * 1000).toLocaleString(),
+              }
+            : null;
         })
       );
-
-      const currentTime = Math.floor(Date.now() / 1000);
-      const next24Hours = currentTime + 24 * 60 * 60;
-
-      setUpcomingStreams(
-        streams.filter(
-          (stream) =>
-            stream.startTime >= currentTime &&
-            stream.startTime <= next24Hours
-        )
-      );
+      setNext24HoursEvents(events.filter((event) => event !== null));
     } catch (error) {
-      console.error("Error fetching upcoming streams:", error);
+      console.error("Error fetching live shows in the next 24 hours:", error);
     }
   }, [contract]);
 
@@ -84,29 +75,32 @@ const ScheduleLive = ({ contract }) => {
         imageUrl,
         streamUrl,
         startTime,
-        extendSlots
+        duration
       );
       await tx.wait();
       alert("Livestream scheduled successfully!");
       fetchBookedSlots();
-      fetchUpcomingStreams();
+      fetchNext24HoursEvents();
     } catch (error) {
       console.error("Error scheduling livestream:", error);
-      alert("Failed to schedule livestream.");
+      if (error.reason === "Too many bookings for today!") {
+        alert("You have reached the maximum number of bookings allowed for today.");
+      } else if (error.reason === "Cannot book more than 10 slots (5 hours) in a single booking") {
+        alert("You cannot book more than 10 slots (5 hours) in a single booking.");
+      } else if (error.reason === "Slot is already booked") {
+        alert("One or more selected slots are already booked.");
+      } else {
+        alert("Failed to schedule livestream. Please try again.");
+      }
     }
   };
 
   useEffect(() => {
     if (contract) {
       fetchBookedSlots();
-      fetchUpcomingStreams();
+      fetchNext24HoursEvents();
     }
-  }, [contract, fetchBookedSlots, fetchUpcomingStreams]);
-
-  const filterTimeOptions = (date) => {
-    const minutes = date.getMinutes();
-    return minutes === 0 || minutes === 30; // Only allow 00 and 30 minutes
-  };
+  }, [contract, fetchBookedSlots, fetchNext24HoursEvents]);
 
   return (
     <div>
@@ -140,24 +134,26 @@ const ScheduleLive = ({ contract }) => {
           />
         </div>
         <div>
-          <label>Date and Time:</label>
+          <label>Date:</label>
           <DatePicker
             selected={selectedDate}
             onChange={(date) => setSelectedDate(date)}
             showTimeSelect
             dateFormat="Pp"
-            filterTime={filterTimeOptions} // Restrict time selection to 00 and 30 minutes
+            showTimeSelectOnly
+            timeIntervals={30}
+            timeCaption="Time"
           />
         </div>
         <div>
           <label>Extend:</label>
           <select
-            value={extendSlots}
-            onChange={(e) => setExtendSlots(Number(e.target.value))}
+            value={duration}
+            onChange={(e) => setDuration(Number(e.target.value))}
           >
-            {Array.from({ length: 10 }, (_, i) => (
+            {[...Array(10)].map((_, i) => (
               <option key={i} value={i + 1}>
-                {i + 1} Slot{(i + 1) > 1 ? "s" : ""} ({(i + 1) * 30} minutes)
+                {i + 1} ({(i + 1) * 30} minutes)
               </option>
             ))}
           </select>
@@ -165,49 +161,29 @@ const ScheduleLive = ({ contract }) => {
         <button type="submit">Schedule Livestream</button>
       </form>
 
-      <h3>Booked Slots</h3>
+      <h3>My Scheduled Live Events</h3>
       <ul>
         {bookedSlots.length > 0 ? (
-          bookedSlots.map((slot, index) => (
-            <li key={index}>
-              {slot.start} - {slot.end}
+          bookedSlots.map((slot) => (
+            <li key={slot.id}>
+              <strong>{slot.title}</strong>: {slot.startTime} - {slot.endTime}
             </li>
           ))
         ) : (
-          <p>No booked slots.</p>
+          <p>No scheduled events.</p>
         )}
       </ul>
 
-      <h3>Upcoming Livestreams (Next 24 Hours)</h3>
+      <h3>Live Events in the Next 24 Hours</h3>
       <ul>
-        {upcomingStreams.length > 0 ? (
-          upcomingStreams.map((stream, index) => (
-            <li key={index}>
-              <strong>{stream.title}</strong> - {stream.startTime}
-              <br />
-              <img
-                src={stream.imageUrl}
-                alt={stream.title}
-                style={{
-                  width: "100px",
-                  height: "100px",
-                  objectFit: "cover",
-                  borderRadius: "10px",
-                  margin: "5px 0",
-                }}
-              />
-              <br />
-              <a
-                href={stream.livestreamUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Watch Stream
-              </a>
+        {next24HoursEvents.length > 0 ? (
+          next24HoursEvents.map((event) => (
+            <li key={event.id}>
+              <strong>{event.title}</strong>: {event.startTime} - {event.endTime}
             </li>
           ))
         ) : (
-          <p>No upcoming livestreams.</p>
+          <p>No live events in the next 24 hours.</p>
         )}
       </ul>
     </div>
