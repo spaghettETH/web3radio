@@ -36,9 +36,7 @@ export default function SavedAudio({ id, title, uri, img }) {
 
         <div className="w-full flex flex-row items-center justify-between gap-2">
             <div className="overflow-hidden relative flex-1 mr-2 group">
-                <h1 
-                    className="text-black uppercase font-bold whitespace-nowrap group-hover:animate-scrollText inline-block"
-                >
+                <h1 className="text-black uppercase font-bold whitespace-nowrap md:group-hover:animate-none group-hover:animate-scrollText inline-block">
                     {title}
                 </h1>
             </div>

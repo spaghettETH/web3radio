@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import LeaderboardTable from "./LeaderboardTable";
+import LoaderSkeleton from "./LoaderSkelethon";
 // Helper to resolve IPFS URIs
 
 
@@ -57,11 +58,13 @@ const SavesLeaderboard = ({ contract }) => {
     <div className="w-full bg-black p-6">
       <div className="flex flex-row items-center gap-2">
         <h2 className="text-white text-2xl font-bold uppercase">Most Saved</h2>
-        <p className="text-white text-sm">Leaderboard</p>
+        <p className="text-white text-sm uppercase">Leaderboard</p>
       </div>
 
       {/* Loading State */}
-      {loading && <p>Loading leaderboard...</p>}
+      {
+        loading && <LoaderSkeleton />
+      }
 
       {/* Error State */}
       {error && <p style={{ color: "red" }}>{error}</p>}

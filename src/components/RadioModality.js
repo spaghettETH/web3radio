@@ -19,7 +19,7 @@ const RadioModality = ({ onModalityChange }) => {
         }
     }
 
-    return <div className="flex flex-row items-left justify-left gap-4 w-full">
+    return <div className="flex flex-row items-left my-2 justify-left gap-4 w-full">
         <button
             onClick={() => handleModalityChange("live")}
             className={`border-2 border-black text-white w-[150px] px-4 py-2 rounded-md ${
