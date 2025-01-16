@@ -1,7 +1,7 @@
 import React from "react";
 
 
-export default function SavedAudio({ id, title, uri, img }) {
+export default function SavedAudio({ id, title, uri, img, handleDelete }) {
 
     const resolveIpfsUri = (uri) => {
         if (!uri) {
@@ -13,8 +13,10 @@ export default function SavedAudio({ id, title, uri, img }) {
             : uri;
     };
 
-    const handleDelete = (id) => {
-        console.log("Si deve cancellare il saved audio con id:", id);
+    const deleteSong = (id) => {
+        if (handleDelete) {
+            handleDelete(id);
+        }
     }
 
 
@@ -36,11 +38,11 @@ export default function SavedAudio({ id, title, uri, img }) {
 
         <div className="w-full flex flex-row items-center justify-between gap-2">
             <div className="overflow-hidden relative flex-1 mr-2 group">
-                <h1 className="text-black uppercase font-bold whitespace-nowrap md:group-hover:animate-none group-hover:animate-scrollText inline-block">
+                <h1 className="text-black uppercase font-bold whitespace-nowrap group-hover:animate-scrollText inline-block">
                     {title}
                 </h1>
             </div>
-            <button onClick={() => handleDelete(id)}>
+            <button onClick={() => deleteSong(id)}>
                 <img src="/trash.svg" alt="trash" className="w-5 h-5" />
             </button>
         </div>

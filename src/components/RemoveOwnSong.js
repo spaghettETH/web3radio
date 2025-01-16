@@ -1,4 +1,7 @@
 import React, { useEffect } from "react";
+import SavedAudio from "./SavedAudio";
+// Is for testing purposes (altering contract getMySaves function)
+
 
 const RemoveOwnSong = ({ contract, mySongs, fetchUserSongs }) => {
   useEffect(() => {
@@ -31,30 +34,12 @@ const RemoveOwnSong = ({ contract, mySongs, fetchUserSongs }) => {
   console.log("Rendered mySongs in RemoveOwnSong:", mySongs); // Debugging
 
   return (
-    <div>
-      <h2>Your Submitted Audios</h2>
+    <div className="w-full bg-transparent p-6">
+      <h2 className="text-black text-3xl font-black uppercase">Your Submitted Audios</h2>
       {mySongs && mySongs.length > 0 ? (
-        <ul style={{ listStyleType: "none", padding: 0 }}>
-          {mySongs.map((song) => (
-            <li key={song.id} style={{ marginBottom: "10px" }}>
-              <strong>{song.title || "Untitled"}</strong>
-              <button
-                onClick={() => removeSong(song.id)}
-                style={{
-                  marginLeft: "10px",
-                  padding: "5px 10px",
-                  backgroundColor: "#f44336",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "5px",
-                  cursor: "pointer",
-                }}
-              >
-                Remove
-              </button>
-            </li>
-          ))}
-        </ul>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+          {mySongs.map((song) => <SavedAudio handleDelete={removeSong} key={song.id} {...song} />)}
+        </div>
       ) : (
         <p>No audios found in your submissions.</p>
       )}
@@ -63,3 +48,8 @@ const RemoveOwnSong = ({ contract, mySongs, fetchUserSongs }) => {
 };
 
 export default RemoveOwnSong;
+
+
+{/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+          {mySongs.map((song) => <SavedAudio key={song.id} {...song} />)}
+        </div> */}

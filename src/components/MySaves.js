@@ -90,13 +90,6 @@ const MySaves = ({ contract, currentSong }) => {
         <h2 className="text-black text-3xl font-black uppercase">My Saved Audios</h2>
         <img src="/eyes.svg" alt="eye" className="w-10 h-10" />
       </div>
-      <button
-        onClick={handleSaveSong}
-        disabled={!currentSong || !currentSong.id}
-        style={{ marginBottom: "10px" }}
-      >
-        Save Current Audio
-      </button>
       {loading ? (
         <p>Loading your saved audios...</p>
       ) : error ? (
@@ -116,6 +109,8 @@ const MySaves = ({ contract, currentSong }) => {
       {
         savedSongs.length > 0 &&
         <button
+          onClick={handleSaveSong}
+          disabled={!currentSong || !currentSong.id}
           className={`bg-black text-white px-4 py-2 rounded-md uppercase font-bold mt-4 mb-4`}>
           Save current audio
         </button>

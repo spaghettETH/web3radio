@@ -11,6 +11,7 @@ import ScheduleLive from "./components/ScheduleLive";
 import Logo from "./components/Logo";
 import Title from "./components/Title";
 import RadioModality from "./components/RadioModality";
+import { getSavedSongsStubs } from "./components/Stubber";
 // Playlist contract details
 const playlistABI = [
 	{
@@ -942,20 +943,44 @@ const App = () => {
 
 	// Fetch user's submitted songs
 	const fetchUserSongs = useCallback(async () => {
+		const STUBBED = true;
 		if (playlistContract && provider) {
 			try {
 				const signer = await provider.getSigner();
 				const userAddress = await signer.getAddress();
 
 				const userSongIds = await playlistContract.getUserSongs(userAddress);
-				const userSongs = await Promise.all(
+				let userSongs = await Promise.all(
 					userSongIds.map(async (id) => {
 						const song = await playlistContract.getSongDetails(id);
 						return song.isActive
-							? { id: song.id.toString(), title: song.title || "(Untitled)", uri: song.uri, img: song.img }
+							? {
+								id: song.id.toString(),
+								title: song.title || "(Untitled)",
+								uri: song.uri,
+								img: song.img
+							}
 							: null;
 					})
 				);
+
+				if (STUBBED) {
+					userSongs = await getSavedSongsStubs();
+				} else {
+					userSongs = await Promise.all(
+						userSongIds.map(async (id) => {
+							const song = await playlistContract.getSongDetails(id);
+							return song.isActive
+								? {
+									id: song.id.toString(),
+									title: song.title || "(Untitled)",
+									uri: song.uri,
+									img: song.img
+								}
+								: null;
+						})
+					);
+				}
 
 				setMySongs(userSongs.filter((song) => song)); // Exclude inactive songs
 			} catch (error) {
@@ -979,7 +1004,7 @@ const App = () => {
 	}, [playlistContract, fetchPlaylist, fetchUserSongs]);
 
 	return (
-		<div className="flex flex-col max-w-screen-lg items-center justify-center pt-10 pl-10 pr-10">
+		<div className="flex gap-10 flex-col max-w-screen-lg items-center justify-center pt-10">
 			<Logo />
 			<Title />
 
@@ -1002,18 +1027,22 @@ const App = () => {
 						<p>No creator information available.</p>
 					)}
 					<Playlist playlist={playlist} />
-					<SubmitSongForm
-						contract={playlistContract}
-						fetchPlaylist={fetchPlaylist}
-						fetchUserSongs={fetchUserSongs}
-					/>
 					<RemoveOwnSong
 						contract={playlistContract}
 						mySongs={mySongs}
 						fetchUserSongs={fetchUserSongs}
 					/>
-					<MySaves contract={playlistContract} currentSong={currentSong} />
-					<SavesLeaderboard contract={playlistContract} />
+					<div className="w-full px-10">
+						<SubmitSongForm
+							contract={playlistContract}
+							fetchPlaylist={fetchPlaylist}
+							fetchUserSongs={fetchUserSongs}
+						/>
+					</div>
+					<div>
+						<MySaves contract={playlistContract} currentSong={currentSong} />
+						<SavesLeaderboard contract={playlistContract} />
+					</div>
 					<ScheduleLive contract={scheduleLiveContract} />
 				</>
 			) : (
