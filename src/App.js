@@ -8,7 +8,9 @@ import MySaves from "./components/MySaves";
 import SavesLeaderboard from "./components/SavesLeaderboard";
 import Donate from "./components/Donate";
 import ScheduleLive from "./components/ScheduleLive";
-
+import Logo from "./components/Logo";
+import Title from "./components/Title";
+import RadioModality from "./components/RadioModality";
 // Playlist contract details
 const playlistABI = [
 	{
@@ -884,135 +886,141 @@ const scheduleLiveABI = [
 const scheduleLiveAddress = "0x2d02B3c0ab9CBEde7D4BcB78e307C99c1c33e17c";
 
 const App = () => {
-  const [provider, setProvider] = useState(null);
-  const [playlistContract, setPlaylistContract] = useState(null);
-  const [scheduleLiveContract, setScheduleLiveContract] = useState(null);
-  const [playlist, setPlaylist] = useState([]);
-  const [mySongs, setMySongs] = useState([]);
-  const [currentSong, setCurrentSong] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
+	const [provider, setProvider] = useState(null);
+	const [playlistContract, setPlaylistContract] = useState(null);
+	const [scheduleLiveContract, setScheduleLiveContract] = useState(null);
+	const [playlist, setPlaylist] = useState([]);
+	const [mySongs, setMySongs] = useState([]);
+	const [currentSong, setCurrentSong] = useState(null);
+	const [isConnected, setIsConnected] = useState(false);
 
-  // Initialize Ethereum provider and contracts
-  const initializeProvider = useCallback(async () => {
-    if (window.ethereum) {
-      try {
-        const _provider = new BrowserProvider(window.ethereum);
-        await _provider.send("eth_requestAccounts", []);
-        const signer = await _provider.getSigner();
+	// Initialize Ethereum provider and contracts
+	const initializeProvider = useCallback(async () => {
+		if (window.ethereum) {
+			try {
+				const _provider = new BrowserProvider(window.ethereum);
+				await _provider.send("eth_requestAccounts", []);
+				const signer = await _provider.getSigner();
 
-        // Initialize contracts
-        const _playlistContract = new Contract(playlistAddress, playlistABI, signer);
-        const _scheduleLiveContract = new Contract(scheduleLiveAddress, scheduleLiveABI, signer);
+				// Initialize contracts
+				const _playlistContract = new Contract(playlistAddress, playlistABI, signer);
+				const _scheduleLiveContract = new Contract(scheduleLiveAddress, scheduleLiveABI, signer);
 
-        setProvider(_provider);
-        setPlaylistContract(_playlistContract);
-        setScheduleLiveContract(_scheduleLiveContract);
-        setIsConnected(true);
-      } catch (error) {
-        console.error("Error initializing provider:", error);
-        alert("Failed to connect to MetaMask.");
-      }
-    } else {
-      alert("Please install MetaMask!");
-    }
-  }, []);
+				setProvider(_provider);
+				setPlaylistContract(_playlistContract);
+				setScheduleLiveContract(_scheduleLiveContract);
+				setIsConnected(true);
+			} catch (error) {
+				console.error("Error initializing provider:", error);
+				alert("Failed to connect to MetaMask.");
+			}
+		} else {
+			alert("Please install MetaMask!");
+		}
+	}, []);
 
-  // Fetch the playlist from the Playlist contract
-  const fetchPlaylist = useCallback(async () => {
-    if (playlistContract) {
-      try {
-        const playlistIds = await playlistContract.viewPlaylist();
-        const playlistData = await Promise.all(
-          playlistIds.map(async (id) => {
-            const song = await playlistContract.getSongDetails(id);
-            return song.isActive
-              ? { id: song.id.toString(), uri: song.uri, img: song.img, title: song.title, submitter: song.submitter }
-              : null;
-          })
-        );
-        setPlaylist(playlistData.filter((song) => song)); // Filter out inactive songs
-      } catch (error) {
-        console.error("Error fetching playlist:", error);
-        setPlaylist([]);
-      }
-    }
-  }, [playlistContract]);
+	// Fetch the playlist from the Playlist contract
+	const fetchPlaylist = useCallback(async () => {
+		if (playlistContract) {
+			try {
+				const playlistIds = await playlistContract.viewPlaylist();
+				const playlistData = await Promise.all(
+					playlistIds.map(async (id) => {
+						const song = await playlistContract.getSongDetails(id);
+						return song.isActive
+							? { id: song.id.toString(), uri: song.uri, img: song.img, title: song.title, submitter: song.submitter }
+							: null;
+					})
+				);
+				setPlaylist(playlistData.filter((song) => song)); // Filter out inactive songs
+			} catch (error) {
+				console.error("Error fetching playlist:", error);
+				setPlaylist([]);
+			}
+		}
+	}, [playlistContract]);
 
-  // Fetch user's submitted songs
-  const fetchUserSongs = useCallback(async () => {
-    if (playlistContract && provider) {
-      try {
-        const signer = await provider.getSigner();
-        const userAddress = await signer.getAddress();
+	// Fetch user's submitted songs
+	const fetchUserSongs = useCallback(async () => {
+		if (playlistContract && provider) {
+			try {
+				const signer = await provider.getSigner();
+				const userAddress = await signer.getAddress();
 
-        const userSongIds = await playlistContract.getUserSongs(userAddress);
-        const userSongs = await Promise.all(
-          userSongIds.map(async (id) => {
-            const song = await playlistContract.getSongDetails(id);
-            return song.isActive
-              ? { id: song.id.toString(), title: song.title || "(Untitled)", uri: song.uri, img: song.img }
-              : null;
-          })
-        );
+				const userSongIds = await playlistContract.getUserSongs(userAddress);
+				const userSongs = await Promise.all(
+					userSongIds.map(async (id) => {
+						const song = await playlistContract.getSongDetails(id);
+						return song.isActive
+							? { id: song.id.toString(), title: song.title || "(Untitled)", uri: song.uri, img: song.img }
+							: null;
+					})
+				);
 
-        setMySongs(userSongs.filter((song) => song)); // Exclude inactive songs
-      } catch (error) {
-        console.error("Error fetching user's songs:", error);
-        setMySongs([]);
-      }
-    }
-  }, [playlistContract, provider]);
+				setMySongs(userSongs.filter((song) => song)); // Exclude inactive songs
+			} catch (error) {
+				console.error("Error fetching user's songs:", error);
+				setMySongs([]);
+			}
+		}
+	}, [playlistContract, provider]);
 
-  // Initialize provider on component mount
-  useEffect(() => {
-    initializeProvider();
-  }, [initializeProvider]);
+	// Initialize provider on component mount
+	useEffect(() => {
+		initializeProvider();
+	}, [initializeProvider]);
 
-  // Fetch playlist and user songs when the Playlist contract is ready
-  useEffect(() => {
-    if (playlistContract) {
-      fetchPlaylist();
-      fetchUserSongs();
-    }
-  }, [playlistContract, fetchPlaylist, fetchUserSongs]);
+	// Fetch playlist and user songs when the Playlist contract is ready
+	useEffect(() => {
+		if (playlistContract) {
+			fetchPlaylist();
+			fetchUserSongs();
+		}
+	}, [playlistContract, fetchPlaylist, fetchUserSongs]);
 
-  return (
-    <div>
-      <h1>Decentralized Playlist Player</h1>
-      {isConnected ? (
-        <>
-          <AudioPlayer
-            playlist={playlist}
-            setCurrentSong={(song) => {
-              console.log("Setting current song:", song);
-              setCurrentSong(song);
-            }}
-          />
-          {currentSong && currentSong.submitter ? (
-            <Donate creatorAddress={currentSong.submitter} />
-          ) : (
-            <p>No creator information available.</p>
-          )}
-          <Playlist playlist={playlist} />
-          <SubmitSongForm
-            contract={playlistContract}
-            fetchPlaylist={fetchPlaylist}
-            fetchUserSongs={fetchUserSongs}
-          />
-          <RemoveOwnSong
-            contract={playlistContract}
-            mySongs={mySongs}
-            fetchUserSongs={fetchUserSongs}
-          />
-          <MySaves contract={playlistContract} currentSong={currentSong} />
-          <SavesLeaderboard contract={playlistContract} />
-          <ScheduleLive contract={scheduleLiveContract} />
-        </>
-      ) : (
-        <p>Please connect to MetaMask.</p>
-      )}
-    </div>
-  );
+	return (
+		<div className="flex flex-col gap-10 max-w-screen-lg items-center justify-center pt-10 pl-10 pr-10">
+			<Logo />
+			<Title />
+
+			{/* <h1>Decentralized Playlist Player</h1> */}
+			{isConnected ? (
+				<>
+					<AudioPlayer
+						playlist={playlist}
+						setCurrentSong={(song) => {
+							console.log("Setting current song:", song);
+							setCurrentSong(song);
+						}}
+					/>
+					<RadioModality onModalityChange={(modality) => {
+						console.log("Modality changed:", modality);
+					}} />
+					{currentSong && currentSong.submitter ? (
+						<Donate creatorAddress={currentSong.submitter} />
+					) : (
+						<p>No creator information available.</p>
+					)}
+					<Playlist playlist={playlist} />
+					<SubmitSongForm
+						contract={playlistContract}
+						fetchPlaylist={fetchPlaylist}
+						fetchUserSongs={fetchUserSongs}
+					/>
+					<RemoveOwnSong
+						contract={playlistContract}
+						mySongs={mySongs}
+						fetchUserSongs={fetchUserSongs}
+					/>
+					<MySaves contract={playlistContract} currentSong={currentSong} />
+					<SavesLeaderboard contract={playlistContract} />
+					<ScheduleLive contract={scheduleLiveContract} />
+				</>
+			) : (
+				<p>Please connect to MetaMask.</p>
+			)}
+		</div>
+	);
 };
 
 export default App;

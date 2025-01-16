@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import PlayBar from './PlayBar';
 
 // Helper to resolve IPFS URIs
 const resolveIpfsUri = (uri) => {
@@ -13,6 +14,7 @@ const resolveIpfsUri = (uri) => {
 
 const AudioPlayer = ({ playlist, setCurrentSong }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const audioRef = useRef(null);
 
   // Update the current song when the index changes or playlist changes
   useEffect(() => {
@@ -34,34 +36,35 @@ const AudioPlayer = ({ playlist, setCurrentSong }) => {
   const currentSong = playlist[currentIndex] || null;
 
   return (
-    <div style={{ textAlign: "center" }}>
-      {currentSong ? (
-        <div>
-          <h3>Now Playing: {currentSong.title}</h3>
-          {currentSong.img && (
-            <img
-              src={resolveIpfsUri(currentSong.img)}
-              alt={`${currentSong.title} Cover`}
+    <div className="w-full">
+      {currentSong && <p className="text-left w-full text-base">(Now Playing)</p>}
+      <div className="flex flex-col border-2 border-black w-full rounded-lg">
+        {currentSong ? (
+          <div>
+            {currentSong.img && (
+              <img
+                src={resolveIpfsUri(currentSong.img)}
+                alt={`${currentSong.title} Cover`}
+                className="w-auto h-full object-cover rounded-lg mb-2.5 mx-auto"
+              />
+            )}
+            <audio
+              ref={audioRef}
+              src={resolveIpfsUri(currentSong.uri)}
+              controls
+              autoPlay
+              onEnded={handleEnded}
               style={{
-                width: "300px",
-                height: "300px",
-                objectFit: "cover",
-                borderRadius: "10px",
-                marginBottom: "10px",
+                width: "100%",
+                borderRadius: "0px"
               }}
             />
-          )}
-          <audio
-            src={resolveIpfsUri(currentSong.uri)}
-            controls
-            autoPlay
-            onEnded={handleEnded}
-            style={{ width: "100%", maxWidth: "400px" }}
-          />
-        </div>
-      ) : (
-        <p>No songs available in the playlist. Please add songs to get started.</p>
-      )}
+            <PlayBar audioRef={audioRef} currentSong={currentSong} />
+          </div>
+        ) : (
+          <p>No songs available in the playlist. Please add songs to get started.</p>
+        )}
+      </div>
     </div>
   );
 };
