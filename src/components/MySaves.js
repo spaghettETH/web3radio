@@ -85,10 +85,10 @@ const MySaves = ({ contract, currentSong }) => {
   }, [fetchMySaves]);
 
   return (
-    <div className="w-full bg-[#FF7AAD] p-4">
+    <div className="w-full bg-[#FF7AAD] p-6">
       <div className="flex flex-row items-center justify-between">
         <h2 className="text-black text-3xl font-black uppercase">My Saved Audios</h2>
-        <img src="/eyes.svg" alt="eye" className="w-10 h-10" /> 
+        <img src="/eyes.svg" alt="eye" className="w-10 h-10" />
       </div>
       <button
         onClick={handleSaveSong}
@@ -112,6 +112,14 @@ const MySaves = ({ contract, currentSong }) => {
       ) : (
         <p>You have no saved audios yet.</p>
       )}
+
+      {
+        savedSongs.length > 0 &&
+        <button
+          className={`bg-black text-white px-4 py-2 rounded-md uppercase font-bold mt-4 mb-4`}>
+          Save current audio
+        </button>
+      }
     </div>
   );
 };

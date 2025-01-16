@@ -979,7 +979,7 @@ const App = () => {
 	}, [playlistContract, fetchPlaylist, fetchUserSongs]);
 
 	return (
-		<div className="flex flex-col gap-10 max-w-screen-lg items-center justify-center pt-10 pl-10 pr-10">
+		<div className="flex flex-col max-w-screen-lg items-center justify-center pt-10 pl-10 pr-10">
 			<Logo />
 			<Title />
 

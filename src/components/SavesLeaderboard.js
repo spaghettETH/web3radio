@@ -1,15 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
-
+import LeaderboardTable from "./LeaderboardTable";
 // Helper to resolve IPFS URIs
-const resolveIpfsUri = (uri) => {
-  if (!uri) {
-    console.error("Invalid URI:", uri);
-    return null;
-  }
-  return uri.startsWith("ipfs://")
-    ? `https://dweb.link/ipfs/${uri.slice(7)}`
-    : uri;
-};
+
 
 const SavesLeaderboard = ({ contract }) => {
   const [leaderboard, setLeaderboard] = useState([]);
@@ -62,8 +54,11 @@ const SavesLeaderboard = ({ contract }) => {
   }, [fetchLeaderboard]);
 
   return (
-    <div>
-      <h2>Most Saved Audios</h2>
+    <div className="w-full bg-black p-6">
+      <div className="flex flex-row items-center gap-2">
+        <h2 className="text-white text-2xl font-bold uppercase">Most Saved</h2>
+        <p className="text-white text-sm">Leaderboard</p>
+      </div>
 
       {/* Loading State */}
       {loading && <p>Loading leaderboard...</p>}
@@ -73,21 +68,7 @@ const SavesLeaderboard = ({ contract }) => {
 
       {/* Leaderboard Display */}
       {!loading && !error && leaderboard.length > 0 ? (
-        <ol style={{ marginTop: "10px" }}>
-          {leaderboard.map((song) => (
-            <li key={song.id} style={{ marginBottom: "10px" }}>
-              <strong>{song.title || "Untitled"}</strong> -{" "}
-              <a
-                href={resolveIpfsUri(song.uri)}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Listen
-              </a>{" "}
-              (Saves: {song.score})
-            </li>
-          ))}
-        </ol>
+        <LeaderboardTable leaderboard={leaderboard} />
       ) : (
         !loading && <p>No saved audio data available.</p>
       )}

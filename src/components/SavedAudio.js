@@ -13,10 +13,14 @@ export default function SavedAudio({ id, title, uri, img }) {
             : uri;
     };
 
+    const handleDelete = (id) => {
+        console.log("Si deve cancellare il saved audio con id:", id);
+    }
+
 
     return <div
         id={id}
-        className="flex flex-col items-center justify-between rounded-md ">
+        className="flex flex-col items-center justify-between rounded-md gap-4">
 
         <div className="w-full relative h-full rounded-md overflow-hidden border-[1px] border-b-[5px] border-black shadow-lg">
             <img src={img} alt={title} className="w-full h-full" />
@@ -30,9 +34,17 @@ export default function SavedAudio({ id, title, uri, img }) {
             </a>
         </div>
 
-        <div className="w-full flex flex-row items-center justify-between">
-            <h1 className="text-black uppercase">{title}</h1>
-            <img src="/trash.svg" alt="trash" className="w-10 h-10" />
+        <div className="w-full flex flex-row items-center justify-between gap-2">
+            <div className="overflow-hidden relative flex-1 mr-2 group">
+                <h1 
+                    className="text-black uppercase font-bold whitespace-nowrap group-hover:animate-scrollText inline-block"
+                >
+                    {title}
+                </h1>
+            </div>
+            <button onClick={() => handleDelete(id)}>
+                <img src="/trash.svg" alt="trash" className="w-5 h-5" />
+            </button>
         </div>
     </div>;
 }
