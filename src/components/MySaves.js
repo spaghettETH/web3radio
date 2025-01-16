@@ -1,4 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { getSavedSongsStubs } from "./Stubber";
+import SavedAudio from "./SavedAudio";
+// Is for testing purposes (altering contract getMySaves function)
+const STUBBED = true;
 
 // Helper to resolve IPFS URIs
 const resolveIpfsUri = (uri) => {
@@ -40,7 +44,13 @@ const MySaves = ({ contract, currentSong }) => {
         })
       );
 
-      setSavedSongs(formattedSaves.filter((song) => song.isActive)); // Exclude inactive songs
+      //STUBB alter the contract getMySaves function and override the savedSongs for testing purposes
+      if (STUBBED) {
+        const stubbedSaves = await getSavedSongsStubs();
+        setSavedSongs(stubbedSaves.filter((song) => song.isActive));
+      } else {
+        setSavedSongs(formattedSaves.filter((song) => song.isActive)); // Exclude inactive songs
+      }
     } catch (error) {
       console.error("Error fetching saved songs:", error);
       setError("Failed to fetch saved songs. Please try again.");
@@ -75,8 +85,11 @@ const MySaves = ({ contract, currentSong }) => {
   }, [fetchMySaves]);
 
   return (
-    <div>
-      <h2>My Saved Audios</h2>
+    <div className="w-full bg-[#FF7AAD] p-4">
+      <div className="flex flex-row items-center justify-between">
+        <h2 className="text-black text-3xl font-black uppercase">My Saved Audios</h2>
+        <img src="/eyes.svg" alt="eye" className="w-10 h-10" /> 
+      </div>
       <button
         onClick={handleSaveSong}
         disabled={!currentSong || !currentSong.id}
@@ -90,18 +103,11 @@ const MySaves = ({ contract, currentSong }) => {
         <p style={{ color: "red" }}>{error}</p>
       ) : savedSongs.length > 0 ? (
         <ul>
-          {savedSongs.map((song) => (
-            <li key={song.id}>
-              <strong>{song.title}</strong> -{" "}
-              <a
-                href={resolveIpfsUri(song.uri)}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Listen
-              </a>
-            </li>
-          ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+            {savedSongs.map((song) => (
+              <SavedAudio key={song.id} {...song} />
+            ))}
+          </div>
         </ul>
       ) : (
         <p>You have no saved audios yet.</p>

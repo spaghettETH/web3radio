@@ -165,7 +165,7 @@ const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {
                 >
                   <label htmlFor="imageUri" className="flex items-center">
                     <FaImage className="mr-2" />
-                    <p>COVER IMAGE:</p>
+                    <p>COVER IMAGE</p>
                   </label>
                   <input
                     id="imageUri"
@@ -173,7 +173,7 @@ const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {
                     value={imageUri}
                     onChange={(e) => setImageUri(e.target.value)}
                     required
-                    placeholder="https://..."
+                    placeholder="https://Link to cover image"
                     aria-label="Cover Image URL"
                     className="w-full border border-white rounded-md bg-black text-white p-2"
                   />
@@ -186,7 +186,7 @@ const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {
                 >
                   <label htmlFor="audioUri" className="flex items-center">
                     <FaMusic className="mr-2" />
-                    <p>SONG UPLOAD:</p>
+                    <p>SONG UPLOAD</p>
                   </label>
                   <input
                     id="audioUri"
@@ -194,7 +194,7 @@ const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {
                     value={audioUri}
                     onChange={(e) => setAudioUri(e.target.value)}
                     required
-                    placeholder="https://..."
+                    placeholder="https://Link to song"
                     aria-label="Audio File URL"
                     className="w-full border border-white rounded-md bg-black text-white p-2"
                   />
@@ -208,8 +208,8 @@ const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {
                   className="w-full lg:w-2/3"
                 >
                   <label htmlFor="title" className="flex items-center">
-                    <FaMusic className="mr-2" />
-                    <p>SONG TITLE:</p>
+                    {/* <FaMusic className="mr-2" /> */}
+                    <p>SONG TITLE</p>
                   </label>
                   <input
                     id="title"
