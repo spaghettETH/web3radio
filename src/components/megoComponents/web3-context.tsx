@@ -238,6 +238,27 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     }
   }, []);
 
+  useEffect(() => {
+    const handleAccountsChanged = (accounts: string[]) => {
+      if (accounts.length === 0) {
+        // L'utente ha disconnesso MetaMask
+        console.log("MetaMask disconnesso");
+        logoutMetamask(); // Chiama la funzione di logout o gestisci la disconnessione come necessario
+        window.location.href = "/";
+      }
+    };
+
+    // Aggiungi il listener per gli account cambiati
+    //@ts-ignore
+    window.ethereum.on('accountsChanged', handleAccountsChanged);
+
+    // Cleanup del listener quando il componente viene smontato
+    return () => {
+      //@ts-ignore
+      window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+    };
+  }, []);
+
   const value: Web3ContextType = {
     isMegoModalOpen,
     openMegoModal,
