@@ -55,8 +55,8 @@ const Web3AudioPlayer = ({ playlist, setCurrentSong }) => {
           <div className="bg-black">
             {currentSong.img && (
               <img
-                //src={resolveIpfsUri(currentSong.img)}
-                src="https://uc01920ebeca91e0ebdd6ecf9fa5.previews.dropboxusercontent.com/p/thumb/ACi2QT4zy1KjyRuDqqiGfGEBgot8ifffIdO0GDGS8imvjERoW1wKskxrvqlBM67aMTiVVpjaJngR7rS8nz2FJpLyXnKHjoaS9a-Pt94Lq-7m6PMaDMFkWODI1NhTckhdvc0BnYLVg1E9noo52Yo6jOJaxSjqdeOZ_F7znTfpMdZCqrCkAYmUyKVOqaw6APh-UWDeGtJjqfLGMZFhpB6QSWD4Coh5j0EweZ1NLMSiD0P1eRdDkGefDyjMyXc2qVlAYBPzK9TtfdRLiku8yrDZ9Gp2hrTUlbIM4330w6m1My_VoHV5mRsdEAxMZA7VqupyTG3JpriK_YrFm8xH4KsMfGvT7QQTM8mSTDqPqjbJvgNC6kF5UV0dbLaIAqBEhQAlEyU9x1cyGhM-QktscfekvypE/p.png"
+                src={resolveIpfsUri(currentSong.img)}
+                //src="https://uc01920ebeca91e0ebdd6ecf9fa5.previews.dropboxusercontent.com/p/thumb/ACi2QT4zy1KjyRuDqqiGfGEBgot8ifffIdO0GDGS8imvjERoW1wKskxrvqlBM67aMTiVVpjaJngR7rS8nz2FJpLyXnKHjoaS9a-Pt94Lq-7m6PMaDMFkWODI1NhTckhdvc0BnYLVg1E9noo52Yo6jOJaxSjqdeOZ_F7znTfpMdZCqrCkAYmUyKVOqaw6APh-UWDeGtJjqfLGMZFhpB6QSWD4Coh5j0EweZ1NLMSiD0P1eRdDkGefDyjMyXc2qVlAYBPzK9TtfdRLiku8yrDZ9Gp2hrTUlbIM4330w6m1My_VoHV5mRsdEAxMZA7VqupyTG3JpriK_YrFm8xH4KsMfGvT7QQTM8mSTDqPqjbJvgNC6kF5UV0dbLaIAqBEhQAlEyU9x1cyGhM-QktscfekvypE/p.png"
                 alt={`${currentSong.title} Cover`}
                 className="w-full h-[500px] object-contain"
               />

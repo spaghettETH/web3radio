@@ -14,6 +14,7 @@ import RadioModality from "./components/RadioModality";
 import { getSavedSongsStubs } from "./components/Stubber";
 import { playlistABI, playlistAddress } from "./contracts/DecentralizePlaylist/contract";
 import { scheduleLiveABI, scheduleLiveAddress } from "./contracts/ScheduleLive/contract";
+import WalletButton from "./components/megoComponents/WalletButton";
 
 const App = () => {
 	const [provider, setProvider] = useState(null);
@@ -26,19 +27,20 @@ const App = () => {
 
 	// Initialize Ethereum provider and contracts
 	const initializeProvider = useCallback(async () => {
+
 		if (window.ethereum) {
 			try {
 				const _provider = new BrowserProvider(window.ethereum);
 				await _provider.send("eth_requestAccounts", []);
 				const signer = await _provider.getSigner();
 
-				// Initialize contracts
 				const _playlistContract = new Contract(playlistAddress, playlistABI, signer);
 				const _scheduleLiveContract = new Contract(scheduleLiveAddress, scheduleLiveABI, signer);
-
-				setProvider(_provider);
 				setPlaylistContract(_playlistContract);
 				setScheduleLiveContract(_scheduleLiveContract);
+
+				setProvider(_provider);
+
 				setIsConnected(true);
 			} catch (error) {
 				console.error("Error initializing provider:", error);
@@ -134,6 +136,7 @@ const App = () => {
 
 	return (
 		<div className="flex gap-10 flex-col max-w-screen-lg items-center justify-center pt-10">
+			<WalletButton />
 			<Logo />
 			<Title />
 

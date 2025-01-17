@@ -1,0 +1,186 @@
+/* .graci{
+  --loading-color: #000;
+  --primary-bg-color: #c1c7b8;
+  --secondary-bg-color: #000;
+  --header-color: #c1c7b8;
+}
+.cottanera{
+  --loading-color: #3e3439;
+  --primary-bg-color: #d2be8e;
+  --secondary-bg-color: #3e3439;
+  --header-color: #af9967;
+} */
+
+
+.mego-modal-container {
+  --btn-bg-color: white;
+  --btn-text-color: black;
+  --image-filter: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  font-family: 'Lato';
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  z-index: 1000;
+}
+
+.graci .mego-modal-container,.cottanera .mego-modal-container,.custodi .mego-modal-container,.benanti .mego-modal-container,.russo .mego-modal-container {
+  --btn-bg-color: var(--primary-bg-color);
+  --btn-text-color: var(--footer-text-color);
+  --image-filter: var(--mego-image-filter);
+}
+.etna-survey__nav-button{
+  color: var(--btn-text-color);
+}
+.mego-apple img,
+.mego-email img,
+.mego-modal-header img {
+  filter: var(--image-filter);
+}
+.mego-modal-backdrop {
+  position: absolute;
+  top: 80px;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.mego-modal-wrapper {
+  z-index: 2;
+  position: relative;
+  border-radius: 1.5rem 1.5rem 0 0;
+  width: 100%;
+  max-width: 700px;
+  padding: 0 5px;
+  margin: 0 4px;
+  background: var(--btn-bg-color);
+  animation: slideUp 0.3s ease-out;
+}
+
+/* Add closing animations */
+.mego-modal-container.closing .mego-modal-backdrop {
+  animation: fadeOut 0.3s ease-in forwards;
+}
+
+.mego-modal-container.closing .mego-modal-wrapper {
+  animation: slideDown 0.3s ease-in forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
+}
+
+.mego-modal-content {
+  background-color: black;
+  align-items: stretch;
+  min-height: 313px;
+  padding: 1.5rem;
+  border-radius: 1.5rem 1.5rem 0 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.mego-modal-button {
+  width: 100%;
+  padding: 0.9rem;
+  max-width: 315px;
+  color: var(--btn-text-color);
+  margin: auto;
+  margin-bottom: 0.85rem;
+  background-color: var(--btn-bg-color);
+  border-radius: 0.6rem;
+  border: none;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mego-modal-button.outlined {
+  background-color: #000;
+  border: 0.1rem solid var(--btn-bg-color);
+  color: var(--btn-bg-color);
+}
+
+.mego-modal-button img {
+  min-height: 20px;
+  margin-right: 0.75rem;
+}
+
+/* Aggiungi il loader */
+.loader {
+  border: 6px solid rgba(255, 255, 255, 0.3);
+  border-top: 6px solid var(--btn-bg-color);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  margin: auto;
+  animation: spin 1s linear infinite;
+}
+
+/* Mostra il loader quando è in attesa */
+
+.font-bold {
+  font-weight: bold;
+}
+
+.mego-modal-header {
+  display: flex;
+  justify-content: space-between;
+
+  padding: 12px 16px;
+}
+
+.mego-input {
+  background-color: #000;
+  border: 0.1rem solid var(--btn-bg-color);
+  padding: 0.9rem;
+  border-radius: 0.6rem;
+  margin-bottom: 1rem;
+  outline: none;
+  max-width: 365px;
+  color: var(--btn-bg-color);
+  width: 100%;
+}
+
+.mego-input::placeholder {
+  opacity: 1;
+  color: var(--btn-bg-color);
+}
+
+.mego-input:user-invalid {
+  border-color: red;
+}
+
+.mego-login-text {
+  color: white;
+  text-align: center;
+  font-size: 1rem;
+  margin-top: -2rem;
+  margin-bottom: 2rem;
+}
