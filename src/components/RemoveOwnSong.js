@@ -35,7 +35,7 @@ const RemoveOwnSong = ({ contract, mySongs, fetchUserSongs }) => {
 
   return (
     <div className="w-full bg-transparent p-6">
-      <h2 className="text-black text-3xl font-black uppercase">Your Submitted Audios</h2>
+      <h2 className="text-black text-3xl font-black uppercase mb-12">Your Submitted Audios</h2>
       {mySongs && mySongs.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {mySongs.map((song) => <SavedAudio handleDelete={removeSong} key={song.id} {...song} />)}

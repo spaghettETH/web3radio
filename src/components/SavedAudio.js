@@ -19,13 +19,13 @@ export default function SavedAudio({ id, title, uri, img, handleDelete }) {
         }
     }
 
-
+    console.log("Img", img);
     return <div
         id={id}
         className="flex flex-col items-center justify-between rounded-md gap-4">
 
-        <div className="w-full relative h-full rounded-md overflow-hidden border-[1px] border-b-[5px] border-black shadow-lg">
-            <img src={img} alt={title} className="w-full h-full" />
+        <div className="w-full relative min-h-[200px] rounded-md overflow-hidden border-[1px] border-b-[5px] border-black shadow-lg">
+            <img src={img ? img : "/headphone.svg"} alt={title} className="w-full h-full object-cover" />
             <a
                 href={resolveIpfsUri(uri)}
                 target="_blank"

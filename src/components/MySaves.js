@@ -2,18 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { getSavedSongsStubs } from "./Stubber";
 import SavedAudio from "./SavedAudio";
 // Is for testing purposes (altering contract getMySaves function)
-const STUBBED = true;
-
-// Helper to resolve IPFS URIs
-const resolveIpfsUri = (uri) => {
-  if (!uri) {
-    console.error("Invalid URI:", uri);
-    return null;
-  }
-  return uri.startsWith("ipfs://")
-    ? `https://dweb.link/ipfs/${uri.slice(7)}`
-    : uri;
-};
+const STUBBED = false;
 
 const MySaves = ({ contract, currentSong }) => {
   const [savedSongs, setSavedSongs] = useState([]);
@@ -86,7 +75,7 @@ const MySaves = ({ contract, currentSong }) => {
 
   return (
     <div className="w-full bg-[#FF7AAD] p-6">
-      <div className="flex flex-row items-center justify-between">
+      <div className="flex flex-row items-center justify-between mb-12">
         <h2 className="text-black text-3xl font-black uppercase">My Saved Audios</h2>
         <img src="/eyes.svg" alt="eye" className="w-10 h-10" />
       </div>
@@ -106,15 +95,13 @@ const MySaves = ({ contract, currentSong }) => {
         <p>You have no saved audios yet.</p>
       )}
 
-      {
-        savedSongs.length > 0 &&
         <button
           onClick={handleSaveSong}
           disabled={!currentSong || !currentSong.id}
           className={`bg-black text-white px-4 py-2 rounded-md uppercase font-bold mt-4 mb-4`}>
           Save current audio
         </button>
-      }
+      
     </div>
   );
 };

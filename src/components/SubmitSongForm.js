@@ -121,7 +121,12 @@ const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {
         >
           <motion.button
             className="bg-cyan-500 rounded-lg px-4 py-2 uppercase font-bold text-black"
-            onClick={() => setIsAccordionOpen(!isAccordionOpen)}
+            onClick={() => setIsAccordionOpen((prev) => {
+              if(!prev) {
+                setErrorMessage(null);
+              }
+              return !prev;
+            })}
             whileHover={{ backgroundColor: "#22d3ee" }}
             whileTap={{ scale: 0.95 }}
           >
