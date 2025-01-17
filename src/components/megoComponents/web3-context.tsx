@@ -8,6 +8,7 @@ import React, {
 import MegoModal from "./MegoModal";
 import "./mego-style.css";
 import axios from "axios"; // Import axios for the createNewWallet function
+import { BrowserProvider } from "ethers";
 type Route =
   | "ChooseType"
   | "Email"
@@ -21,6 +22,8 @@ interface Web3ContextType {
   redirectToAppleLogin: () => void;
   closeMegoModal: () => void;
   provider: string | null;
+  metamaskProvider: any;
+  loginWithMetamask: () => Promise<void>;
   loginWithEmail: (email: string, password: string) => Promise<void>;
   loggedAs: string | null;
   loadingText: string;
@@ -58,6 +61,7 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
   const [prevSection, setPrevSection] = useState<Route | undefined>();
   const [isMegoModalOpen, setIsMegoModalOpen] = useState<boolean>(false);
   const [provider, setProvider] = useState<string | null>(null);
+  const [metamaskProvider, setMetamaskProvider] = useState<any>(null);
   const [loggedAs, setLoggedAs] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loadingText, setLoadingText] = useState<string>("");
@@ -96,21 +100,24 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     }, 2500);
   }
   function redirectToQuestionary() {
-    if(localStorage.getItem("isQuestionary") === "true") {
-  
-     openMegoModal();
+    if (localStorage.getItem("isQuestionary") === "true") {
+
+      openMegoModal();
     }
   }
   useEffect(() => {
     redirectToQuestionary();
   }, []);
+
   function logout() {
     setProvider(null);
     setLoggedAs(null);
+    logoutMetamask();
     localStorage.removeItem("provider");
     localStorage.removeItem("loggedAs");
-    window.location.href = "/";
+    //window.location.href = "/";
   }
+
   const loginWithEmail = async (email: string, password: string) => {
     const lowerCaseEmail = email.toLowerCase();
     setLoadingText("Checking email and password");
@@ -133,6 +140,50 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
       setIsLoading(false);
     }
   };
+
+  const loginWithMetamask = async () => {
+    setLoadingText("Checking metamask ...");
+    //@ts-ignore
+    if (!window.ethereum) {
+      alert("Metamask is not installed");
+      return;
+    }
+    try {
+      //@ts-ignore
+      const _provider = new BrowserProvider(window.ethereum);
+      await _provider.send("eth_requestAccounts", []);
+      const signer = await _provider.getSigner();
+      const address = await signer.getAddress();
+      setLoggedAs(address);
+      localStorage.setItem("loggedAs", address);
+      localStorage.setItem("provider", "metamask");
+      setProvider("metamask");
+      setMetamaskProvider(_provider);
+    } catch (error) {
+      console.error("Error initializing provider:", error);
+      console.log(error);
+      alert("Failed to connect to MetaMask.");
+    } finally {
+      setIsLoading(false);
+      setLoadingText("");
+    }
+  };
+
+  const logoutMetamask = () => {
+
+    try{
+      //@ts-ignore
+      window.ethereum.removeAllListeners();
+      //@ts-ignore
+      setMetamaskProvider(null);
+      setProvider(null);
+      setLoggedAs(null);
+      localStorage.removeItem("provider");
+      localStorage.removeItem("loggedAs");
+    } catch (error) {
+      console.error("Error logging out of metamask:", error);
+    }
+  }
   // Aggiungi la funzione per creare un nuovo wallet
   async function createNewWallet(email: string, password: string) {
     if (!isLoading) {
@@ -143,7 +194,7 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
         email: lowerCaseEmail,
         password: password,
       });
-  
+
       if (!create.data.error) {
         await loginWithEmail(email, password);
       } else {
@@ -153,6 +204,14 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
       }
     }
   }
+
+  //Handle refresh page
+  useEffect(()=>{
+    const megoProvider = localStorage.getItem("provider");
+    if(megoProvider === 'metamask'){
+      loginWithMetamask();
+    }
+  },[])
 
   useEffect(() => {
     // Recupera i dati dall'URL
@@ -186,6 +245,8 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     redirectToGoogleLogin,
     closeMegoModal,
     provider,
+    metamaskProvider,
+    loginWithMetamask,
     section,
     setSection,
     prevSection,

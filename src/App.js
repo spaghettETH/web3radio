@@ -15,41 +15,42 @@ import { getSavedSongsStubs } from "./components/Stubber";
 import { playlistABI, playlistAddress } from "./contracts/DecentralizePlaylist/contract";
 import { scheduleLiveABI, scheduleLiveAddress } from "./contracts/ScheduleLive/contract";
 import WalletButton from "./components/megoComponents/WalletButton";
-
+import { useWeb3Context } from "./components/megoComponents/web3-context";
 const App = () => {
-	const [provider, setProvider] = useState(null);
 	const [playlistContract, setPlaylistContract] = useState(null);
 	const [scheduleLiveContract, setScheduleLiveContract] = useState(null);
 	const [playlist, setPlaylist] = useState([]);
 	const [mySongs, setMySongs] = useState([]);
 	const [currentSong, setCurrentSong] = useState(null);
 	const [isConnected, setIsConnected] = useState(false);
+	const { loggedAs, provider: megoProvider, isLoading, openMegoModal, metamaskProvider:provider } = useWeb3Context();
+
+	useEffect(() => {
+		console.log("loggedAs", loggedAs);
+		const isUserLogged = localStorage.getItem("loggedAs");
+		if (!isUserLogged) {
+			openMegoModal();
+		}
+	}, [loggedAs]);
+
 
 	// Initialize Ethereum provider and contracts
 	const initializeProvider = useCallback(async () => {
-
-		if (window.ethereum) {
+		if (loggedAs && provider) {
 			try {
-				const _provider = new BrowserProvider(window.ethereum);
-				await _provider.send("eth_requestAccounts", []);
-				const signer = await _provider.getSigner();
-
+				const signer = await provider.getSigner();
+				console.log("signer", signer);
 				const _playlistContract = new Contract(playlistAddress, playlistABI, signer);
 				const _scheduleLiveContract = new Contract(scheduleLiveAddress, scheduleLiveABI, signer);
 				setPlaylistContract(_playlistContract);
 				setScheduleLiveContract(_scheduleLiveContract);
-
-				setProvider(_provider);
-
 				setIsConnected(true);
 			} catch (error) {
 				console.error("Error initializing provider:", error);
 				alert("Failed to connect to MetaMask.");
 			}
-		} else {
-			alert("Please install MetaMask!");
 		}
-	}, []);
+	}, [loggedAs, provider]);
 
 	// Fetch the playlist from the Playlist contract
 	const fetchPlaylist = useCallback(async () => {
@@ -141,7 +142,7 @@ const App = () => {
 			<Title />
 
 			{/* <h1>Decentralized Playlist Player</h1> */}
-			{isConnected ? (
+			{loggedAs ? (
 				<>
 					<Web3AudioPlayer
 						playlist={playlist}

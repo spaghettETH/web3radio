@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Route, useWeb3Context } from "./web3-context";
+import { BrowserProvider, Contract } from "ethers";
+import { playlistABI, playlistAddress } from "../../contracts/DecentralizePlaylist/contract";
+import { scheduleLiveABI, scheduleLiveAddress } from "../../contracts/ScheduleLive/contract";
 
 interface MegoModalProps {
   isOpen: boolean;
@@ -144,6 +147,7 @@ type SectionBaseProps = { setSection: (route: Route) => void };
 
 const ChooseTypeSection: React.FC<SectionBaseProps> = ({ setSection }) => {
   const { redirectToAppleLogin, redirectToGoogleLogin } = useWeb3Context();
+  const { loginWithMetamask } = useWeb3Context();
   return (
     <>
       <button className="mego-modal-button mego-apple" onClick={redirectToAppleLogin}>
@@ -154,9 +158,15 @@ const ChooseTypeSection: React.FC<SectionBaseProps> = ({ setSection }) => {
         <img width={17} src={"/google.svg"} alt="Google" className="mr-2 mt-1" />
         GOOGLE ACCOUNT
       </button>
-      <button className="mego-modal-button mego-email" onClick={() => setSection("Email")}>
+      {/*       <button className="mego-modal-button mego-email" onClick={() => setSection("Email")}>
         <img src={"/email.svg"} width={30} alt="Email" className="mr-2" />
         E-MAIL
+      </button> */}
+      <button className="mego-modal-button" onClick={() => {
+        loginWithMetamask();
+      }}>
+        <img src={"/metamask.svg"} width={30} alt="Metamask" className="mr-2" />
+        METAMASK
       </button>
     </>
   );
