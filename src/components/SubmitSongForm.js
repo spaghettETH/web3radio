@@ -14,7 +14,8 @@ const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {
 
   const normalizeLink = (url) => {
     if (url.includes("dropbox.com")) {
-      return url.replace("dl=0", "raw=1");
+      const replacedUrl = url.replace("www.dropbox.com", "dl.dropboxusercontent.com");
+      return replacedUrl;
     }
     if (url.includes("drive.google.com")) {
       const match = url.match(/\/file\/d\/([^/]+)\//);

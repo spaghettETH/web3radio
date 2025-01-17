@@ -34,6 +34,7 @@ const App = () => {
 	}, [loggedAs]);
 
 	// Initialize Ethereum provider and contracts
+	//TODO: Gestire il caso di accesso GMAIL, EMAIL
 	const initializeProvider = useCallback(async () => {
 		const provider = getProvider();
 		console.log("provider", provider);
@@ -125,13 +126,7 @@ const App = () => {
 			<Title />
 			{loggedAs ? (
 				<>
-					<Web3AudioPlayer
-						playlist={playlist}
-						setCurrentSong={(song) => {
-							console.log("Setting current song:", song);
-							setCurrentSong(song);
-						}}
-					/>
+					<Web3AudioPlayer playlist={playlist}/>
 					<RadioModality onModalityChange={(modality) => {
 						console.log("Modality changed:", modality);
 					}} />
