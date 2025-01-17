@@ -8,7 +8,7 @@ import React, {
 import MegoModal from "./MegoModal";
 import "./mego-style.css";
 import axios from "axios"; // Import axios for the createNewWallet function
-import { BrowserProvider } from "ethers";
+import { BrowserProvider, ethers } from "ethers";
 type Route =
   | "ChooseType"
   | "Email"
@@ -36,6 +36,7 @@ interface Web3ContextType {
   setPrevSection: (section: Route | undefined) => void;
   logout: () => void;
   createNewWallet: (email: string, password: string) => Promise<void>; // Add the createNewWallet function to the context
+  getProvider: () => any;
 }
 
 const Web3Context = createContext<Web3ContextType | undefined>(undefined);
@@ -62,6 +63,7 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
   const [isMegoModalOpen, setIsMegoModalOpen] = useState<boolean>(false);
   const [provider, setProvider] = useState<string | null>(null);
   const [metamaskProvider, setMetamaskProvider] = useState<any>(null);
+  const [noMetamaskProvider, setNoMetamaskProvider] = useState<any>(null);
   const [loggedAs, setLoggedAs] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loadingText, setLoadingText] = useState<string>("");
@@ -69,6 +71,16 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     setIsMegoModalOpen(true);
     setIsLoading(false); // Reset loading state when opening modal
   };
+
+  useEffect(()=>{
+    if(provider !== 'metamask'){
+      console.log("Rilevato accesso tramite un provider != metamask");
+      const walletAddress = localStorage.getItem("loggedAs");
+      //Setup provider != metamask
+      const jsonRpcProvider = new ethers.JsonRpcProvider("https://sepolia.drpc.org");
+      setNoMetamaskProvider(jsonRpcProvider);
+    }
+  },[loggedAs])
 
   const closeMegoModal = (): void => {
     localStorage.setItem("isQuestionary", "false");
@@ -98,7 +110,10 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
         "?origin=" +
         window.location.href.replace("https://", "").replace("http://", "");
     }, 2500);
+
+    console.log("redirectToGoogleLogin - ECCOCI QUI");
   }
+
   function redirectToQuestionary() {
     if (localStorage.getItem("isQuestionary") === "true") {
 
@@ -119,6 +134,7 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
   }
 
   const loginWithEmail = async (email: string, password: string) => {
+    console.log("loginWithEmail - ECCOCI QUI");
     const lowerCaseEmail = email.toLowerCase();
     setLoadingText("Checking email and password");
     const check = await axios.post(`${BASE_URL}/wallets/check`, {
@@ -129,15 +145,29 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
       setIsLoading(false);
       setLoadingText("");
       // Logica per gestire il login
-      setLoggedAs(check.data.addresses.eth);
+      const address = check.data.addresses.eth;
+      setLoggedAs(address);
       localStorage.setItem("loggedAs", check.data.addresses.eth);
       localStorage.setItem("provider", "email");
       localStorage.setItem("email", email);
       setProvider("email");
+
+      //Creare provider 
+      const jsonRpcProvider = new ethers.JsonRpcProvider("https://sepolia.drpc.org");
+      console.log("jsonRpcProvider", jsonRpcProvider);
+      setNoMetamaskProvider(jsonRpcProvider); // Imposta il provider
     } else {
       setLoadingText("");
       alert(check.data.message);
       setIsLoading(false);
+    }
+  };
+
+  const getProvider = () => {
+    if (provider === "metamask") {
+      return metamaskProvider;
+    } else {
+      return noMetamaskProvider;
     }
   };
 
@@ -260,6 +290,7 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
   }, []);
 
   const value: Web3ContextType = {
+    getProvider,
     isMegoModalOpen,
     openMegoModal,
     redirectToAppleLogin,

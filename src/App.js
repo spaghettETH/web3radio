@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { BrowserProvider, Contract } from "ethers";
+import { Contract } from "ethers";
 import Playlist from "./components/Playlist";
 import Web3AudioPlayer from "./components/Web3AudioPlayer";
 import SubmitSongForm from "./components/SubmitSongForm";
@@ -16,6 +16,7 @@ import { playlistABI, playlistAddress } from "./contracts/DecentralizePlaylist/c
 import { scheduleLiveABI, scheduleLiveAddress } from "./contracts/ScheduleLive/contract";
 import WalletButton from "./components/megoComponents/WalletButton";
 import { useWeb3Context } from "./components/megoComponents/web3-context";
+
 const App = () => {
 	const [playlistContract, setPlaylistContract] = useState(null);
 	const [scheduleLiveContract, setScheduleLiveContract] = useState(null);
@@ -23,21 +24,22 @@ const App = () => {
 	const [mySongs, setMySongs] = useState([]);
 	const [currentSong, setCurrentSong] = useState(null);
 	const [isConnected, setIsConnected] = useState(false);
-	const { loggedAs, provider: megoProvider, isLoading, openMegoModal, metamaskProvider:provider } = useWeb3Context();
+	const { loggedAs, getProvider, isLoading, openMegoModal } = useWeb3Context();
 
 	useEffect(() => {
-		console.log("loggedAs", loggedAs);
 		const isUserLogged = localStorage.getItem("loggedAs");
 		if (!isUserLogged) {
 			openMegoModal();
 		}
 	}, [loggedAs]);
 
-
 	// Initialize Ethereum provider and contracts
 	const initializeProvider = useCallback(async () => {
+		const provider = getProvider();
+		console.log("provider", provider);
 		if (loggedAs && provider) {
 			try {
+				console.log("Ci stiamo loggando con provider", provider);
 				const signer = await provider.getSigner();
 				console.log("signer", signer);
 				const _playlistContract = new Contract(playlistAddress, playlistABI, signer);
@@ -50,11 +52,12 @@ const App = () => {
 				alert("Failed to connect to MetaMask.");
 			}
 		}
-	}, [loggedAs, provider]);
+	}, [loggedAs, getProvider]);
 
 	// Fetch the playlist from the Playlist contract
 	const fetchPlaylist = useCallback(async () => {
-		if (playlistContract) {
+		const provider = getProvider();
+		if (playlistContract && provider) {
 			try {
 				const playlistIds = await playlistContract.viewPlaylist();
 				const playlistData = await Promise.all(
@@ -75,12 +78,11 @@ const App = () => {
 
 	// Fetch user's submitted songs
 	const fetchUserSongs = useCallback(async () => {
-		const STUBBED = false;
+		const provider = getProvider();
 		if (playlistContract && provider) {
 			try {
 				const signer = await provider.getSigner();
 				const userAddress = await signer.getAddress();
-
 				const userSongIds = await playlistContract.getUserSongs(userAddress);
 				let userSongs = await Promise.all(
 					userSongIds.map(async (id) => {
@@ -95,32 +97,13 @@ const App = () => {
 							: null;
 					})
 				);
-
-				if (STUBBED) {
-					userSongs = await getSavedSongsStubs();
-				} else {
-					userSongs = await Promise.all(
-						userSongIds.map(async (id) => {
-							const song = await playlistContract.getSongDetails(id);
-							return song.isActive
-								? {
-									id: song.id.toString(),
-									title: song.title || "(Untitled)",
-									uri: song.uri,
-									img: song.img
-								}
-								: null;
-						})
-					);
-				}
-
 				setMySongs(userSongs.filter((song) => song)); // Exclude inactive songs
 			} catch (error) {
 				console.error("Error fetching user's songs:", error);
 				setMySongs([]);
 			}
 		}
-	}, [playlistContract, provider]);
+	}, [playlistContract, getProvider]);
 
 	// Initialize provider on component mount
 	useEffect(() => {
@@ -140,8 +123,6 @@ const App = () => {
 			<WalletButton />
 			<Logo />
 			<Title />
-
-			{/* <h1>Decentralized Playlist Player</h1> */}
 			{loggedAs ? (
 				<>
 					<Web3AudioPlayer
