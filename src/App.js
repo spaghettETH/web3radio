@@ -13,9 +13,8 @@ import WalletButton from "./components/megoComponents/WalletButton";
 import { useWeb3Radio } from "./context/Web3RadioContext";
 
 const App = () => {
-	const [scheduleLiveContract, setScheduleLiveContract] = useState(null);
 	const [currentSong, setCurrentSong] = useState(null);
-	const { playlistContract, isConnected, playlist, fetchPlaylist, fetchUserSongs, mySongs } = useWeb3Radio();
+	const { isConnected } = useWeb3Radio();
 
 	return (
 		<div className="flex gap-10 flex-col max-w-screen-lg items-center justify-center pt-10">
@@ -44,7 +43,7 @@ const App = () => {
 					</div>
 					<div className="w-full">
 						<MySaves currentSong={currentSong} />
-						<SavesLeaderboard contract={playlistContract} />
+						<SavesLeaderboard/>
 					</div>
 					<ScheduleLive />
 				</>
