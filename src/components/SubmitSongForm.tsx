@@ -3,19 +3,21 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaMusic, FaFileAudio, FaImage } from 'react-icons/fa';
 import { useWeb3Radio } from "../context/Web3RadioContext";
 
+interface SubmitSongFormProps {
+}
 
-const SubmitSongForm = () => {
-  const [title, setTitle] = useState("");
-  const [audioUri, setAudioUri] = useState("");
-  const [imageUri, setImageUri] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [disclaimerChecked, setDisclaimerChecked] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(null);
+const SubmitSongForm : React.FC<SubmitSongFormProps> = () => {
+  const [title, setTitle] = useState<string>("");
+  const [audioUri, setAudioUri] = useState<string>("");
+  const [imageUri, setImageUri] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [disclaimerChecked, setDisclaimerChecked] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
   const { playlistContract:contract, fetchPlaylist, fetchUserSongs } = useWeb3Radio();
 
-  const normalizeLink = (url) => {
+  const normalizeLink = (url:string) => {
     if (url.includes("dropbox.com")) {
       const replacedUrl = url.replace("www.dropbox.com", "dl.dropboxusercontent.com");
       return replacedUrl;
@@ -33,10 +35,10 @@ const SubmitSongForm = () => {
     return url;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e:React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!title || !audioUri || !imageUri || !disclaimerChecked) {
+    if (!title || !audioUri || !imageUri || !disclaimerChecked || !contract) {
       setErrorMessage("All fields are required and the disclaimer must be checked.");
       return;
     }

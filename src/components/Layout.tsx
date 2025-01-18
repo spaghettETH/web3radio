@@ -1,7 +1,11 @@
 import React from "react";
 import GridBackground from './GridBackground';
 
-const Layout = ({ children }) => {
+interface LayoutProps {
+    children: React.ReactNode;
+}
+
+const Layout: React.FC<LayoutProps> = ({ children }) => {
     return (
         <div className="flex flex-col w-full items-center relative">
             <GridBackground />

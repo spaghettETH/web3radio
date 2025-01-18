@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 // Helper to resolve IPFS URIs
-const resolveIpfsUri = (uri) => {
+const resolveIpfsUri = (uri: string) => {
   if (!uri) {
     console.error("Invalid URI:", uri);
-    return null;
+    return undefined;
   }
   return uri.startsWith("ipfs://")
     ? `https://dweb.link/ipfs/${uri.slice(7)}`
@@ -12,7 +12,7 @@ const resolveIpfsUri = (uri) => {
 };
 
 // Fisher-Yates Shuffle Algorithm
-const shuffleArray = (array) => {
+const shuffleArray = (array: any[]) => {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -21,10 +21,14 @@ const shuffleArray = (array) => {
   return shuffled;
 };
 
-const Playlist = ({ contract }) => {
-  const [shuffledPlaylist, setShuffledPlaylist] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+interface PlaylistProps {
+    contract: any;
+} 
+
+const Playlist: React.FC<PlaylistProps> = ({ contract }) => {
+  const [shuffledPlaylist, setShuffledPlaylist] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch and shuffle playlist from the smart contract
   const fetchPlaylist = useCallback(async () => {
@@ -38,7 +42,7 @@ const Playlist = ({ contract }) => {
 
       // Fetch song details for each ID
       const detailedSongs = await Promise.all(
-        songIds.map(async (id) => {
+        songIds.map(async (id:any) => {
           const song = await contract.songsById(id);
           return {
             id: song.id.toString(),

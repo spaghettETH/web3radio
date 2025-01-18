@@ -1,27 +1,30 @@
 import React, { useState, useEffect, useRef } from "react";
 import AudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
-import { sanitizeUri } from "../utils/Utils";
 import { useWeb3Radio } from "../context/Web3RadioContext";
 // Helper to resolve IPFS URIs
-const resolveIpfsUri = (uri) => {
+const resolveIpfsUri = (uri:string) => {
   if (!uri) {
     console.error("Invalid URI:", uri);
-    return null;
+    return undefined;
   }
   const resolveUrl = uri.startsWith("ipfs://") ? `https://dweb.link/ipfs/${uri.slice(7)}` : uri;
   console.log("resolveUrl", resolveUrl);
   return resolveUrl
 };
 
-const Web3AudioPlayer = ({ setSong  }) => {
+interface Web3AudioPlayerProps {
+    setSong: (song: any) => void;
+}
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [shuffledPlaylist, setShuffledPlaylist] = useState([]);
-  const [currentSong, setCurrentSong] = useState(null);
+const Web3AudioPlayer: React.FC<Web3AudioPlayerProps> = ({ setSong }) => {
+
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [shuffledPlaylist, setShuffledPlaylist] = useState<any[]>([]);
+  const [currentSong, setCurrentSong] = useState<any>(null);
   const { playlist } = useWeb3Radio();
 
-  const shuffleArray = (array) => {
+  const shuffleArray = (array:any) => {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -73,10 +76,10 @@ const Web3AudioPlayer = ({ setSong  }) => {
             <div className="w-full relative">
               <div>
                 {
-                  currentSong?.uri && 
+                  
                   <AudioPlayer
                     autoPlay={true}
-                    src={sanitizeUri(resolveIpfsUri(currentSong?.uri))}
+                    src={resolveIpfsUri(currentSong?.uri)}
                     style={{ backgroundColor: 'black', color: 'white', border: 'none', boxShadow: 'none', }}
                     showSkipControls={false}
                     onEnded={handleEnded}

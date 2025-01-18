@@ -6,7 +6,7 @@ import Layout from './components/Layout';
 import reportWebVitals from './reportWebVitals';
 import { Web3Provider } from './components/megoComponents/web3-context';
 import { Web3RadioProvider } from './context/Web3RadioContext';
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 
 
 root.render(

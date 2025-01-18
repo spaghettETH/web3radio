@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const Title = () => {
+interface TitleProps {}
+const Title: React.FC<TitleProps> = () => {
     return (
         <motion.div
             initial={{ y: -20, opacity: 0 }}

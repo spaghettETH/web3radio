@@ -1,19 +1,26 @@
 import React from "react";
 
+interface SavedAudioProps {
+    id: any;
+    title: string;
+    uri: string;
+    img: string;
+    handleDelete: (id: any) => void;
+}
 
-export default function SavedAudio({ id, title, uri, img, handleDelete }) {
+const SavedAudio: React.FC<SavedAudioProps> = ({ id, title, uri, img, handleDelete }) => {
 
-    const resolveIpfsUri = (uri) => {
+    const resolveIpfsUri = (uri:string) => {
         if (!uri) {
             console.error("Invalid URI:", uri);
-            return null;
+            return undefined;
         }
         return uri.startsWith("ipfs://")
             ? `https://dweb.link/ipfs/${uri.slice(7)}`
             : uri;
     };
 
-    const deleteSong = (id) => {
+    const deleteSong = (id:any) => {
         if (handleDelete) {
             handleDelete(id);
         }
@@ -48,3 +55,5 @@ export default function SavedAudio({ id, title, uri, img, handleDelete }) {
         </div>
     </div>;
 }
+
+export default SavedAudio;

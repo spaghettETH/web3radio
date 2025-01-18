@@ -3,21 +3,25 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useWeb3Radio } from "../context/Web3RadioContext";
 
-const ScheduleLive = () => {
-  const [title, setTitle] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [streamUrl, setStreamUrl] = useState("");
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [duration, setDuration] = useState(1); // Default: 30 minutes
-  const [bookedSlots, setBookedSlots] = useState([]);
-  const [next24HoursEvents, setNext24HoursEvents] = useState([]);
+interface ScheduleLiveProps {
+}
+
+const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
+  const [title, setTitle] = useState<string>("");
+  const [imageUrl, setImageUrl] = useState<string>("");
+  const [streamUrl, setStreamUrl] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [duration, setDuration] = useState<number>(1); // Default: 30 minutes
+  const [bookedSlots, setBookedSlots] = useState<any[]>([]);
+  const [next24HoursEvents, setNext24HoursEvents] = useState<any[]>([]);
   const { scheduleLiveContract:contract } = useWeb3Radio();
 
   const fetchBookedSlots = useCallback(async () => {
+    if (!contract) return;
     try {
       const eventIds = await contract.getMyBookedShows();
       const events = await Promise.all(
-        eventIds.map(async (eventId) => {
+        eventIds.map(async (eventId:any) => {
           const event = await contract.getEventDetails(eventId);
           return event.isActive
             ? {
@@ -38,10 +42,11 @@ const ScheduleLive = () => {
   }, [contract]);
 
   const fetchNext24HoursEvents = useCallback(async () => {
+    if (!contract) return;
     try {
       const eventIds = await contract.getLiveShowsInNext24Hours();
       const events = await Promise.all(
-        eventIds.map(async (eventId) => {
+        eventIds.map(async (eventId:any) => {
           const event = await contract.getEventDetails(eventId);
           return event.isActive
             ? {
@@ -61,10 +66,10 @@ const ScheduleLive = () => {
     }
   }, [contract]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e:React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!title || !imageUrl || !streamUrl || !selectedDate) {
+    if (!title || !imageUrl || !streamUrl || !selectedDate || !contract) {
       alert("Please fill in all fields.");
       return;
     }
@@ -83,7 +88,7 @@ const ScheduleLive = () => {
       alert("Livestream scheduled successfully!");
       fetchBookedSlots();
       fetchNext24HoursEvents();
-    } catch (error) {
+    } catch (error:any) {
       console.error("Error scheduling livestream:", error);
       if (error.reason === "Too many bookings for today!") {
         alert("You have reached the maximum number of bookings allowed for today.");
