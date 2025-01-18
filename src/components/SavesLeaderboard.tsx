@@ -4,11 +4,12 @@ import LoaderSkeleton from "./LoaderSkelethon";
 import { useWeb3Radio } from "../context/Web3RadioContext";
 // Helper to resolve IPFS URIs
 
-
-const SavesLeaderboard = () => {
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+interface SavesLeaderboardProps { 
+}
+const SavesLeaderboard: React.FC<SavesLeaderboardProps> = () => {
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
   const { playlistContract:contract } = useWeb3Radio();
   // Fetch leaderboard data
   const fetchLeaderboard = useCallback(async () => {
@@ -20,14 +21,14 @@ const SavesLeaderboard = () => {
     try {
       const songIds = await contract.viewPlaylist(); // Fetch all song IDs
       const scores = await Promise.all(
-        songIds.map(async (id) => ({
+        songIds.map(async (id:any) => ({
           id: id.toString(),
           score: (await contract.songScores(id)).toString(),
         }))
       );
 
       const leaderboardData = await Promise.all(
-        songIds.map(async (id, index) => {
+        songIds.map(async (id:any, index:number) => {
           const song = await contract.songsById(id);
           return {
             id: song.id.toString(),

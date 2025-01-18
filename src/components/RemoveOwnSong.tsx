@@ -4,8 +4,11 @@ import { useWeb3Radio } from "../context/Web3RadioContext";
 
 // Is for testing purposes (altering contract getMySaves function)
 
+interface RemoveOwnSongProps {
 
-const RemoveOwnSong = () => {
+}
+
+const RemoveOwnSong: React.FC<RemoveOwnSongProps> = () => {
   const { playlistContract:contract, fetchUserSongs, mySongs } = useWeb3Radio();
 
   useEffect(() => {
@@ -17,7 +20,7 @@ const RemoveOwnSong = () => {
     }
   }, [contract, fetchUserSongs]);
 
-  const removeSong = async (songId) => {
+  const removeSong = async (songId:any) => {
     if (!contract) {
       alert("Smart contract not initialized.");
       return;
@@ -31,7 +34,7 @@ const RemoveOwnSong = () => {
       fetchUserSongs(); // Refresh the song list
     } catch (error) {
       console.error("Error removing song:", error);
-      alert(`Failed to remove the song. Error: ${error.message}`);
+      alert(`Failed to remove the song. Error: ${error}`);
     }
   };
 
@@ -42,7 +45,7 @@ const RemoveOwnSong = () => {
       <h2 className="text-black text-3xl font-black uppercase mb-12">Your Submitted Audios</h2>
       {mySongs && mySongs.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-          {mySongs.map((song) => <SavedAudio handleDelete={removeSong} key={song.id} {...song} />)}
+          {mySongs.map((song:any) => <SavedAudio handleDelete={removeSong} key={song.id} {...song} />)}
         </div>
       ) : (
         <p>No audios found in your submissions.</p>

@@ -1,9 +1,14 @@
-export default function LeaderboardTable({ leaderboard }) {
 
-    const resolveIpfsUri = (uri) => {
+interface LeaderboardTableProps {
+    leaderboard: any[];
+}
+
+const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ leaderboard }) => {
+
+    const resolveIpfsUri = (uri: string) => {
         if (!uri) {
             console.error("Invalid URI:", uri);
-            return null;
+            return undefined;
         }
         return uri.startsWith("ipfs://")
             ? `https://dweb.link/ipfs/${uri.slice(7)}`
@@ -65,3 +70,5 @@ export default function LeaderboardTable({ leaderboard }) {
         </div >
     )
 }   
+
+export default LeaderboardTable;

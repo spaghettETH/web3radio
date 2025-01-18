@@ -1,6 +1,6 @@
 import React from 'react';
 
-const GridBackground = () => {
+const GridBackground: React.FC = () => {
   return (
     <div
       style={{
@@ -21,4 +21,4 @@ const GridBackground = () => {
   );
 };
 
-export default GridBackground;
+export default GridBackground; 

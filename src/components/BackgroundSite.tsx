@@ -1,6 +1,6 @@
 import React from 'react';
 
-const BackgroundSite = () => {
+const BackgroundSite: React.FC = () => {
   return (
     <div className="bg-black h-screen w-screen pointer-events-none relative">
       <div 

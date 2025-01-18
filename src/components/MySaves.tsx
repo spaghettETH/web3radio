@@ -4,11 +4,13 @@ import SavedAudio from "./SavedAudio";
 import { useWeb3Radio } from "../context/Web3RadioContext";
 // Is for testing purposes (altering contract getMySaves function)
 const STUBBED = false;
-
-const MySaves = ({ currentSong }) => {
-  const [savedSongs, setSavedSongs] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+interface MySavesProps {
+    currentSong: any;
+}
+const MySaves: React.FC<MySavesProps> = ({ currentSong }) => {
+  const [savedSongs, setSavedSongs] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
   const { playlistContract:contract } = useWeb3Radio();
 
   // Fetch user's saved songs from the smart contract
@@ -23,7 +25,7 @@ const MySaves = ({ currentSong }) => {
 
       // Fetch details for each saved song
       const formattedSaves = await Promise.all(
-        savedSongIds.map(async (id) => {
+        savedSongIds.map(async (id:any) => {
           const song = await contract.songsById(id);
           return {
             id: song.id.toString(),

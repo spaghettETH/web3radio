@@ -1,6 +1,6 @@
 import React from 'react';
 
-const LoaderSkeleton = () => {
+const LoaderSkeleton: React.FC = () => {
     return (
         <div className="w-full h-full bg-black p-6">
             <div className="flex flex-row items-center gap-2">

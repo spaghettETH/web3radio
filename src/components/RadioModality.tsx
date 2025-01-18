@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { useWeb3Radio } from "../context/Web3RadioContext";
 
-const RadioModality = ({ onModalityChange }) => {
+interface RadioModalityProps {
+    onModalityChange: (modality: string) => void;
+}
+
+const RadioModality: React.FC<RadioModalityProps> = ({ onModalityChange }) => {
 
     const { radioModality } = useWeb3Radio();
 

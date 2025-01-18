@@ -1,6 +1,10 @@
 import React from "react";
 
-const Donate = ({ creatorAddress }) => {
+interface DonateProps {
+  creatorAddress: string | null; // Aggiungi il tipo per creatorAddress
+}
+
+const Donate: React.FC<DonateProps> = ({ creatorAddress }) => {
   console.log("Donate component received creatorAddress:", creatorAddress); // Debug
 
   if (!creatorAddress) {
@@ -24,4 +28,4 @@ const Donate = ({ creatorAddress }) => {
   );
 };
 
-export default Donate;
+export default Donate; 

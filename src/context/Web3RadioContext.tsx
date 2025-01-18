@@ -1,33 +1,42 @@
-import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import { useWeb3Context } from "../components/megoComponents/web3-context";
 import { Contract } from "ethers";
 import { playlistABI, playlistAddress } from "../contracts/DecentralizePlaylist/contract";
 import { scheduleLiveABI, scheduleLiveAddress } from "../contracts/ScheduleLive/contract";
 
-export const Web3RadioContext = createContext();
+interface Web3RadioContextType {
+    playlistContract: Contract | null;
+    playlist: any[];
+    fetchPlaylist: () => Promise<void>;
+    fetchUserSongs: () => Promise<void>;
+    scheduleLiveContract: Contract | null;
+    mySongs: any[];
+    isConnected: boolean;
+    radioModality: string;
+    userHasSBT: boolean;
+}
 
-export const Web3RadioProvider = ({ children }) => {
-    const [playlist, setPlaylist] = useState([]);
-    const {loggedAs, getProvider, isLoading, openMegoModal, getSigner } = useWeb3Context();
+export const Web3RadioContext = createContext<Web3RadioContextType | undefined>(undefined);
 
-    //Contracts
-    const [playlistContract, setPlaylistContract] = useState(null);
-    const [scheduleLiveContract, setScheduleLiveContract] = useState(null);
-    const [mySongs, setMySongs] = useState([]);
-    const [isConnected, setIsConnected] = useState(false);
-    const [userHasSBT, setUserHasSBT] = useState(true);
+export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const [playlist, setPlaylist] = useState<any[]>([]);
+    const { loggedAs, getProvider, isLoading, openMegoModal, getSigner } = useWeb3Context();
 
-    const [radioModality, setRadioModality] = useState("live");
+    // Contracts
+    const [playlistContract, setPlaylistContract] = useState<Contract | null>(null);
+    const [scheduleLiveContract, setScheduleLiveContract] = useState<Contract | null>(null);
+    const [mySongs, setMySongs] = useState<any[]>([]);
+    const [isConnected, setIsConnected] = useState<boolean>(false);
+    const [userHasSBT, setUserHasSBT] = useState<boolean>(true);
+    const [radioModality, setRadioModality] = useState<string>("live");
 
     useEffect(() => {
-		const isUserLogged = localStorage.getItem("loggedAs");
-		if (!isUserLogged) {
+        const isUserLogged = localStorage.getItem("loggedAs");
+        if (!isUserLogged) {
             setIsConnected(false);
-			openMegoModal();
-		}
-	}, [loggedAs]);
-
-    
+            openMegoModal();
+        }
+    }, [loggedAs]);
 
     const initializeProvider = useCallback(async () => {
         if (loggedAs) {
@@ -54,7 +63,6 @@ export const Web3RadioProvider = ({ children }) => {
                 }
 
                 setIsConnected(true);
-
                 console.log("[initializeProvider] Contracts initialized with signer");
             } catch (error) {
                 console.error("[initializeProvider] Error:", error);
@@ -76,7 +84,7 @@ export const Web3RadioProvider = ({ children }) => {
             try {
                 const playlistIds = await playlistContract.viewPlaylist();
                 const playlistData = await Promise.all(
-                    playlistIds.map(async (id) => {
+                    playlistIds.map(async (id: any) => {
                         const song = await playlistContract.getSongDetails(id);
                         return song.isActive
                             ? {
@@ -105,7 +113,7 @@ export const Web3RadioProvider = ({ children }) => {
                 const userAddress = loggedAs;
                 const userSongIds = await playlistContract.getUserSongs(userAddress);
                 let userSongs = await Promise.all(
-                    userSongIds.map(async (id) => {
+                    userSongIds.map(async (id: any) => {
                         const song = await playlistContract.getSongDetails(id);
                         return song.isActive
                             ? {
@@ -126,31 +134,34 @@ export const Web3RadioProvider = ({ children }) => {
     }, [playlistContract, getProvider]);
 
     useEffect(() => {
-		if (playlistContract) {
-			fetchPlaylist();
-			fetchUserSongs();
+        if (playlistContract) {
+            fetchPlaylist();
+            fetchUserSongs();
             //TODO: La scelta della modalità deve essere fatta qui
             setRadioModality("playlist");
-		}
-	}, [playlistContract, fetchPlaylist, fetchUserSongs]);
+        }
+    }, [playlistContract, fetchPlaylist, fetchUserSongs]);
 
-    return <Web3RadioContext.Provider
-        value={{ 
-            playlistContract, 
-            playlist, 
-            fetchPlaylist, 
-            fetchUserSongs,
-            scheduleLiveContract,
-            mySongs,
-            isConnected,
-            radioModality,
-            userHasSBT,
-        }}>
-        {children}
-    </Web3RadioContext.Provider>;
+    return (
+        <Web3RadioContext.Provider
+            value={{
+                playlistContract,
+                playlist,
+                fetchPlaylist,
+                fetchUserSongs,
+                scheduleLiveContract,
+                mySongs,
+                isConnected,
+                radioModality,
+                userHasSBT,
+            }}
+        >
+            {children}
+        </Web3RadioContext.Provider>
+    );
 };
 
-export const useWeb3Radio = () => {
+export const useWeb3Radio = (): Web3RadioContextType => {
     const context = useContext(Web3RadioContext);
     if (!context) {
         throw new Error('useWeb3Radio deve essere usato all\'interno di un Web3RadioProvider');
