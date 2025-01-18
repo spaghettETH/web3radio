@@ -197,7 +197,6 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     } catch (error) {
       console.error("Error initializing provider:", error);
       console.log(error);
-      alert("Failed to connect to MetaMask.");
     } finally {
       setIsLoading(false);
       setLoadingText("");

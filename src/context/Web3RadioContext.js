@@ -40,7 +40,6 @@ export const Web3RadioProvider = ({ children }) => {
 				setIsConnected(true);
 			} catch (error) {
 				console.error("Error initializing provider:", error);
-				alert("Failed to connect to MetaMask.");
 			}
 		}
 	}, [loggedAs, getProvider]);
