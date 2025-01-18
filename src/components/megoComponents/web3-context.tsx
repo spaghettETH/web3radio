@@ -295,6 +295,37 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     };
   }, []);
 
+  //Handle chain change
+  useEffect(() => {
+    const handleChainChanged = async (chainId: string) => {
+      console.log("Chain cambiata:", chainId);
+      const targetChainId = `0x${Number(process.env.REACT_APP_CHAIN_ID).toString(16)}`;
+      // Verifica se la chain è diversa da quella target
+      if (chainId !== targetChainId) {
+        try {
+          // Richiedi il cambio di rete
+          //@ts-ignore
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: targetChainId }],
+          });
+        } catch (error) {
+          console.error("Errore nel cambio rete:", error);
+        }
+      }
+    };
+
+    // Aggiungi il listener per il cambio chain
+    //@ts-ignore
+    window.ethereum?.on('chainChanged', handleChainChanged);
+
+    // Cleanup del listener
+    return () => {
+      //@ts-ignore
+      window.ethereum?.removeListener('chainChanged', handleChainChanged);
+    };
+  }, []);
+
   const value: Web3ContextType = {
     getProvider,
     isMegoModalOpen,
