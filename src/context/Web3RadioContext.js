@@ -8,7 +8,7 @@ export const Web3RadioContext = createContext();
 
 export const Web3RadioProvider = ({ children }) => {
     const [playlist, setPlaylist] = useState([]);
-    const {loggedAs, getProvider, isLoading, openMegoModal } = useWeb3Context();
+    const {loggedAs, getProvider, isLoading, openMegoModal, getSigner } = useWeb3Context();
 
     //Contracts
     const [playlistContract, setPlaylistContract] = useState(null);
@@ -21,29 +21,42 @@ export const Web3RadioProvider = ({ children }) => {
     useEffect(() => {
 		const isUserLogged = localStorage.getItem("loggedAs");
 		if (!isUserLogged) {
+            setIsConnected(false);
 			openMegoModal();
 		}
 	}, [loggedAs]);
 
     const initializeProvider = useCallback(async () => {
-		const provider = getProvider();
-		console.log("provider", provider);
-		if (loggedAs && provider) {
-			try {
-				console.log("Ci stiamo loggando con provider", provider);
-				const signer = await provider.getSigner();
-				console.log("signer", signer);
-				const _playlistContract = new Contract(playlistAddress, playlistABI, signer);
-				const _scheduleLiveContract = new Contract(scheduleLiveAddress, scheduleLiveABI, signer);
-				setPlaylistContract(_playlistContract);
-				setScheduleLiveContract(_scheduleLiveContract);
-				setIsConnected(true);
-			} catch (error) {
-				console.error("Error initializing provider:", error);
-			}
-		}
-	}, [loggedAs, getProvider]);
+        if (loggedAs) {
+            try {
+                console.log("[initializeProvider] LoggedAs:", loggedAs);
+                
+                // Otteniamo il signer
+                const signer = await getSigner();
+                console.log("[initializeProvider] Signer:", signer);
+                
+                // Creiamo i contratti direttamente con il signer
+                const _playlistContract = new Contract(playlistAddress, playlistABI, signer);
+                const _scheduleLiveContract = new Contract(scheduleLiveAddress, scheduleLiveABI, signer);
+                
+                setPlaylistContract(_playlistContract);
+                setScheduleLiveContract(_scheduleLiveContract);
+                setIsConnected(true);
 
+                console.log("[initializeProvider] Contracts initialized with signer");
+            } catch (error) {
+                console.error("[initializeProvider] Error:", error);
+                setIsConnected(false);
+            }
+        }
+    }, [loggedAs, getSigner]);
+
+    // Aggiungiamo un effetto per reinizializzare i contratti quando cambia il provider
+    useEffect(() => {
+        if (loggedAs) {
+            initializeProvider();
+        }
+    }, [loggedAs, initializeProvider]);
 
     const fetchPlaylist = useCallback(async () => {
         const provider = getProvider();
@@ -77,8 +90,7 @@ export const Web3RadioProvider = ({ children }) => {
         const provider = getProvider();
         if (playlistContract && provider) {
             try {
-                const signer = await provider.getSigner();
-                const userAddress = await signer.getAddress();
+                const userAddress = loggedAs;
                 const userSongIds = await playlistContract.getUserSongs(userAddress);
                 let userSongs = await Promise.all(
                     userSongIds.map(async (id) => {
@@ -100,11 +112,6 @@ export const Web3RadioProvider = ({ children }) => {
             }
         }
     }, [playlistContract, getProvider]);
-
-    // Initialize provider on component mount
-	useEffect(() => {
-		initializeProvider();
-	}, [initializeProvider]);
 
     useEffect(() => {
 		if (playlistContract) {
