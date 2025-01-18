@@ -15,6 +15,7 @@ export const Web3RadioProvider = ({ children }) => {
     const [scheduleLiveContract, setScheduleLiveContract] = useState(null);
     const [mySongs, setMySongs] = useState([]);
     const [isConnected, setIsConnected] = useState(false);
+    const [userHasSBT, setUserHasSBT] = useState(true);
 
     const [radioModality, setRadioModality] = useState("live");
 
@@ -25,6 +26,8 @@ export const Web3RadioProvider = ({ children }) => {
 			openMegoModal();
 		}
 	}, [loggedAs]);
+
+    
 
     const initializeProvider = useCallback(async () => {
         if (loggedAs) {
@@ -41,6 +44,15 @@ export const Web3RadioProvider = ({ children }) => {
                 
                 setPlaylistContract(_playlistContract);
                 setScheduleLiveContract(_scheduleLiveContract);
+
+                //TODO: Controllare se l'utente ha il SBT
+                const userHasSBT = true;
+                if (!userHasSBT) {
+                    setIsConnected(false);
+                    setUserHasSBT(false);
+                    return;
+                }
+
                 setIsConnected(true);
 
                 console.log("[initializeProvider] Contracts initialized with signer");
@@ -132,6 +144,7 @@ export const Web3RadioProvider = ({ children }) => {
             mySongs,
             isConnected,
             radioModality,
+            userHasSBT,
         }}>
         {children}
     </Web3RadioContext.Provider>;
