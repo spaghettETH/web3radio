@@ -5,13 +5,15 @@ import App from './App';
 import Layout from './components/Layout';
 import reportWebVitals from './reportWebVitals';
 import { Web3Provider } from './components/megoComponents/web3-context';
-
+import { Web3RadioProvider } from './context/Web3RadioContext';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <Layout>
       <Web3Provider>
-        <App />
+        <Web3RadioProvider>
+          <App />
+        </Web3RadioProvider>
       </Web3Provider>
     </Layout>
   </React.StrictMode>

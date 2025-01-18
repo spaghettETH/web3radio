@@ -270,6 +270,7 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const handleAccountsChanged = (accounts: string[]) => {
+      console.log("handleAccountsChanged", accounts);
       if (accounts.length === 0) {
         // L'utente ha disconnesso MetaMask
         console.log("MetaMask disconnesso");

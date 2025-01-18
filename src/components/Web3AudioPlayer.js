@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import AudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
+import { sanitizeUri } from "../utils/Utils";
 
 // Helper to resolve IPFS URIs
 const resolveIpfsUri = (uri) => {
@@ -13,7 +14,7 @@ const resolveIpfsUri = (uri) => {
   return resolveUrl
 };
 
-const Web3AudioPlayer = ({ playlist }) => {
+const Web3AudioPlayer = ({ playlist, setSong  }) => {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [shuffledPlaylist, setShuffledPlaylist] = useState([]);
@@ -34,6 +35,8 @@ const Web3AudioPlayer = ({ playlist }) => {
       const shuffledPlaylist = shuffleArray(playlist);
       setShuffledPlaylist(shuffledPlaylist);
       setCurrentSong(shuffledPlaylist[0]);
+      setSong(shuffledPlaylist[0]);
+      console.log("[playlist]Current Song", shuffledPlaylist[0]);
       setCurrentIndex(0);
     }
   }, [playlist]);
@@ -85,10 +88,9 @@ const Web3AudioPlayer = ({ playlist }) => {
                   currentSong?.uri && 
                   <AudioPlayer
                     autoPlay={true}
-                    src={resolveIpfsUri(currentSong?.uri)}
+                    src={sanitizeUri(resolveIpfsUri(currentSong?.uri))}
                     style={{ backgroundColor: 'black', color: 'white', border: 'none', boxShadow: 'none', }}
-                    onClickPrevious={handlePrevious}
-                    onClickNext={handleNext}
+                    showSkipControls={false}
                     onEnded={handleEnded}
                   />
                 }
