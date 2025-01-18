@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { getSavedSongsStubs } from "./Stubber";
 import SavedAudio from "./SavedAudio";
+import { useWeb3Radio } from "../context/Web3RadioContext";
 // Is for testing purposes (altering contract getMySaves function)
 const STUBBED = false;
 
-const MySaves = ({ contract, currentSong }) => {
+const MySaves = ({ currentSong }) => {
   const [savedSongs, setSavedSongs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { playlistContract:contract } = useWeb3Radio();
 
   // Fetch user's saved songs from the smart contract
   const fetchMySaves = useCallback(async () => {

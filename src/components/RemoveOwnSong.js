@@ -1,9 +1,13 @@
 import React, { useEffect } from "react";
 import SavedAudio from "./SavedAudio";
+import { useWeb3Radio } from "../context/Web3RadioContext";
+
 // Is for testing purposes (altering contract getMySaves function)
 
 
-const RemoveOwnSong = ({ contract, mySongs, fetchUserSongs }) => {
+const RemoveOwnSong = () => {
+  const { playlistContract:contract, fetchUserSongs, mySongs } = useWeb3Radio();
+
   useEffect(() => {
     if (contract) {
       console.log("Contract detected in RemoveOwnSong. Fetching user songs...");

@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useCallback } from "react";
 import LeaderboardTable from "./LeaderboardTable";
 import LoaderSkeleton from "./LoaderSkelethon";
+import { useWeb3Radio } from "../context/Web3RadioContext";
 // Helper to resolve IPFS URIs
 
 
-const SavesLeaderboard = ({ contract }) => {
+const SavesLeaderboard = () => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  const { playlistContract:contract } = useWeb3Radio();
   // Fetch leaderboard data
   const fetchLeaderboard = useCallback(async () => {
     if (!contract) return;

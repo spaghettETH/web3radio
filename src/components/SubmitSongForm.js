@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaMusic, FaFileAudio, FaImage } from 'react-icons/fa';
+import { useWeb3Radio } from "../context/Web3RadioContext";
 
-const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {
+
+const SubmitSongForm = () => {
   const [title, setTitle] = useState("");
   const [audioUri, setAudioUri] = useState("");
   const [imageUri, setImageUri] = useState("");
@@ -11,6 +13,7 @@ const SubmitSongForm = ({ contract, fetchPlaylist, fetchUserSongs }) => {
   const [errorMessage, setErrorMessage] = useState(null);
 
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
+  const { playlistContract:contract, fetchPlaylist, fetchUserSongs } = useWeb3Radio();
 
   const normalizeLink = (url) => {
     if (url.includes("dropbox.com")) {

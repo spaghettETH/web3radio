@@ -17,17 +17,16 @@ import { useWeb3Radio } from "./context/Web3RadioContext";
 const App = () => {
 	const [scheduleLiveContract, setScheduleLiveContract] = useState(null);
 	const [currentSong, setCurrentSong] = useState(null);
-	const { loggedAs } = useWeb3Context();
-	const { playlistContract, playlist, fetchPlaylist, fetchUserSongs, mySongs } = useWeb3Radio();
+	const { playlistContract, isConnected, playlist, fetchPlaylist, fetchUserSongs, mySongs } = useWeb3Radio();
 
 	return (
 		<div className="flex gap-10 flex-col max-w-screen-lg items-center justify-center pt-10">
 			<WalletButton />
 			<Logo />
 			<Title />
-			{loggedAs ? (
+			{isConnected ? (
 				<>
-					<Web3AudioPlayer playlist={playlist}
+					<Web3AudioPlayer 
 						setSong={(song) => {
 							console.log("Setting current song:", song);
 							setCurrentSong(song);
@@ -41,24 +40,15 @@ const App = () => {
 					) : (
 						<p>No creator information available.</p>
 					)}
-					<Playlist playlist={playlist} />
-					<RemoveOwnSong
-						contract={playlistContract}
-						mySongs={mySongs}
-						fetchUserSongs={fetchUserSongs}
-					/>
+					<RemoveOwnSong/>
 					<div className="w-full px-10">
-						<SubmitSongForm
-							contract={playlistContract}
-							fetchPlaylist={fetchPlaylist}
-							fetchUserSongs={fetchUserSongs}
-						/>
+						<SubmitSongForm/>
 					</div>
 					<div className="w-full">
-						<MySaves contract={playlistContract} currentSong={currentSong} />
+						<MySaves currentSong={currentSong} />
 						<SavesLeaderboard contract={playlistContract} />
 					</div>
-					<ScheduleLive contract={scheduleLiveContract} />
+					<ScheduleLive/>
 				</>
 			) : (
 				<p>Please connect to MetaMask.</p>

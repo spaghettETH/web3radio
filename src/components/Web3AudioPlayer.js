@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import AudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
 import { sanitizeUri } from "../utils/Utils";
-
+import { useWeb3Radio } from "../context/Web3RadioContext";
 // Helper to resolve IPFS URIs
 const resolveIpfsUri = (uri) => {
   if (!uri) {
@@ -14,11 +14,12 @@ const resolveIpfsUri = (uri) => {
   return resolveUrl
 };
 
-const Web3AudioPlayer = ({ playlist, setSong  }) => {
+const Web3AudioPlayer = ({ setSong  }) => {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [shuffledPlaylist, setShuffledPlaylist] = useState([]);
   const [currentSong, setCurrentSong] = useState(null);
+  const { playlist } = useWeb3Radio();
 
   const shuffleArray = (array) => {
     const shuffled = [...array];
@@ -54,19 +55,6 @@ const Web3AudioPlayer = ({ playlist, setSong  }) => {
       setCurrentIndex(0);
       setCurrentSong(shuffledPlaylist[0]);
     }
-  };
-
-  // Aggiungiamo questi due gestori
-  const handlePrevious = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? playlist.length - 1 : prevIndex - 1
-    );
-  };
-
-  const handleNext = () => {
-    setCurrentIndex((prevIndex) =>
-      (prevIndex + 1) % playlist.length
-    );
   };
 
   return (
