@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import Playlist from "./components/Playlist";
 import Web3AudioPlayer from "./components/Web3AudioPlayer";
 import SubmitSongForm from "./components/SubmitSongForm";
 import RemoveOwnSong from "./components/RemoveOwnSong";
@@ -11,7 +10,6 @@ import Logo from "./components/Logo";
 import Title from "./components/Title";
 import RadioModality from "./components/RadioModality";
 import WalletButton from "./components/megoComponents/WalletButton";
-import { useWeb3Context } from "./components/megoComponents/web3-context";
 import { useWeb3Radio } from "./context/Web3RadioContext";
 
 const App = () => {
@@ -48,7 +46,7 @@ const App = () => {
 						<MySaves currentSong={currentSong} />
 						<SavesLeaderboard contract={playlistContract} />
 					</div>
-					<ScheduleLive/>
+					<ScheduleLive />
 				</>
 			) : (
 				<p>Please connect to MetaMask.</p>

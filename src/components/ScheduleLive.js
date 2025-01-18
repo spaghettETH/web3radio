@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { useWeb3Radio } from "../context/Web3RadioContext";
 
-const ScheduleLive = ({ contract }) => {
+const ScheduleLive = () => {
   const [title, setTitle] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [streamUrl, setStreamUrl] = useState("");
@@ -10,6 +11,7 @@ const ScheduleLive = ({ contract }) => {
   const [duration, setDuration] = useState(1); // Default: 30 minutes
   const [bookedSlots, setBookedSlots] = useState([]);
   const [next24HoursEvents, setNext24HoursEvents] = useState([]);
+  const { scheduleLiveContract:contract } = useWeb3Radio();
 
   const fetchBookedSlots = useCallback(async () => {
     try {
