@@ -16,6 +16,8 @@ export const Web3RadioProvider = ({ children }) => {
     const [mySongs, setMySongs] = useState([]);
     const [isConnected, setIsConnected] = useState(false);
 
+    const [radioModality, setRadioModality] = useState("live");
+
     useEffect(() => {
 		const isUserLogged = localStorage.getItem("loggedAs");
 		if (!isUserLogged) {
@@ -109,6 +111,8 @@ export const Web3RadioProvider = ({ children }) => {
 		if (playlistContract) {
 			fetchPlaylist();
 			fetchUserSongs();
+            //TODO: La scelta della modalità deve essere fatta qui
+            setRadioModality("playlist");
 		}
 	}, [playlistContract, fetchPlaylist, fetchUserSongs]);
 
@@ -121,6 +125,7 @@ export const Web3RadioProvider = ({ children }) => {
             scheduleLiveContract,
             mySongs,
             isConnected,
+            radioModality,
         }}>
         {children}
     </Web3RadioContext.Provider>;

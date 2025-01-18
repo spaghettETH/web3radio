@@ -1,39 +1,19 @@
 import React, { useState } from 'react';
+import { useWeb3Radio } from "../context/Web3RadioContext";
 
 const RadioModality = ({ onModalityChange }) => {
 
-    const [isLive, setIsLive] = useState(true);
-    const [isPlaylist, setIsPlaylist] = useState(false);
-
-    const handleModalityChange = (modality) => {
-        if (modality === "live") {
-            setIsLive(true);
-            setIsPlaylist(false);
-        } else if (modality === "playlist") {
-            setIsLive(false);
-            setIsPlaylist(true);
-        }
-
-        if (onModalityChange) {
-            onModalityChange(modality);
-        }
-    }
+    const { radioModality } = useWeb3Radio();
 
     return <div className="flex flex-row items-left my-2 justify-left gap-4 w-full">
-        <button
-            onClick={() => handleModalityChange("live")}
-            className={`border-2 border-black text-white w-[150px] px-4 py-2 rounded-md ${
-                isLive ? "bg-[#FF7AAD] text-black font-bold" : "bg-black"
-            }`}>
+        <div
+            className={`border-2 flex items-center justify-center border-black text-white w-[150px] px-4 py-2 rounded-md ${radioModality === "live" ? "bg-[#FF7AAD] text-black font-bold" : "bg-black" }`}>
             Live
-        </button>
-        <button
-            onClick={() => handleModalityChange("playlist")}
-            className={`border-2 border-black text-white w-[150px] px-4 py-2 rounded-md ${
-                isPlaylist ? "bg-[#FF7AAD] text-black font-bold" : "bg-black"
-            }`}>
+        </div>
+        <div
+            className={`border-2 flex items-center justify-center border-black text-white w-[150px] px-4 py-2 rounded-md ${radioModality === "playlist" ? "bg-[#FF7AAD] text-black font-bold" : "bg-black"}`}>
             Playlist
-        </button>
+        </div>
     </div>;
 };
 
