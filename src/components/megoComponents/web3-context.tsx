@@ -189,6 +189,11 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
       localStorage.setItem("provider", "metamask");
       setProvider("metamask");
       setMetamaskProvider(_provider);
+
+      //Switch chain to the one specified in the .env file
+      if(process.env.REACT_APP_CHAIN_ID){
+        await _provider.send("wallet_switchEthereumChain", [{ chainId: `0x${parseInt(process.env.REACT_APP_CHAIN_ID).toString(16)}` }]); // Converti l'ID in esadecimale
+      }
     } catch (error) {
       console.error("Error initializing provider:", error);
       console.log(error);
