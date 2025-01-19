@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaMusic, FaFileAudio, FaImage } from 'react-icons/fa';
 import { useWeb3Radio } from "../context/Web3RadioContext";
+import { usePopup } from "../context/PopupContext";
 
 interface SubmitSongFormProps {
 }
@@ -16,6 +17,7 @@ const SubmitSongForm : React.FC<SubmitSongFormProps> = () => {
 
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
   const { playlistContract:contract, fetchPlaylist, fetchUserSongs } = useWeb3Radio();
+  const { openPopup, closePopup } = usePopup();
 
   const normalizeLink = (url:string) => {
     if (url.includes("dropbox.com")) {
@@ -43,7 +45,7 @@ const SubmitSongForm : React.FC<SubmitSongFormProps> = () => {
       return;
     }
 
-    setLoading(true);
+    openPopup('Submitting...', 'Please wait while we submit your audio to the smart contract.');
     setErrorMessage(null);
 
     try {
@@ -64,7 +66,7 @@ const SubmitSongForm : React.FC<SubmitSongFormProps> = () => {
       console.error("Error submitting audio:", error);
       setErrorMessage("Failed to submit audio to the smart contract.");
     } finally {
-      setLoading(false);
+      closePopup();
     }
   };
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { getSavedSongsStubs } from "./Stubber";
 import SavedAudio from "./SavedAudio";
 import { useWeb3Radio } from "../context/Web3RadioContext";
+import { usePopup } from "../context/PopupContext";
 // Is for testing purposes (altering contract getMySaves function)
 const STUBBED = false;
 interface MySavesProps {
@@ -12,6 +13,7 @@ const MySaves: React.FC<MySavesProps> = ({ currentSong }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { playlistContract:contract } = useWeb3Radio();
+  const { openPopup, closePopup } = usePopup();
 
   // Fetch user's saved songs from the smart contract
   const fetchMySaves = useCallback(async () => {
@@ -58,18 +60,18 @@ const MySaves: React.FC<MySavesProps> = ({ currentSong }) => {
       alert("No song is currently playing or the song data is incomplete.");
       return;
     }
-
+    openPopup('Saving...', `Saving song: ${currentSong.title}`, 'loading');
     try {
       console.log(`Saving song: ${currentSong.title}`);
       const tx = await contract.addToMySaves(currentSong.id);
       await tx.wait();
 
-      alert(`Song "${currentSong.title}" saved successfully!`);
+      openPopup('Saved!', `Song "${currentSong.title}" saved successfully!`, 'success');
       fetchMySaves(); // Refresh the saved songs list after saving
     } catch (error) {
       console.error("Error saving the song:", error);
-      alert("Failed to save the song. Ensure you're connected and authorized.");
-    }
+      openPopup('Error', `Failed to save the song. Ensure you're connected and authorized.`, 'error');
+    } 
   };
 
   // Fetch saved songs when the contract updates

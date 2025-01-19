@@ -15,6 +15,7 @@ import { useWeb3Radio } from "./context/Web3RadioContext";
 const App: React.FC = () => {
     const [currentSong, setCurrentSong] = useState<any>(null);
     const { isConnected } = useWeb3Radio();
+    
 
     return (
         <div className="flex gap-10 flex-col max-w-screen-lg items-center justify-center pt-10">
@@ -23,13 +24,13 @@ const App: React.FC = () => {
             <Title />
             {isConnected ? (
                 <>
-                    <Web3AudioPlayer 
-                        setSong={(song:any) => {
+                    <Web3AudioPlayer
+                        setSong={(song: any) => {
                             console.log("Setting current song:", song);
                             setCurrentSong(song);
                         }}
                     />
-                    <RadioModality onModalityChange={(modality:string) => {
+                    <RadioModality onModalityChange={(modality: string) => {
                         console.log("Modality changed:", modality);
                     }} />
                     {currentSong && currentSong.submitter ? (

@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import SavedAudio from "./SavedAudio";
 import { useWeb3Radio } from "../context/Web3RadioContext";
+import { usePopup } from "../context/PopupContext";
 
 // Is for testing purposes (altering contract getMySaves function)
 
@@ -10,7 +11,7 @@ interface RemoveOwnSongProps {
 
 const RemoveOwnSong: React.FC<RemoveOwnSongProps> = () => {
   const { playlistContract:contract, fetchUserSongs, mySongs } = useWeb3Radio();
-
+  const { openPopup } = usePopup();
   useEffect(() => {
     if (contract) {
       console.log("Contract detected in RemoveOwnSong. Fetching user songs...");
@@ -26,15 +27,17 @@ const RemoveOwnSong: React.FC<RemoveOwnSongProps> = () => {
       return;
     }
 
+    openPopup('Removing...', `Removing song with ID: ${songId}`, 'loading');
+
     try {
       console.log(`Removing song with ID: ${songId}`); // Debugging
       const tx = await contract.removeOwnSong(songId);
       await tx.wait();
-      alert("Song removed successfully!");
+      openPopup('Removed!', `Song "${songId}" removed successfully!`, 'success');
       fetchUserSongs(); // Refresh the song list
     } catch (error) {
       console.error("Error removing song:", error);
-      alert(`Failed to remove the song. Error: ${error}`);
+      openPopup('Error', `Failed to remove the song. Error: ${error}`, 'error');
     }
   };
 
