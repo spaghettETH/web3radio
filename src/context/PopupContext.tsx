@@ -111,14 +111,6 @@ export const PopupProvider: React.FC<PopupProviderProps> = ({ children }) => {
                             transition={{ type: "spring", damping: 15 }}
                             onClick={(e) => e.stopPropagation()}
                         >
-                            {type === 'loading' && (
-                                <button
-                                    className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-colors"
-                                    onClick={closePopup}
-                                >
-                                    ×
-                                </button>
-                            )}
                             <h2 className={`text-2xl font-semibold mb-6 ${styles.color}`}>{title}</h2>
                             <div className="flex justify-center items-center min-h-[100px] flex-col gap-4">
                                 {type === 'loading' ? (

@@ -74,6 +74,11 @@ const MySaves: React.FC<MySavesProps> = ({ currentSong }) => {
     } 
   };
 
+  const handleDelete = async (id:any) => {
+    if (!contract) return;
+    openPopup('Under construction', 'Function not implemented', 'error');
+  };
+
   // Fetch saved songs when the contract updates
   useEffect(() => {
     fetchMySaves();
@@ -93,7 +98,7 @@ const MySaves: React.FC<MySavesProps> = ({ currentSong }) => {
         <ul>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
             {savedSongs.map((song) => (
-              <SavedAudio key={song.id} {...song} />
+              <SavedAudio key={song.id} {...song} handleDelete={handleDelete} />
             ))}
           </div>
         </ul>

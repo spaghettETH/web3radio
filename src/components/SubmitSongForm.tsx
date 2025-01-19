@@ -45,7 +45,7 @@ const SubmitSongForm : React.FC<SubmitSongFormProps> = () => {
       return;
     }
 
-    openPopup('Submitting...', 'Please wait while we submit your audio to the smart contract.');
+    openPopup('Submitting...', 'Please wait while we submit your audio to the smart contract.', 'loading');
     setErrorMessage(null);
 
     try {
@@ -55,7 +55,7 @@ const SubmitSongForm : React.FC<SubmitSongFormProps> = () => {
       const tx = await contract.addSong(normalizedAudioUri, normalizedImageUri, title);
       await tx.wait();
 
-      alert("Audio submitted successfully!");
+      openPopup('Submitted!', 'Audio submitted successfully!', 'success');
       fetchPlaylist();
       fetchUserSongs();
       setTitle("");
@@ -64,10 +64,8 @@ const SubmitSongForm : React.FC<SubmitSongFormProps> = () => {
       setDisclaimerChecked(false);
     } catch (error) {
       console.error("Error submitting audio:", error);
-      setErrorMessage("Failed to submit audio to the smart contract.");
-    } finally {
-      closePopup();
-    }
+      openPopup('Error', 'Failed to submit audio to the smart contract.', 'error');
+    } 
   };
 
   const containerVariants = {
