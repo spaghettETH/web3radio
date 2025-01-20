@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract DecentraPlaylist is Ownable {
     IERC721 public nftContract;
 
-    uint public nextSongId; // Counter for unique song IDs
+    uint public nextSongId = 1; // Start IDs from 1
 
     struct Song {
         uint id;          // Unique ID for each song
@@ -33,7 +33,7 @@ contract DecentraPlaylist is Ownable {
     }
 
     modifier validSongId(uint _id) {
-        require(_id < nextSongId, "Invalid song ID");
+        require(_id > 0 && _id < nextSongId, "Invalid song ID");
         _;
     }
 
@@ -77,6 +77,19 @@ contract DecentraPlaylist is Ownable {
         songScores[_id]++;               // Increment the song score
     }
 
+    function removeFromMySaves(uint _id) external validSongId(_id) {
+        uint[] storage saves = userSaves[msg.sender];
+        for (uint i = 0; i < saves.length; i++) {
+            if (saves[i] == _id) {
+                saves[i] = 0; // Mark as removed
+                break;
+            }
+        }
+        if (songScores[_id] > 0) {
+            songScores[_id]--; // Decrement the song's score
+        }
+    }
+
     // Simplified Getter Functions
 
     function retrieveMySaves() external view returns (uint[] memory) {
@@ -84,12 +97,14 @@ contract DecentraPlaylist is Ownable {
     }
 
     function viewPlaylist() external view returns (uint[] memory) {
-        uint[] memory playlistIds = new uint[](nextSongId);
+        uint[] memory playlistIds = new uint[](nextSongId - 1);
         uint count;
 
-        for (uint i = 0; i < nextSongId; i++) {
-            playlistIds[count] = i;
-            count++;
+        for (uint i = 1; i < nextSongId; i++) { // Start from 1
+            if (songsById[i].isActive) {
+                playlistIds[count] = i;
+                count++;
+            }
         }
 
         uint[] memory result = new uint[](count);
