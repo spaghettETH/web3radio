@@ -2,16 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import AudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
 import { useWeb3Radio } from "../context/Web3RadioContext";
-// Helper to resolve IPFS URIs
-const resolveIpfsUri = (uri:string) => {
-  if (!uri) {
-    console.error("Invalid URI:", uri);
-    return undefined;
-  }
-  const resolveUrl = uri.startsWith("ipfs://") ? `https://dweb.link/ipfs/${uri.slice(7)}` : uri;
-  console.log("resolveUrl", resolveUrl);
-  return resolveUrl
-};
+import { resolveIpfsUri } from "../utils/Utils";
 
 interface Web3AudioPlayerProps {
     setSong: (song: any) => void;

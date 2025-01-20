@@ -1,15 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-
-// Helper to resolve IPFS URIs
-const resolveIpfsUri = (uri: string) => {
-  if (!uri) {
-    console.error("Invalid URI:", uri);
-    return undefined;
-  }
-  return uri.startsWith("ipfs://")
-    ? `https://dweb.link/ipfs/${uri.slice(7)}`
-    : uri;
-};
+import { resolveIpfsUri } from "../utils/Utils";
 
 // Fisher-Yates Shuffle Algorithm
 const shuffleArray = (array: any[]) => {

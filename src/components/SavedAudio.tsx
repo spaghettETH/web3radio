@@ -1,4 +1,5 @@
 import React from "react";
+import { resolveIpfsUri } from "../utils/Utils";
 
 interface SavedAudioProps {
     id: any;
@@ -10,29 +11,20 @@ interface SavedAudioProps {
 
 const SavedAudio: React.FC<SavedAudioProps> = ({ id, title, uri, img, handleDelete }) => {
 
-    const resolveIpfsUri = (uri:string) => {
-        if (!uri) {
-            console.error("Invalid URI:", uri);
-            return undefined;
-        }
-        return uri.startsWith("ipfs://")
-            ? `https://dweb.link/ipfs/${uri.slice(7)}`
-            : uri;
-    };
-
     const deleteSong = (id:any) => {
         if (handleDelete) {
             handleDelete(id);
         }
     }
 
-    console.log("Img", img);
+    console.log("Img [no resolve]", img);
+    console.log("Img [resolve]", resolveIpfsUri(img));
     return <div
         id={id}
         className="flex flex-col items-center justify-between rounded-md gap-4">
 
         <div className="w-full relative min-h-[200px] rounded-md overflow-hidden border-[1px] border-b-[5px] border-black shadow-lg">
-            <img src={img ? img : "/headphone.svg"} alt={title} className="w-full h-full object-cover" />
+            <img src={img ? resolveIpfsUri(img) : "/headphone.svg"} alt={title} className="w-full h-full object-cover" />
             <a
                 href={resolveIpfsUri(uri)}
                 target="_blank"

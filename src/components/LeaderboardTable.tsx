@@ -1,3 +1,4 @@
+import { resolveIpfsUri } from "../utils/Utils";
 
 interface LeaderboardTableProps {
     leaderboard: any[];
@@ -5,15 +6,6 @@ interface LeaderboardTableProps {
 
 const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ leaderboard }) => {
 
-    const resolveIpfsUri = (uri: string) => {
-        if (!uri) {
-            console.error("Invalid URI:", uri);
-            return undefined;
-        }
-        return uri.startsWith("ipfs://")
-            ? `https://dweb.link/ipfs/${uri.slice(7)}`
-            : uri;
-    };
 
     return (
         <div className="w-full bg-black p-6 overflow-x-auto">
