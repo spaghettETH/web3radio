@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import AudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
 import { useWeb3Radio } from "../context/Web3RadioContext";
-import { resolveIpfsUri } from "../utils/Utils";
+import { resolveCloudLinkUrl, resolveIpfsUri } from "../utils/Utils";
 
 interface Web3AudioPlayerProps {
     setSong: (song: any) => void;
@@ -59,7 +59,7 @@ const Web3AudioPlayer: React.FC<Web3AudioPlayerProps> = ({ setSong }) => {
           <div className="bg-black">
             {currentSong.img && (
               <img
-                src={resolveIpfsUri(currentSong.img)}
+                  src={resolveCloudLinkUrl(currentSong.img, 'img')}
                 alt={`${currentSong.title} Cover`}
                 className="w-full h-[500px] object-contain"
               />
@@ -70,7 +70,7 @@ const Web3AudioPlayer: React.FC<Web3AudioPlayerProps> = ({ setSong }) => {
                   
                   <AudioPlayer
                     autoPlay={true}
-                    src={resolveIpfsUri(currentSong?.uri)}
+                    src={resolveCloudLinkUrl(currentSong?.uri, 'audio')}
                     style={{ backgroundColor: 'black', color: 'white', border: 'none', boxShadow: 'none', }}
                     showSkipControls={false}
                     onEnded={handleEnded}

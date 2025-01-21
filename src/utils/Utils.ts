@@ -1,6 +1,8 @@
+import axios from "axios";
 
 // Helper to resolve IPFS URIs
 const resolveIpfsUri = (uri:string) => {
+
     if (!uri) {
         console.error("Invalid URI:", uri);
         return undefined;
@@ -20,6 +22,17 @@ const resolveIpfsUri = (uri:string) => {
     return resolvedUri;
 };
 
+const resolveCloudLinkUrl = (uri:string, type: 'img' | 'audio') => {
+    try {
+        const baseUrl = process.env.REACT_APP_API_BASE_URL; 
+        const getUrl = `${baseUrl}/resolve/cloude-storage-link?link=${uri}&type=${type}`;
+        return getUrl;
+    } catch(error) {
+        console.error("Error resolving cloud link URL:", error);
+        return type === 'img' ? "/img_placeholder.jpg" : "/mp3_placeholder.jpg";
+    }
+}
+
 const sanitizeUri = (uri: string) => {
     if (!uri) {
         console.error("Invalid URI:", uri);
@@ -32,4 +45,4 @@ const sanitizeUri = (uri: string) => {
     return uri;
 };
 
-export { resolveIpfsUri, sanitizeUri };
+export { resolveIpfsUri, sanitizeUri, resolveCloudLinkUrl };

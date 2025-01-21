@@ -8,51 +8,11 @@ const STUBBED = false;
 interface MySavesProps {
     currentSong: any;
 }
-const MySaves: React.FC<MySavesProps> = ({ currentSong }) => {
-  const [savedSongs, setSavedSongs] = useState<any[]>([]);
+const MySavesAudio: React.FC<MySavesProps> = ({ currentSong }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const { playlistContract:contract } = useWeb3Radio();
+  const { playlistContract:contract, fetchMySaves, savedSongs, removeSavedSong } = useWeb3Radio();
   const { openPopup, closePopup } = usePopup();
-
-  // Fetch user's saved songs from the smart contract
-  const fetchMySaves = useCallback(async () => {
-    if (!contract) return;
-    setLoading(true);
-    setError(null);
-
-    try {
-      console.log("Fetching saved song IDs...");
-      const savedSongIds = await contract.retrieveMySaves();
-
-      // Fetch details for each saved song
-      const formattedSaves = await Promise.all(
-        savedSongIds.map(async (id:any) => {
-          const song = await contract.songsById(id);
-          return {
-            id: song.id.toString(),
-            title: song.title,
-            uri: song.uri,
-            img: song.img,
-            isActive: song.isActive, // Respect active status
-          };
-        })
-      );
-
-      //STUBB alter the contract getMySaves function and override the savedSongs for testing purposes
-      if (STUBBED) {
-        const stubbedSaves = await getSavedSongsStubs();
-        setSavedSongs(stubbedSaves.filter((song) => song.isActive));
-      } else {
-        setSavedSongs(formattedSaves.filter((song) => song.isActive)); // Exclude inactive songs
-      }
-    } catch (error) {
-      console.error("Error fetching saved songs:", error);
-      setError("Failed to fetch saved songs. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }, [contract]);
 
   // Save the currently playing song to the user's saves
   const handleSaveSong = async () => {
@@ -75,8 +35,14 @@ const MySaves: React.FC<MySavesProps> = ({ currentSong }) => {
   };
 
   const handleDelete = async (id:any) => {
-    if (!contract) return;
-    openPopup('Under construction', 'Function not implemented', 'error');
+    try {
+      openPopup('Deleting...', `Deleting saved song: ${id}`, 'loading');
+      await removeSavedSong(id);
+      openPopup('Deleted!', `Song "${id}" deleted successfully!`, 'success');
+    } catch (error) {
+      console.error("Error deleting the song:", error);
+      openPopup('Error', `Failed to delete the song. Ensure you're connected and authorized.`, 'error');
+    }
   };
 
   // Fetch saved songs when the contract updates
@@ -117,4 +83,4 @@ const MySaves: React.FC<MySavesProps> = ({ currentSong }) => {
   );
 };
 
-export default MySaves;
+export default MySavesAudio;

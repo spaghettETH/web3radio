@@ -5,13 +5,15 @@ import { usePopup } from "../context/PopupContext";
 
 // Is for testing purposes (altering contract getMySaves function)
 
-interface RemoveOwnSongProps {
+interface SubmittedUserSongsProps {
 
 }
 
-const RemoveOwnSong: React.FC<RemoveOwnSongProps> = () => {
-  const { playlistContract:contract, fetchUserSongs, mySongs } = useWeb3Radio();
+const SubmittedUserSongs: React.FC<SubmittedUserSongsProps> = () => {
+  const { playlistContract:contract, fetchUserSongs, mySongs, removeSubmittedUserSong } = useWeb3Radio();
   const { openPopup } = usePopup();
+
+
   useEffect(() => {
     if (contract) {
       console.log("Contract detected in RemoveOwnSong. Fetching user songs...");
@@ -22,19 +24,11 @@ const RemoveOwnSong: React.FC<RemoveOwnSongProps> = () => {
   }, [contract, fetchUserSongs]);
 
   const removeSong = async (songId:any) => {
-    if (!contract) {
-      alert("Smart contract not initialized.");
-      return;
-    }
-
     openPopup('Removing...', `Removing song with ID: ${songId}`, 'loading');
-
     try {
       console.log(`Removing song with ID: ${songId}`); // Debugging
-      const tx = await contract.removeOwnSong(songId);
-      await tx.wait();
+      await removeSubmittedUserSong(songId);
       openPopup('Removed!', `Song "${songId}" removed successfully!`, 'success');
-      fetchUserSongs(); // Refresh the song list
     } catch (error) {
       console.error("Error removing song:", error);
       openPopup('Error', `Failed to remove the song. Error: ${error}`, 'error');
@@ -57,7 +51,7 @@ const RemoveOwnSong: React.FC<RemoveOwnSongProps> = () => {
   );
 };
 
-export default RemoveOwnSong;
+export default SubmittedUserSongs;
 
 
 {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">

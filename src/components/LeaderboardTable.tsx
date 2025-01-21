@@ -1,4 +1,4 @@
-import { resolveIpfsUri } from "../utils/Utils";
+import { resolveCloudLinkUrl } from "../utils/Utils";
 
 interface LeaderboardTableProps {
     leaderboard: any[];
@@ -48,7 +48,7 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ leaderboard }) => {
                                 </td>
                                 <td className="text-white">
                                     <div className="flex flex-row items-center justify-center">
-                                        <a className="flex items-center gap-2" href={resolveIpfsUri(song.uri)} target="_blank" rel="noopener noreferrer">
+                                        <a className="flex items-center gap-2" href={resolveCloudLinkUrl(song.uri, 'audio')} target="_blank" rel="noopener noreferrer">
                                             <img src="/headphone.svg" alt="play" className="w-4 h-4" />
                                             <span className="text-white uppercase sm:block hidden">Listen now</span>
                                         </a>

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import Web3AudioPlayer from "./components/Web3AudioPlayer";
 import SubmitSongForm from "./components/SubmitSongForm";
-import RemoveOwnSong from "./components/RemoveOwnSong";
-import MySaves from "./components/MySaves";
+import RemoveOwnSong from "./components/SubmittedUserSongs";
+import MySaves from "./components/MySavesAudio";
 import SavesLeaderboard from "./components/SavesLeaderboard";
 import Donate from "./components/Donate";
 import ScheduleLive from "./components/ScheduleLive";

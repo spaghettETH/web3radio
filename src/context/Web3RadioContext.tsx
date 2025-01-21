@@ -9,8 +9,12 @@ interface Web3RadioContextType {
     playlist: any[];
     fetchPlaylist: () => Promise<void>;
     fetchUserSongs: () => Promise<void>;
+    fetchMySaves: () => Promise<void>;
+    removeSubmittedUserSong: (id: any) => Promise<void>;
+    removeSavedSong: (id: any) => Promise<void>;
     scheduleLiveContract: Contract | null;
     mySongs: any[];
+    savedSongs: any[];
     isConnected: boolean;
     radioModality: string;
     userHasSBT: boolean;
@@ -26,6 +30,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const [playlistContract, setPlaylistContract] = useState<Contract | null>(null);
     const [scheduleLiveContract, setScheduleLiveContract] = useState<Contract | null>(null);
     const [mySongs, setMySongs] = useState<any[]>([]);
+    const [savedSongs, setSavedSongs] = useState<any[]>([]);
     const [isConnected, setIsConnected] = useState<boolean>(false);
     const [userHasSBT, setUserHasSBT] = useState<boolean>(true);
     const [radioModality, setRadioModality] = useState<string>("live");
@@ -42,15 +47,15 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         if (loggedAs) {
             try {
                 console.log("[initializeProvider] LoggedAs:", loggedAs);
-                
+
                 // Otteniamo il signer
                 const signer = await getSigner();
                 console.log("[initializeProvider] Signer:", signer);
-                
+
                 // Creiamo i contratti direttamente con il signer
                 const _playlistContract = new Contract(playlistAddress, playlistABI, signer);
                 const _scheduleLiveContract = new Contract(scheduleLiveAddress, scheduleLiveABI, signer);
-                
+
                 setPlaylistContract(_playlistContract);
                 setScheduleLiveContract(_scheduleLiveContract);
 
@@ -133,6 +138,53 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
     }, [playlistContract, getProvider]);
 
+    const fetchMySaves = useCallback(async () => {
+        const provider = getProvider();
+
+        if (playlistContract && provider) {
+            try {
+                console.log("Fetching saved song IDs...");
+                const savedSongIds = await playlistContract.retrieveMySaves();
+
+                // Fetch details for each saved song
+                const formattedSaves = await Promise.all(
+                    savedSongIds.map(async (id: any) => {
+                        const song = await playlistContract.songsById(id);
+                        return {
+                            id: song.id.toString(),
+                            title: song.title,
+                            uri: song.uri,
+                            img: song.img,
+                            isActive: song.isActive, // Respect active status
+                        };
+                    })
+                );
+                setSavedSongs(formattedSaves.filter((song) => song.isActive)); // Exclude inactive songs
+            } catch (error) {
+                console.error("Error fetching my saves:", error);
+                setSavedSongs([]);
+            }
+        }
+    }, [playlistContract]);
+
+    const removeSubmittedUserSong = useCallback(async (id: any) => {
+        const provider = getProvider();
+        if (playlistContract && provider) {
+            const tx = await playlistContract.removeOwnSong(id);
+            await tx.wait();
+            fetchUserSongs();
+        }
+    }, [playlistContract]);
+
+    const removeSavedSong = useCallback(async (id: any) => {
+        const provider = getProvider();
+        if (playlistContract && provider) {
+            const tx = await playlistContract.removeFromMySaves(id);
+            await tx.wait();
+            fetchMySaves();
+        }
+    }, [playlistContract]);
+
     useEffect(() => {
         if (playlistContract) {
             fetchPlaylist();
@@ -149,6 +201,10 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 playlist,
                 fetchPlaylist,
                 fetchUserSongs,
+                fetchMySaves,
+                removeSubmittedUserSong,
+                removeSavedSong,
+                savedSongs,
                 scheduleLiveContract,
                 mySongs,
                 isConnected,
