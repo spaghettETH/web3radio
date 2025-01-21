@@ -7,6 +7,7 @@ import { scheduleLiveABI, scheduleLiveAddress } from "../contracts/ScheduleLive/
 interface Web3RadioContextType {
     playlistContract: Contract | null;
     playlist: any[];
+    liveSong: any;
     fetchPlaylist: () => Promise<void>;
     fetchUserSongs: () => Promise<void>;
     fetchMySaves: () => Promise<void>;
@@ -24,6 +25,7 @@ export const Web3RadioContext = createContext<Web3RadioContextType | undefined>(
 
 export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [playlist, setPlaylist] = useState<any[]>([]);
+    const [liveSong, setLiveSong] = useState<any>(null);
     const { loggedAs, getProvider, isLoading, openMegoModal, getSigner } = useWeb3Context();
 
     // Contracts
@@ -167,6 +169,16 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
     }, [playlistContract]);
 
+    //TODO: Implement this!
+    const fetchLiveSong = useCallback(async () => {
+        const provider = getProvider();
+        if (scheduleLiveContract && provider) {
+            const liveSong = await scheduleLiveContract.onAirNow();
+            console.log("Live song:", liveSong);
+            setLiveSong(liveSong);
+        }
+    }, [scheduleLiveContract]);
+
     const removeSubmittedUserSong = useCallback(async (id: any) => {
         const provider = getProvider();
         if (playlistContract && provider) {
@@ -185,9 +197,12 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
     }, [playlistContract]);
 
+
+
     useEffect(() => {
         if (playlistContract) {
             fetchPlaylist();
+            fetchLiveSong();
             fetchUserSongs();
             //TODO: La scelta della modalità deve essere fatta qui
             setRadioModality("playlist");
@@ -199,6 +214,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             value={{
                 playlistContract,
                 playlist,
+                liveSong,
                 fetchPlaylist,
                 fetchUserSongs,
                 fetchMySaves,
