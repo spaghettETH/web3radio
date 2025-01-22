@@ -46,7 +46,6 @@ const App: React.FC = () => {
                         <MySaves currentSong={currentSong} />
                         <SavesLeaderboard />
                     </div>
-                    <ScheduleLive />
                     <Donate creatorAddress={currentSong?.submitter} />
                 </>
             ) : (

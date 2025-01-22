@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useWeb3Radio } from "../context/Web3RadioContext";
+import { motion } from "framer-motion";
 
 interface ScheduleLiveProps {
 }
@@ -14,24 +15,24 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
   const [duration, setDuration] = useState<number>(1); // Default: 30 minutes
   const [bookedSlots, setBookedSlots] = useState<any[]>([]);
   const [next24HoursEvents, setNext24HoursEvents] = useState<any[]>([]);
-  const { scheduleLiveContract:contract } = useWeb3Radio();
+  const { scheduleLiveContract: contract } = useWeb3Radio();
 
   const fetchBookedSlots = useCallback(async () => {
     if (!contract) return;
     try {
       const eventIds = await contract.getMyBookedShows();
       const events = await Promise.all(
-        eventIds.map(async (eventId:any) => {
+        eventIds.map(async (eventId: any) => {
           const event = await contract.getEventDetails(eventId);
           return event.isActive
             ? {
-                id: event.id,
-                title: event.title,
-                imageUrl: event.imageUrl,
-                livestreamUrl: event.livestreamUrl,
-                startTime: new Date(Number(event.startTime) * 1000).toLocaleString(),
-                endTime: new Date(Number(event.endTime) * 1000).toLocaleString(),
-              }
+              id: event.id,
+              title: event.title,
+              imageUrl: event.imageUrl,
+              livestreamUrl: event.livestreamUrl,
+              startTime: new Date(Number(event.startTime) * 1000).toLocaleString(),
+              endTime: new Date(Number(event.endTime) * 1000).toLocaleString(),
+            }
             : null;
         })
       );
@@ -46,17 +47,17 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
     try {
       const eventIds = await contract.getLiveShowsInNext24Hours();
       const events = await Promise.all(
-        eventIds.map(async (eventId:any) => {
+        eventIds.map(async (eventId: any) => {
           const event = await contract.getEventDetails(eventId);
           return event.isActive
             ? {
-                id: event.id,
-                title: event.title,
-                imageUrl: event.imageUrl,
-                livestreamUrl: event.livestreamUrl,
-                startTime: new Date(Number(event.startTime) * 1000).toLocaleString(),
-                endTime: new Date(Number(event.endTime) * 1000).toLocaleString(),
-              }
+              id: event.id,
+              title: event.title,
+              imageUrl: event.imageUrl,
+              livestreamUrl: event.livestreamUrl,
+              startTime: new Date(Number(event.startTime) * 1000).toLocaleString(),
+              endTime: new Date(Number(event.endTime) * 1000).toLocaleString(),
+            }
             : null;
         })
       );
@@ -66,7 +67,7 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
     }
   }, [contract]);
 
-  const handleSubmit = async (e:React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!title || !imageUrl || !streamUrl || !selectedDate || !contract) {
@@ -88,7 +89,7 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
       alert("Livestream scheduled successfully!");
       fetchBookedSlots();
       fetchNext24HoursEvents();
-    } catch (error:any) {
+    } catch (error: any) {
       console.error("Error scheduling livestream:", error);
       if (error.reason === "Too many bookings for today!") {
         alert("You have reached the maximum number of bookings allowed for today.");
@@ -165,7 +166,14 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
             ))}
           </select>
         </div>
-        <button type="submit">Schedule Livestream</button>
+        <motion.button
+          type="submit"
+          className={`bg-black text-white px-4 py-2 rounded-md uppercase font-bold mt-4 mb-4`}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          {'Schedule Livestream'.toUpperCase()}
+        </motion.button>
       </form>
 
       <h3>My Scheduled Live Events</h3>
