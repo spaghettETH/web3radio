@@ -21,7 +21,7 @@ const SavedAudio: React.FC<SavedAudioProps> = ({ id, title, uri, img, handleDele
         id={id}
         className="flex flex-col items-center justify-between rounded-md gap-4">
 
-        <div className="w-full relative min-h-[200px] rounded-md overflow-hidden border-[1px] border-b-[5px] border-black shadow-lg">
+        <div className="w-full relative h-full min-h-[200px] rounded-md overflow-hidden border-[1px] border-b-[5px] border-black shadow-lg">
             <img
                 src={resolveCloudLinkUrl(img, 'img')}
                 alt={title}
