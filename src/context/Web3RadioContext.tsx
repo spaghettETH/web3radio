@@ -19,6 +19,13 @@ interface Web3RadioContextType {
     isConnected: boolean;
     radioModality: string;
     userHasSBT: boolean;
+
+    // Booked slots
+    bookedSlots: any[];
+    fetchBookedSlots: () => Promise<void>;
+    next24HoursEvents: any[];
+    fetchNext24HoursEvents: () => Promise<void>;
+    scheduleLive: (title: string, imageUrl: string, streamUrl: string, startTime: number, duration: number) => Promise<void>;
 }
 
 export const Web3RadioContext = createContext<Web3RadioContextType | undefined>(undefined);
@@ -36,6 +43,10 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const [isConnected, setIsConnected] = useState<boolean>(false);
     const [userHasSBT, setUserHasSBT] = useState<boolean>(true);
     const [radioModality, setRadioModality] = useState<string>("live");
+
+    // Booked slots
+    const [bookedSlots, setBookedSlots] = useState<any[]>([]);
+    const [next24HoursEvents, setNext24HoursEvents] = useState<any[]>([]);
 
     useEffect(() => {
         const isUserLogged = localStorage.getItem("loggedAs");
@@ -197,7 +208,70 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
     }, [playlistContract]);
 
+    const fetchBookedSlots = useCallback(async () => {
+        const provider = getProvider();
+        if (scheduleLiveContract && provider) {
+            try {
+                const eventIds = await scheduleLiveContract.getMyBookedShows();
+                const events = await Promise.all(
+                    eventIds.map(async (eventId: any) => {
+                        const event = await scheduleLiveContract.getEventDetails(eventId);
+                        return event.isActive
+                            ? {
+                                id: event.id,
+                                title: event.title,
+                                imageUrl: event.imageUrl,
+                                livestreamUrl: event.livestreamUrl,
+                                startTime: new Date(Number(event.startTime) * 1000).toLocaleString(),
+                                endTime: new Date(Number(event.endTime) * 1000).toLocaleString(),
+                            }
+                            : null;
+                    })
+                );
+                setBookedSlots(events.filter((event) => event !== null));
+            } catch (error) {
+                console.error("Error fetching booked slots:", error);
+            }
+        }
+    }, [scheduleLiveContract]);
 
+    const fetchNext24HoursEvents = useCallback(async () => {
+        const provider = getProvider();
+        if (scheduleLiveContract && provider) {
+            try {
+                const eventIds = await scheduleLiveContract.getLiveShowsInNext24Hours();
+                const events = await Promise.all(
+                    eventIds.map(async (eventId: any) => {
+                        const event = await scheduleLiveContract.getEventDetails(eventId);
+                        return event.isActive
+                            ? {
+                                id: event.id,
+                                title: event.title,
+                                imageUrl: event.imageUrl,
+                                livestreamUrl: event.livestreamUrl,
+                                startTime: new Date(Number(event.startTime) * 1000).toLocaleString(),
+                                endTime: new Date(Number(event.endTime) * 1000).toLocaleString(),
+                            }
+                            : null;
+                    })
+                );
+                setNext24HoursEvents(events.filter((event) => event !== null));
+            } catch (error) {
+                console.error("Error fetching live shows in the next 24 hours:", error);
+            }
+        }
+    }, [scheduleLiveContract]);
+
+
+    const scheduleLive = useCallback(async (title: string, imageUrl: string, streamUrl: string, startTime: number, duration: number) => {
+        const provider = getProvider();
+        if (scheduleLiveContract && provider) {
+            const tx = await scheduleLiveContract.scheduleEvent(title, imageUrl, streamUrl, startTime, duration);
+            await tx.wait();
+            fetchBookedSlots();
+            fetchNext24HoursEvents();
+        }
+    }, [scheduleLiveContract]);
 
     useEffect(() => {
         if (playlistContract) {
@@ -226,6 +300,11 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 isConnected,
                 radioModality,
                 userHasSBT,
+                bookedSlots,
+                fetchBookedSlots,
+                next24HoursEvents,
+                fetchNext24HoursEvents,
+                scheduleLive
             }}
         >
             {children}
