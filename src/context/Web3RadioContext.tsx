@@ -3,11 +3,13 @@ import { useWeb3Context } from "../components/megoComponents/web3-context";
 import { Contract } from "ethers";
 import { playlistABI, playlistAddress } from "../contracts/DecentralizePlaylist/contract";
 import { scheduleLiveABI, scheduleLiveAddress } from "../contracts/ScheduleLive/contract";
+import { RadioMode, LiveStreamPlatform, Song } from "../interfaces/interface";
+import { getLivePlatformFromUri } from "../utils/Utils";
+
 
 interface Web3RadioContextType {
     playlistContract: Contract | null;
     playlist: any[];
-    liveSong: any;
     fetchPlaylist: () => Promise<void>;
     fetchUserSongs: () => Promise<void>;
     fetchMySaves: () => Promise<void>;
@@ -26,13 +28,15 @@ interface Web3RadioContextType {
     next24HoursEvents: any[];
     fetchNext24HoursEvents: () => Promise<void>;
     scheduleLive: (title: string, imageUrl: string, streamUrl: string, startTime: number, duration: number) => Promise<void>;
+    
+    liveStreamPlatform: LiveStreamPlatform;
 }
 
 export const Web3RadioContext = createContext<Web3RadioContextType | undefined>(undefined);
 
 export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [playlist, setPlaylist] = useState<any[]>([]);
-    const [liveSong, setLiveSong] = useState<any>(null);
+    const [playlist, setPlaylist] = useState<Song[]>([]);
+    const [liveStreamPlatform, setLiveStreamPlatform] = useState<LiveStreamPlatform>(LiveStreamPlatform.NOT_SPECIFIED);
     const { loggedAs, getProvider, isLoading, openMegoModal, getSigner } = useWeb3Context();
 
     // Contracts
@@ -42,7 +46,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const [savedSongs, setSavedSongs] = useState<any[]>([]);
     const [isConnected, setIsConnected] = useState<boolean>(false);
     const [userHasSBT, setUserHasSBT] = useState<boolean>(true);
-    const [radioModality, setRadioModality] = useState<string>("live");
+    const [radioModality, setRadioModality] = useState<RadioMode>(RadioMode.LIVE);
 
     // Booked slots
     const [bookedSlots, setBookedSlots] = useState<any[]>([]);
@@ -116,9 +120,13 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                     })
                 );
                 setPlaylist(playlistData.filter((song) => song)); // Filter out inactive songs
+                setRadioModality(RadioMode.PLAYLIST);
+                setLiveStreamPlatform(LiveStreamPlatform.NOT_SPECIFIED);
             } catch (error) {
                 console.error("Error fetching playlist:", error);
                 setPlaylist([]);
+                setRadioModality(RadioMode.PLAYLIST);
+                setLiveStreamPlatform(LiveStreamPlatform.NOT_SPECIFIED);
             }
         }
     }, [playlistContract]);
@@ -158,7 +166,6 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             try {
                 console.log("Fetching saved song IDs...");
                 const savedSongIds = await playlistContract.retrieveMySaves();
-
                 // Fetch details for each saved song
                 const formattedSaves = await Promise.all(
                     savedSongIds.map(async (id: any) => {
@@ -182,11 +189,34 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     //TODO: Implement this!
     const fetchLiveSong = useCallback(async () => {
-        const provider = getProvider();
-        if (scheduleLiveContract && provider) {
-            const liveSong = await scheduleLiveContract.onAirNow();
-            console.log("Live song:", liveSong);
-            setLiveSong(liveSong);
+        try{
+            const provider = getProvider();
+            if (scheduleLiveContract && provider) {
+                const onAirInformation = await scheduleLiveContract.onAirNow();
+                const isOnAir = onAirInformation["0"];
+                if(isOnAir){
+                    const liveSong: Song = {
+                        id: onAirInformation["1"]["0"].toString(),
+                        title: onAirInformation["1"]["1"],
+                        img: onAirInformation["1"]["2"],
+                        uri: onAirInformation["1"]["3"],
+                        submitter: onAirInformation["1"]["6"]
+                    }
+                    setPlaylist([liveSong]);
+                    setLiveStreamPlatform(getLivePlatformFromUri(liveSong.uri));
+                    setRadioModality(RadioMode.LIVE);
+                    return liveSong;
+                }
+                setRadioModality(RadioMode.PLAYLIST);
+                return null;
+            }else{
+                setRadioModality(RadioMode.PLAYLIST);
+                return null;
+            }
+        } catch (error) {
+            console.error("[fetchLiveSong] Error:", error);
+            setRadioModality(RadioMode.PLAYLIST);
+            return null;
         }
     }, [scheduleLiveContract]);
 
@@ -262,7 +292,6 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
     }, [scheduleLiveContract]);
 
-
     const scheduleLive = useCallback(async (title: string, imageUrl: string, streamUrl: string, startTime: number, duration: number) => {
         const provider = getProvider();
         if (scheduleLiveContract && provider) {
@@ -273,22 +302,30 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
     }, [scheduleLiveContract]);
 
+    const fetchAllData = useCallback(async () => {
+        const liveSong = await fetchLiveSong();
+        if(!liveSong){
+            fetchPlaylist();
+        }
+    }, [fetchLiveSong, fetchPlaylist]);
+
+    const fetchStaticData = useCallback(async () => {
+        fetchUserSongs();
+        fetchMySaves();
+    }, [fetchUserSongs, fetchMySaves]);
+
     useEffect(() => {
         if (playlistContract) {
-            fetchPlaylist();
-            fetchLiveSong();
-            fetchUserSongs();
-            //TODO: La scelta della modalità deve essere fatta qui
-            setRadioModality("playlist");
+            fetchStaticData();
+            fetchAllData();
         }
-    }, [playlistContract, fetchPlaylist, fetchUserSongs]);
+    }, [playlistContract, fetchStaticData]);
 
     return (
         <Web3RadioContext.Provider
             value={{
                 playlistContract,
                 playlist,
-                liveSong,
                 fetchPlaylist,
                 fetchUserSongs,
                 fetchMySaves,
@@ -304,7 +341,8 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 fetchBookedSlots,
                 next24HoursEvents,
                 fetchNext24HoursEvents,
-                scheduleLive
+                scheduleLive,
+                liveStreamPlatform
             }}
         >
             {children}

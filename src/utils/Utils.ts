@@ -1,4 +1,5 @@
 import axios from "axios";
+import { LiveStreamPlatform } from "../interfaces/interface";
 
 // Helper to resolve IPFS URIs
 const resolveIpfsUri = (uri:string) => {
@@ -45,4 +46,31 @@ const sanitizeUri = (uri: string) => {
     return uri;
 };
 
-export { resolveIpfsUri, sanitizeUri, resolveCloudLinkUrl };
+const resolveStreamingLink = (uri: string) => {
+    if(uri.includes("youtube")){
+        try {
+            const url = new URL(uri);
+            const videoId = url.searchParams.get("v") || url.pathname.split('/').pop();
+            if (videoId) {
+                const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                console.log("embedUrl", embedUrl);
+                return embedUrl;
+            }
+        } catch (error) {
+            console.error("Error parsing YouTube URL:", error);
+        }
+    }
+    return uri;
+}
+
+const getLivePlatformFromUri = (uri: string) => {
+    if(uri.includes("youtube")){
+        return LiveStreamPlatform.YOUTUBE;
+    }
+    if(uri.includes("twitch")){
+        return LiveStreamPlatform.TWITCH;
+    }
+    return LiveStreamPlatform.OTHER;
+}
+
+export { resolveIpfsUri, sanitizeUri, resolveCloudLinkUrl, getLivePlatformFromUri, resolveStreamingLink };

@@ -3,6 +3,7 @@ import { getSavedSongsStubs } from "./Stubber";
 import SavedAudio from "./SavedAudio";
 import { useWeb3Radio } from "../context/Web3RadioContext";
 import { usePopup } from "../context/PopupContext";
+import { LiveStreamPlatform } from "../interfaces/interface";
 // Is for testing purposes (altering contract getMySaves function)
 const STUBBED = false;
 interface MySavesProps {
@@ -11,7 +12,7 @@ interface MySavesProps {
 const MySavesAudio: React.FC<MySavesProps> = ({ currentSong }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const { playlistContract:contract, fetchMySaves, savedSongs, removeSavedSong } = useWeb3Radio();
+  const { playlistContract:contract, fetchMySaves, savedSongs, removeSavedSong, liveStreamPlatform } = useWeb3Radio();
   const { openPopup, closePopup } = usePopup();
 
   // Save the currently playing song to the user's saves
@@ -74,8 +75,8 @@ const MySavesAudio: React.FC<MySavesProps> = ({ currentSong }) => {
 
         <button
           onClick={handleSaveSong}
-          disabled={!currentSong || !currentSong.id}
-          className={`bg-black text-white px-4 py-2 rounded-md uppercase font-bold mt-4 mb-4`}>
+          disabled={!currentSong || !currentSong.id || liveStreamPlatform != LiveStreamPlatform.NOT_SPECIFIED}
+          className={`bg-black text-white px-4 py-2 rounded-md uppercase font-bold mt-4 mb-4 ${liveStreamPlatform != LiveStreamPlatform.NOT_SPECIFIED ? "opacity-50 cursor-not-allowed" : ""}`}>
           Save current audio
         </button>
       

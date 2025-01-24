@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import AudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
 import { useWeb3Radio } from "../context/Web3RadioContext";
-import { resolveCloudLinkUrl, resolveIpfsUri } from "../utils/Utils";
+import { resolveCloudLinkUrl, resolveIpfsUri, resolveStreamingLink } from "../utils/Utils";
+import { RadioMode } from "../interfaces/interface";
+import StreamingContent from "./streaming/StreamingContent";
 
 interface Web3AudioPlayerProps {
   setSong: (song: any) => void;
@@ -13,10 +15,10 @@ const Web3AudioPlayer: React.FC<Web3AudioPlayerProps> = ({ setSong }) => {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [shuffledPlaylist, setShuffledPlaylist] = useState<any[]>([]);
   const [currentSong, setCurrentSong] = useState<any>(null);
-  const { playlist, liveSong } = useWeb3Radio();
+  const { playlist, liveStreamPlatform, radioModality } = useWeb3Radio();
 
   console.log(process.env.REACT_APP_AUDIO_CONTROLS);
-  console.log("Audio Controls: ",process.env.REACT_APP_AUDIO_CONTROLS == 'ON');
+  console.log("Audio Controls: ", process.env.REACT_APP_AUDIO_CONTROLS == 'ON');
 
   const shuffleArray = (array: any) => {
     const shuffled = [...array];
@@ -28,13 +30,12 @@ const Web3AudioPlayer: React.FC<Web3AudioPlayerProps> = ({ setSong }) => {
   };
 
   useEffect(() => {
-    //Playlist
+    //Working for playlist and live stream content
     if (playlist.length > 0) {
       const shuffledPlaylist = shuffleArray(playlist);
       setShuffledPlaylist(shuffledPlaylist);
       setCurrentSong(shuffledPlaylist[0]);
       setSong(shuffledPlaylist[0]);
-      console.log("[playlist]Current Song", shuffledPlaylist[0]);
       setCurrentIndex(0);
     }
   }, [playlist]);
@@ -54,31 +55,51 @@ const Web3AudioPlayer: React.FC<Web3AudioPlayerProps> = ({ setSong }) => {
 
   return (
     <div className="w-full relative">
-      {currentSong && <p className="text-left w-full text-base">(Now Playing)</p>}
+      {/* Audio Mode */}
+      {currentSong && <p className="text-left w-full text-base">{radioModality == RadioMode.PLAYLIST ? "Playlist " : `[${liveStreamPlatform.toUpperCase()}] Live`}</p>}
       <div className="flex flex-col border-2 border-black w-full rounded-lg">
-        {currentSong ? (
+
+        {/* CASE: Live Stream */}
+        {
+          currentSong && radioModality == RadioMode.LIVE &&
+          <p className="text-left w-full text-base">
+            <StreamingContent liveSong={currentSong} liveStreamPlatform={liveStreamPlatform} />
+          </p>
+        }
+        {
+          !currentSong && radioModality == RadioMode.LIVE &&
+          <p>No live stream available. Please check back later.</p>
+        }
+        {/* END CASE: Live Stream */}
+
+
+        {/* CASE: Playlist */}
+        {
+          currentSong && radioModality == RadioMode.PLAYLIST &&
           <div className="bg-black">
-            {currentSong.img && (
-              <img
-                src={resolveCloudLinkUrl(currentSong.img, 'img')}
-                alt={`${currentSong.title} Cover`}
-                className="w-full h-[500px] object-contain"
-              />
-            )}
+            {
+              currentSong.img && (
+                <img
+                  src={resolveCloudLinkUrl(currentSong.img, 'img')}
+                  alt={`${currentSong.title} Cover`}
+                  className="w-full h-[500px] object-contain"
+                />
+              )
+            }
             <div className="w-full relative">
               <div>
                 {
                   <AudioPlayer
                     autoPlay={true}
                     src={resolveCloudLinkUrl(currentSong?.uri, 'audio')}
-                    style={{ 
-                      backgroundColor: 'black', 
-                      color: 'white', 
-                      border: 'none', 
+                    style={{
+                      backgroundColor: 'black',
+                      color: 'white',
+                      border: 'none',
                       boxShadow: 'none',
                     }}
                     showSkipControls={process.env.REACT_APP_AUDIO_CONTROLS == 'ON'}
-                    showJumpControls={process.env.REACT_APP_AUDIO_CONTROLS == 'ON'} 
+                    showJumpControls={process.env.REACT_APP_AUDIO_CONTROLS == 'ON'}
                     showFilledProgress={process.env.REACT_APP_AUDIO_CONTROLS == 'ON'}
                     showFilledVolume={process.env.REACT_APP_AUDIO_CONTROLS == 'ON'}
                     showDownloadProgress={false}
@@ -90,10 +111,14 @@ const Web3AudioPlayer: React.FC<Web3AudioPlayerProps> = ({ setSong }) => {
               </div>
             </div>
           </div>
-        ) : (
+        }
+        {
+          !currentSong && radioModality == RadioMode.PLAYLIST &&
           <p>No songs available in the playlist. Please add songs to get started.</p>
-        )}
+        }
+        {/* END CASE: Playlist */}
       </div>
+
     </div>
   );
 };
