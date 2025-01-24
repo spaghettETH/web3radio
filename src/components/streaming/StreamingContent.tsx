@@ -12,9 +12,10 @@ const StreamingContent = ({ liveSong, liveStreamPlatform }: StreamingContentProp
             {
                 liveStreamPlatform == LiveStreamPlatform.YOUTUBE &&
                 <iframe width="100%" height="315"
-                    src={resolveStreamingLink(liveSong.uri)} 
-                    title="YouTube video player" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"/>
+                    src={resolveStreamingLink(liveSong.uri)}
+                    title="YouTube video player"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                />
             }
             {
                 (liveStreamPlatform == LiveStreamPlatform.OTHER || liveStreamPlatform == LiveStreamPlatform.NOT_SPECIFIED) &&
@@ -28,8 +29,6 @@ const StreamingContent = ({ liveSong, liveStreamPlatform }: StreamingContentProp
                     src={resolveStreamingLink(liveSong.uri)}
                     height="315"
                     width="100%"
-                    allow="fullscreen; autoplay"
-                    title="Twitch video player"
                 >
                 </iframe>
             }

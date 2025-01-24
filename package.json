@@ -24,6 +24,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "ngrok": "ngrok http 3000",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",

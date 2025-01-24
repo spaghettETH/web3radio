@@ -60,7 +60,9 @@ const Web3AudioPlayer: React.FC<Web3AudioPlayerProps> = ({ setSong }) => {
         {
           currentSong && radioModality == RadioMode.LIVE &&
           <p className="text-left w-full text-base">
-            <StreamingContent liveSong={currentSong} liveStreamPlatform={liveStreamPlatform} />
+            <StreamingContent
+              liveSong={currentSong}
+              liveStreamPlatform={liveStreamPlatform} />
           </p>
         }
         {
