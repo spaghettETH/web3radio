@@ -28,7 +28,7 @@ interface Web3RadioContextType {
     next24HoursEvents: any[];
     fetchNext24HoursEvents: () => Promise<void>;
     scheduleLive: (title: string, imageUrl: string, streamUrl: string, startTime: number, duration: number) => Promise<void>;
-    
+
     liveStreamPlatform: LiveStreamPlatform;
 }
 
@@ -189,12 +189,12 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     //TODO: Implement this!
     const fetchLiveSong = useCallback(async () => {
-        try{
+        try {
             const provider = getProvider();
             if (scheduleLiveContract && provider) {
                 const onAirInformation = await scheduleLiveContract.onAirNow();
-                const isOnAir = onAirInformation["0"];
-                if(isOnAir){
+                let isOnAir = onAirInformation["0"]
+                if (isOnAir) {
                     const liveSong: Song = {
                         id: onAirInformation["1"]["0"].toString(),
                         title: onAirInformation["1"]["1"],
@@ -202,23 +202,28 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                         uri: onAirInformation["1"]["3"],
                         submitter: onAirInformation["1"]["6"]
                     }
-                    setPlaylist([liveSong]);
-                    setLiveStreamPlatform(getLivePlatformFromUri(liveSong.uri));
-                    setRadioModality(RadioMode.LIVE);
+                    console.log("[fetchLiveSong] Live song in this moment:", liveSong);
+
+                    if (playlist.length === 0 || playlist[0].id !== liveSong.id) {
+                        console.log("[fetchLiveSong] Aggiornamento della live song");
+                        setPlaylist([liveSong]);
+                        setLiveStreamPlatform(getLivePlatformFromUri(liveSong.uri));
+                        setRadioModality(RadioMode.LIVE);
+                    }else{
+                        console.log("[fetchLiveSong] La live è già in esecuzione ...");
+                    }
                     return liveSong;
                 }
-                setRadioModality(RadioMode.PLAYLIST);
                 return null;
-            }else{
-                setRadioModality(RadioMode.PLAYLIST);
+            } else {
+
                 return null;
             }
         } catch (error) {
             console.error("[fetchLiveSong] Error:", error);
-            setRadioModality(RadioMode.PLAYLIST);
             return null;
         }
-    }, [scheduleLiveContract]);
+    }, [scheduleLiveContract, playlist]);
 
     const removeSubmittedUserSong = useCallback(async (id: any) => {
         const provider = getProvider();
@@ -303,12 +308,23 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     }, [scheduleLiveContract]);
 
     const fetchAllData = useCallback(async () => {
-        const liveSong = await fetchLiveSong();
-        if(!liveSong){
-            fetchPlaylist();
-        }
-    }, [fetchLiveSong, fetchPlaylist]);
+        const checkLiveAndPlaylist = async () => {
+            let liveSong = await fetchLiveSong();
+            
+            if (!liveSong && radioModality !== RadioMode.PLAYLIST) {
+                await fetchPlaylist();
+            }
+        };
 
+        // Esegui immediatamente il primo controllo
+        await checkLiveAndPlaylist();
+
+        // Imposta l'intervallo per i controlli successivi
+        const intervalId = setInterval(checkLiveAndPlaylist, 10000);
+        return () => clearInterval(intervalId);
+    }, [fetchLiveSong, fetchPlaylist, radioModality]);
+
+    //Fetch User Songs and My Saves
     const fetchStaticData = useCallback(async () => {
         fetchUserSongs();
         fetchMySaves();
@@ -317,9 +333,12 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     useEffect(() => {
         if (playlistContract) {
             fetchStaticData();
-            fetchAllData();
+            const cleanup = fetchAllData();
+            return () => {
+                cleanup.then(cleanupFn => cleanupFn());
+            };
         }
-    }, [playlistContract, fetchStaticData]);
+    }, [playlistContract, fetchStaticData, fetchAllData]);
 
     return (
         <Web3RadioContext.Provider
