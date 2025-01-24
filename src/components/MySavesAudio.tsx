@@ -1,11 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { getSavedSongsStubs } from "./Stubber";
 import SavedAudio from "./SavedAudio";
 import { useWeb3Radio } from "../context/Web3RadioContext";
 import { usePopup } from "../context/PopupContext";
 import { LiveStreamPlatform } from "../interfaces/interface";
-// Is for testing purposes (altering contract getMySaves function)
-const STUBBED = false;
 interface MySavesProps {
     currentSong: any;
 }

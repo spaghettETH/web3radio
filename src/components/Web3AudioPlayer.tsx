@@ -17,9 +17,6 @@ const Web3AudioPlayer: React.FC<Web3AudioPlayerProps> = ({ setSong }) => {
   const [currentSong, setCurrentSong] = useState<any>(null);
   const { playlist, liveStreamPlatform, radioModality } = useWeb3Radio();
 
-  console.log(process.env.REACT_APP_AUDIO_CONTROLS);
-  console.log("Audio Controls: ", process.env.REACT_APP_AUDIO_CONTROLS == 'ON');
-
   const shuffleArray = (array: any) => {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
