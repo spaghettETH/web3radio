@@ -541,6 +541,6 @@ const scheduleLiveABI = [
 		"type": "function"
 	}
 ]
-const scheduleLiveAddress = "0x751da5591BAcf17F4144cFc699f0803dbCF64A5e";
+const scheduleLiveAddress = "0xF6b4053A9B8764F48f4330Aed9c30f44AF8Bd895";
 
 export { scheduleLiveABI, scheduleLiveAddress };
