@@ -18,12 +18,6 @@ const StreamingContent = ({ liveSong, liveStreamPlatform }: StreamingContentProp
                 />
             }
             {
-                (liveStreamPlatform == LiveStreamPlatform.OTHER || liveStreamPlatform == LiveStreamPlatform.NOT_SPECIFIED) &&
-                <p>
-                    {liveSong.title ? `[${liveStreamPlatform.toUpperCase()}] ${liveSong.title}` : "No live stream available. Please check back later."}
-                </p>
-            }
-            {
                 liveStreamPlatform == LiveStreamPlatform.TWITCH &&
                 <iframe
                     src={resolveStreamingLink(liveSong.uri)}
@@ -31,6 +25,12 @@ const StreamingContent = ({ liveSong, liveStreamPlatform }: StreamingContentProp
                     width="100%"
                 >
                 </iframe>
+            }
+            {
+                (liveStreamPlatform == LiveStreamPlatform.OTHER || liveStreamPlatform == LiveStreamPlatform.NOT_SPECIFIED) &&
+                <p>
+                    {liveSong.title ? `[${liveStreamPlatform.toUpperCase()}] ${liveSong.title}` : "No live stream available. Please check back later."}
+                </p>
             }
         </div>
     )

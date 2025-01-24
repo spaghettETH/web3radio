@@ -64,7 +64,7 @@ const resolveStreamingLink = (uri: string) => {
         //TWITCH
         if (uri.includes("twitch")) {
             const url = new URL(uri);
-            const channel = url.searchParams.get("channel") || url.pathname.split('/').pop();
+            const channel = url.searchParams.get("channel") || url.pathname.split('/')?.pop()?.replace("/", "");
             if (channel) {
                 const embedUrl = `https://player.twitch.tv/?channel=${channel}&parent=${process.env.REACT_APP_BASE_URL}`;
                 console.log("embedUrl", embedUrl);
