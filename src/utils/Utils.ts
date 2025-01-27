@@ -90,4 +90,14 @@ const getLivePlatformFromUri = (uri: string) => {
     return LiveStreamPlatform.OTHER;
 }
 
-export { resolveIpfsUri, sanitizeUri, resolveCloudLinkUrl, getLivePlatformFromUri, resolveStreamingLink };
+const allowedUri = [ "drive.google", "dropbox", "dl.dropboxusercontent", "ipfs" ]
+const isSubmitUriFromAllowedPlatforms = (uri: string) => {
+    for(const uriPlatform of allowedUri){
+        if(uri.includes(uriPlatform)){
+            return true;
+        }
+    }
+    return false;
+}
+
+export { resolveIpfsUri, sanitizeUri, resolveCloudLinkUrl, getLivePlatformFromUri, resolveStreamingLink, isSubmitUriFromAllowedPlatforms };

@@ -3,11 +3,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaMusic, FaFileAudio, FaImage } from 'react-icons/fa';
 import { useWeb3Radio } from "../context/Web3RadioContext";
 import { usePopup } from "../context/PopupContext";
+import { isSubmitUriFromAllowedPlatforms } from "../utils/Utils";
+import SubmittingPlatformBanner from "./popups/SubmittingPlatformBanner";
 
 interface SubmitSongFormProps {
 }
 
-const SubmitSongForm : React.FC<SubmitSongFormProps> = () => {
+const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
   const [title, setTitle] = useState<string>("");
   const [audioUri, setAudioUri] = useState<string>("");
   const [imageUri, setImageUri] = useState<string>("");
@@ -16,10 +18,10 @@ const SubmitSongForm : React.FC<SubmitSongFormProps> = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
-  const { playlistContract:contract, fetchPlaylist, fetchUserSongs } = useWeb3Radio();
-  const { openPopup, closePopup } = usePopup();
+  const { playlistContract: contract, fetchPlaylist, fetchUserSongs } = useWeb3Radio();
+  const { openPopup } = usePopup();
 
-  const normalizeLink = (url:string) => {
+  const normalizeLink = (url: string) => {
     if (url.includes("dropbox.com")) {
       const replacedUrl = url.replace("www.dropbox.com", "dl.dropboxusercontent.com");
       return replacedUrl;
@@ -37,15 +39,43 @@ const SubmitSongForm : React.FC<SubmitSongFormProps> = () => {
     return url;
   };
 
-  const handleSubmit = async (e:React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!title || !audioUri || !imageUri || !disclaimerChecked || !contract) {
-      setErrorMessage("All fields are required and the disclaimer must be checked.");
+      openPopup({
+        title: 'All fields are required and the disclaimer must be checked.',
+        message: 'Please fill in all fields and check the disclaimer.',
+        type: 'info'
+      });
       return;
     }
 
-    openPopup('Submitting...', 'Please wait while we submit your audio to the smart contract.', 'loading');
+    if (!isSubmitUriFromAllowedPlatforms(audioUri)) {
+      openPopup({
+        title: 'Audio URI not allowed',
+        message: 'Valid platforms are: ',
+        type: 'info',
+        banner: <SubmittingPlatformBanner />
+      })
+      return;
+    }
+
+    if (!isSubmitUriFromAllowedPlatforms(imageUri)) {
+      openPopup({
+        title: 'Image URI not allowed',
+        message: 'Valid platforms are: ',
+        type: 'info',
+        banner: <SubmittingPlatformBanner />
+      })
+      return;
+    }
+
+    openPopup({
+      title: 'Submitting...',
+      message: 'Please wait while we submit your audio to the smart contract.',
+      type: 'loading'
+    });
     setErrorMessage(null);
 
     try {
@@ -55,7 +85,11 @@ const SubmitSongForm : React.FC<SubmitSongFormProps> = () => {
       const tx = await contract.addSong(normalizedAudioUri, normalizedImageUri, title);
       await tx.wait();
 
-      openPopup('Submitted!', 'Audio submitted successfully!', 'success');
+      openPopup({
+        title: 'Submitted!',
+        message: 'Audio submitted successfully!',
+        type: 'success'
+      });
       fetchPlaylist();
       fetchUserSongs();
       setTitle("");
@@ -64,8 +98,12 @@ const SubmitSongForm : React.FC<SubmitSongFormProps> = () => {
       setDisclaimerChecked(false);
     } catch (error) {
       console.error("Error submitting audio:", error);
-      openPopup('Error', 'Failed to submit audio to the smart contract.', 'error');
-    } 
+      openPopup({
+        title: 'Error',
+        message: 'Failed to submit audio to the smart contract.',
+        type: 'error'
+      });
+    }
   };
 
   const containerVariants = {
@@ -128,7 +166,7 @@ const SubmitSongForm : React.FC<SubmitSongFormProps> = () => {
           <motion.button
             className="bg-cyan-500 rounded-lg px-4 py-2 uppercase font-bold text-black"
             onClick={() => setIsAccordionOpen((prev) => {
-              if(!prev) {
+              if (!prev) {
                 setErrorMessage(null);
               }
               return !prev;

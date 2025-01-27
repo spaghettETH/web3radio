@@ -1,9 +1,16 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+interface PopupOptions {
+    title?: string;
+    message?: string;
+    type?: 'success' | 'error' | 'loading' | 'info';
+    banner?: ReactNode;
+}
+
 interface PopupContextType {
     isOpen: boolean;
-    openPopup: (title?: string, message?: string, type?: 'success' | 'error' | 'loading' | 'info') => void;
+    openPopup: (options: PopupOptions) => void;
     closePopup: () => void;
 }
 
@@ -26,6 +33,7 @@ export const PopupProvider: React.FC<PopupProviderProps> = ({ children }) => {
     const [title, setTitle] = useState<string>('');
     const [message, setMessage] = useState<string>('');
     const [type, setType] = useState<'success' | 'error' | 'loading' | 'info'>('loading');
+    const [customJsx, setCustomJsx] = useState<ReactNode | null>(null);
 
     useEffect(() => {
         let timer: NodeJS.Timeout;
@@ -80,11 +88,14 @@ export const PopupProvider: React.FC<PopupProviderProps> = ({ children }) => {
         }
     };
 
-    const openPopup = (newTitle: string = 'Notifica', newMessage: string = '', newType: 'success' | 'error' | 'loading' | 'info' = 'loading') => {
-        setTitle(newTitle);
-        setMessage(newMessage);
-        setType(newType);
+    const openPopup = (options: PopupOptions) => {
+        setTitle(options.title || 'Notifica');
+        setMessage(options.message || '');
+        setType(options.type || 'loading');
         setIsOpen(true);
+        if(options.banner){
+            setCustomJsx(options.banner);
+        }
     };
 
     const closePopup = () => setIsOpen(false);
@@ -122,6 +133,7 @@ export const PopupProvider: React.FC<PopupProviderProps> = ({ children }) => {
                                     {message}
                                 </div>
                             </div>
+                            {customJsx}
                         </motion.div>
                     </motion.div>
                 )}

@@ -4,12 +4,12 @@ import { useWeb3Radio } from "../context/Web3RadioContext";
 import { usePopup } from "../context/PopupContext";
 import { LiveStreamPlatform } from "../interfaces/interface";
 interface MySavesProps {
-    currentSong: any;
+  currentSong: any;
 }
 const MySavesAudio: React.FC<MySavesProps> = ({ currentSong }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const { playlistContract:contract, fetchMySaves, savedSongs, removeSavedSong, liveStreamPlatform } = useWeb3Radio();
+  const { playlistContract: contract, fetchMySaves, savedSongs, removeSavedSong, liveStreamPlatform } = useWeb3Radio();
   const { openPopup, closePopup } = usePopup();
 
   // Save the currently playing song to the user's saves
@@ -18,28 +18,52 @@ const MySavesAudio: React.FC<MySavesProps> = ({ currentSong }) => {
       alert("No song is currently playing or the song data is incomplete.");
       return;
     }
-    openPopup('Saving...', `Saving song: ${currentSong.title}`, 'loading');
+    openPopup({
+      title: 'Saving...',
+      message: `Saving song: ${currentSong.title}`,
+      type: 'loading'
+    });
     try {
       console.log(`Saving song: ${currentSong.title}`);
       const tx = await contract.addToMySaves(currentSong.id);
       await tx.wait();
 
-      openPopup('Saved!', `Song "${currentSong.title}" saved successfully!`, 'success');
+      openPopup({
+        title: 'Saved!',
+        message: `Song "${currentSong.title}" saved successfully!`,
+        type: 'success'
+      });
       fetchMySaves(); // Refresh the saved songs list after saving
     } catch (error) {
       console.error("Error saving the song:", error);
-      openPopup('Error', `Failed to save the song. Ensure you're connected and authorized.`, 'error');
-    } 
+      openPopup({
+        title: 'Error',
+        message: `Failed to save the song. Ensure you're connected and authorized.`,
+        type: 'error'
+      });
+    }
   };
 
-  const handleDelete = async (id:any) => {
+  const handleDelete = async (id: any) => {
     try {
-      openPopup('Deleting...', `Deleting saved song: ${id}`, 'loading');
+      openPopup({
+        title: 'Deleting...',
+        message: `Deleting saved song: ${id}`,
+        type: 'loading'
+      });
       await removeSavedSong(id);
-      openPopup('Deleted!', `Song "${id}" deleted successfully!`, 'success');
+      openPopup({
+        title: 'Deleted!',
+        message: `Song "${id}" deleted successfully!`,
+        type: 'success'
+      });
     } catch (error) {
       console.error("Error deleting the song:", error);
-      openPopup('Error', `Failed to delete the song. Ensure you're connected and authorized.`, 'error');
+      openPopup({
+        title: 'Error',
+        message: `Failed to delete the song. Ensure you're connected and authorized.`,
+        type: 'error'
+      });
     }
   };
 
@@ -70,13 +94,13 @@ const MySavesAudio: React.FC<MySavesProps> = ({ currentSong }) => {
         <p>You have no saved audios yet.</p>
       )}
 
-        <button
-          onClick={handleSaveSong}
-          disabled={!currentSong || !currentSong.id || liveStreamPlatform != LiveStreamPlatform.NOT_SPECIFIED}
-          className={`bg-black text-white px-4 py-2 rounded-md uppercase font-bold mt-4 mb-4 ${liveStreamPlatform != LiveStreamPlatform.NOT_SPECIFIED ? "opacity-50 cursor-not-allowed" : ""}`}>
-          Save current audio
-        </button>
-      
+      <button
+        onClick={handleSaveSong}
+        disabled={!currentSong || !currentSong.id || liveStreamPlatform != LiveStreamPlatform.NOT_SPECIFIED}
+        className={`bg-black text-white px-4 py-2 rounded-md uppercase font-bold mt-4 mb-4 ${liveStreamPlatform != LiveStreamPlatform.NOT_SPECIFIED ? "opacity-50 cursor-not-allowed" : ""}`}>
+        Save current audio
+      </button>
+
     </div>
   );
 };

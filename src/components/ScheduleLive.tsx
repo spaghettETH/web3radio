@@ -22,26 +22,54 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
     e.preventDefault();
 
     if (!title || !imageUrl || !streamUrl || !selectedDate || !contract) {
-      openPopup("Required information", "Please fill in all fields.", "error");
+      openPopup({
+        title: "Required information",
+        message: "Please fill in all fields.",
+        type: "error"
+      });
       return;
     }
 
     const startTime = Math.floor(selectedDate.getTime() / 1000);
 
     try {
-      openPopup("Scheduling...", "Livestream scheduling...", "loading");
+      openPopup({
+        title: "Scheduling...",
+        message: "Livestream scheduling...",
+        type: "loading"
+      });
       await scheduleLive(title, imageUrl, streamUrl, startTime, duration);
-      openPopup("Scheduled", "Livestream scheduled successfully!", "success");
+      openPopup({
+        title: "Scheduled",
+        message: "Livestream scheduled successfully!",
+        type: "success"
+      });
     } catch (error: any) {
       console.error("Error scheduling livestream:", error);
       if (error.reason === "Too many bookings for today!") {
-        openPopup("Error", "You have reached the maximum number of bookings allowed for today.", "error");
+        openPopup({
+          title: "Error",
+          message: "You have reached the maximum number of bookings allowed for today.",
+          type: "error"
+        });
       } else if (error.reason === "Cannot book more than 10 slots (5 hours) in a single booking") {
-        openPopup("Error", "You cannot book more than 10 slots (5 hours) in a single booking.", "error");
+        openPopup({
+          title: "Error",
+          message: "You cannot book more than 10 slots (5 hours) in a single booking.",
+          type: "error"
+        });
       } else if (error.reason === "Slot is already booked") {
-        openPopup("Error", "One or more selected slots are already booked.", "error");
+        openPopup({
+          title: "Error",
+          message: "One or more selected slots are already booked.",
+          type: "error"
+        });
       } else {
-        openPopup("Error", "Failed to schedule livestream. Please try again.", "error");
+        openPopup({
+          title: "Error",
+          message: "Failed to schedule livestream. Please try again.",
+          type: "error"
+        });
       }
     }
   };

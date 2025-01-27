@@ -24,14 +24,26 @@ const SubmittedUserSongs: React.FC<SubmittedUserSongsProps> = () => {
   }, [contract, fetchUserSongs]);
 
   const removeSong = async (songId:any) => {
-    openPopup('Removing...', `Removing song with ID: ${songId}`, 'loading');
+    openPopup({
+      title: 'Removing...',
+      message: `Removing song with ID: ${songId}`,
+      type: 'loading'
+    });
     try {
       console.log(`Removing song with ID: ${songId}`); // Debugging
       await removeSubmittedUserSong(songId);
-      openPopup('Removed!', `Song "${songId}" removed successfully!`, 'success');
+      openPopup({
+        title: 'Removed!',
+        message: `Song "${songId}" removed successfully!`,
+        type: 'success'
+      });
     } catch (error) {
       console.error("Error removing song:", error);
-      openPopup('Error', `Failed to remove the song. Error: ${error}`, 'error');
+      openPopup({
+        title: 'Error',
+        message: `Failed to remove the song. Error: ${error}`,
+        type: 'error'
+      });
     }
   };
 
