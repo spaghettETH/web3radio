@@ -15,6 +15,7 @@ interface Web3RadioContextType {
     fetchMySaves: () => Promise<void>;
     removeSubmittedUserSong: (id: any) => Promise<void>;
     removeSavedSong: (id: any) => Promise<void>;
+    saveSongToMySaves: (id: any) => Promise<void>;
     scheduleLiveContract: Contract | null;
     mySongs: any[];
     savedSongs: any[];
@@ -110,7 +111,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                         const song = await playlistContract.getSongDetails(id);
                         return song.isActive
                             ? {
-                                id: song.id.toString(),
+                                id: `p-${song.id.toString()}`,
                                 uri: song.uri,
                                 img: song.img,
                                 title: song.title,
@@ -143,7 +144,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                         const song = await playlistContract.getSongDetails(id);
                         return song.isActive
                             ? {
-                                id: song.id.toString(),
+                                id: `p-${song.id.toString()}`,
                                 title: song.title || "(Untitled)",
                                 uri: song.uri,
                                 img: song.img
@@ -171,7 +172,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                     savedSongIds.map(async (id: any) => {
                         const song = await playlistContract.songsById(id);
                         return {
-                            id: song.id.toString(),
+                            id: `p-${song.id.toString()}`,
                             title: song.title,
                             uri: song.uri,
                             img: song.img,
@@ -189,6 +190,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     //TODO: Implement this!
     const fetchLiveSong = useCallback(async () => {
+        console.log("[fetchLiveSong] Fetching live song");
         try {
             const provider = getProvider();
             if (scheduleLiveContract && provider) {
@@ -196,7 +198,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 let isOnAir = onAirInformation["0"]
                 if (isOnAir) {
                     const liveSong: Song = {
-                        id: onAirInformation["1"]["0"].toString(),
+                        id: `l-${onAirInformation["1"]["0"].toString()}`,
                         title: onAirInformation["1"]["1"],
                         img: onAirInformation["1"]["2"],
                         uri: onAirInformation["1"]["3"],
@@ -214,9 +216,10 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                     }
                     return liveSong;
                 }
+                console.log("[fetchLiveSong] No live song in this moment");
                 return null;
             } else {
-
+                console.log("[fetchLiveSong] No scheduleLiveContract or provider");
                 return null;
             }
         } catch (error) {
@@ -226,18 +229,31 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     }, [scheduleLiveContract, playlist]);
 
     const removeSubmittedUserSong = useCallback(async (id: any) => {
+        const songId = id.replace("p-", ""); //This is for de-sync playlist and liveschedule SC (id policy)
         const provider = getProvider();
         if (playlistContract && provider) {
-            const tx = await playlistContract.removeOwnSong(id);
+            const tx = await playlistContract.removeOwnSong(songId);
             await tx.wait();
             fetchUserSongs();
         }
     }, [playlistContract]);
 
     const removeSavedSong = useCallback(async (id: any) => {
+        const songId = id.replace("p-", ""); //This is for de-sync playlist and liveschedule SC (id policy)
+        console.log("[removeSavedSong] Song ID to remove:", songId);
         const provider = getProvider();
         if (playlistContract && provider) {
-            const tx = await playlistContract.removeFromMySaves(id);
+            const tx = await playlistContract.removeFromMySaves(songId);
+            await tx.wait();
+            fetchMySaves();
+        }
+    }, [playlistContract]);
+
+    const saveSongToMySaves = useCallback(async (id: any) => {
+        const songId = id.replace("p-", ""); //This is for de-sync playlist and liveschedule SC (id policy)
+        const provider = getProvider();
+        if (playlistContract && provider) {
+            const tx = await playlistContract.addToMySaves(songId);
             await tx.wait();
             fetchMySaves();
         }
@@ -309,8 +325,8 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     const fetchAllData = useCallback(async () => {
         const checkLiveAndPlaylist = async () => {
+            console.log("[fetchAllData] Checking live and playlist");
             let liveSong = await fetchLiveSong();
-            
             if (!liveSong && radioModality !== RadioMode.PLAYLIST) {
                 await fetchPlaylist();
             }
@@ -350,6 +366,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 fetchMySaves,
                 removeSubmittedUserSong,
                 removeSavedSong,
+                saveSongToMySaves,
                 savedSongs,
                 scheduleLiveContract,
                 mySongs,

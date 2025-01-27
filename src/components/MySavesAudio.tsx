@@ -9,38 +9,24 @@ interface MySavesProps {
 const MySavesAudio: React.FC<MySavesProps> = ({ currentSong }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const { playlistContract: contract, fetchMySaves, savedSongs, removeSavedSong, liveStreamPlatform } = useWeb3Radio();
+  const { playlistContract: contract, fetchMySaves, savedSongs, removeSavedSong, liveStreamPlatform, saveSongToMySaves } = useWeb3Radio();
   const { openPopup, closePopup } = usePopup();
 
   // Save the currently playing song to the user's saves
   const handleSaveSong = async () => {
     if (!currentSong || !currentSong.id || !contract) {
-      alert("No song is currently playing or the song data is incomplete.");
+      openPopup({title: 'Error',message: `No song is currently playing or the song data is incomplete.`,type: 'info'});
       return;
     }
-    openPopup({
-      title: 'Saving...',
-      message: `Saving song: ${currentSong.title}`,
-      type: 'loading'
-    });
+    openPopup({title: 'Saving...',message: `Saving song: ${currentSong.title}`,type: 'loading'});
     try {
       console.log(`Saving song: ${currentSong.title}`);
-      const tx = await contract.addToMySaves(currentSong.id);
-      await tx.wait();
-
-      openPopup({
-        title: 'Saved!',
-        message: `Song "${currentSong.title}" saved successfully!`,
-        type: 'success'
-      });
+      await saveSongToMySaves(currentSong.id);
+      openPopup({title: 'Saved!',message: `Song "${currentSong.title}" saved successfully!`,type: 'success'});
       fetchMySaves(); // Refresh the saved songs list after saving
     } catch (error) {
       console.error("Error saving the song:", error);
-      openPopup({
-        title: 'Error',
-        message: `Failed to save the song. Ensure you're connected and authorized.`,
-        type: 'error'
-      });
+      openPopup({title: 'Error',message: `Failed to save the song. Ensure you're connected and authorized.`,type: 'error'});
     }
   };
 

@@ -151,7 +151,7 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
       <ul>
         {
           bookedSlots.length > 0 ?
-            bookedSlots.map((slot) => <BookedSlot slot={slot} />)
+            bookedSlots.map((slot) => <BookedSlot key={slot.id} slot={slot} />)
             :
             <p>No scheduled events.</p>
         }
