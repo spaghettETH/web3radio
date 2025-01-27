@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import SavedAudio from "./SavedAudio";
 import { useWeb3Radio } from "../context/Web3RadioContext";
 import { usePopup } from "../context/PopupContext";
@@ -11,6 +11,11 @@ const MySavesAudio: React.FC<MySavesProps> = ({ currentSong }) => {
   const [error, setError] = useState<string | null>(null);
   const { playlistContract: contract, fetchMySaves, savedSongs, removeSavedSong, liveStreamPlatform, saveSongToMySaves } = useWeb3Radio();
   const { openPopup, closePopup } = usePopup();
+
+  const saveSongDisabled = useMemo(() => {
+    const isSongAlreadySaved = currentSong && savedSongs.some((song) => song.id === currentSong.id);
+    return !currentSong || !currentSong.id || liveStreamPlatform !== LiveStreamPlatform.NOT_SPECIFIED || isSongAlreadySaved;
+  }, [currentSong, liveStreamPlatform, savedSongs]);
 
   // Save the currently playing song to the user's saves
   const handleSaveSong = async () => {
@@ -29,6 +34,7 @@ const MySavesAudio: React.FC<MySavesProps> = ({ currentSong }) => {
       openPopup({title: 'Error',message: `Failed to save the song. Ensure you're connected and authorized.`,type: 'error'});
     }
   };
+
 
   const handleDelete = async (id: any) => {
     try {
@@ -82,8 +88,8 @@ const MySavesAudio: React.FC<MySavesProps> = ({ currentSong }) => {
 
       <button
         onClick={handleSaveSong}
-        disabled={!currentSong || !currentSong.id || liveStreamPlatform != LiveStreamPlatform.NOT_SPECIFIED}
-        className={`bg-black text-white px-4 py-2 rounded-md uppercase font-bold mt-4 mb-4 ${liveStreamPlatform != LiveStreamPlatform.NOT_SPECIFIED ? "opacity-50 cursor-not-allowed" : ""}`}>
+        disabled={saveSongDisabled}
+        className={`bg-black text-white px-4 py-2 rounded-md uppercase font-bold mt-4 mb-4 ${saveSongDisabled ? "opacity-50 cursor-not-allowed" : ""}`}>
         Save current audio
       </button>
 
