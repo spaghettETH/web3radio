@@ -5,6 +5,9 @@ import { useWeb3Radio } from "../context/Web3RadioContext";
 import { motion } from "framer-motion";
 import { usePopup } from "../context/PopupContext";
 import BookedSlot from "./BookedSlot";
+import { isLiveUriFromAllowedPlatforms, isSubmitUriFromAllowedPlatforms } from "../utils/Utils";
+import StreamingPlatformBanner from "./popups/StreamingPlatformBanner";
+import SubmittingPlatformBanner from "./popups/SubmittingPlatformBanner";
 
 interface ScheduleLiveProps {
 }
@@ -22,54 +25,36 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
     e.preventDefault();
 
     if (!title || !imageUrl || !streamUrl || !selectedDate || !contract) {
-      openPopup({
-        title: "Required information",
-        message: "Please fill in all fields.",
-        type: "error"
-      });
+      openPopup({title: "Required information",message: "Please fill in all fields.",type: "error"});
+      return;
+    }
+
+    if(!isSubmitUriFromAllowedPlatforms(imageUrl)){
+      openPopup({title: "Image URL not supported",message: "The supported platforms are: ",type: "info", banner: <SubmittingPlatformBanner />});
+      return;
+    }
+
+    if(!isLiveUriFromAllowedPlatforms(streamUrl)){
+      openPopup({title: "Livestream URL not supported",message: "The supported platforms are: ",type: "info", banner: <StreamingPlatformBanner />});
       return;
     }
 
     const startTime = Math.floor(selectedDate.getTime() / 1000);
 
     try {
-      openPopup({
-        title: "Scheduling...",
-        message: "Livestream scheduling...",
-        type: "loading"
-      });
+      openPopup({title: "Scheduling...",message: "Livestream scheduling...",type: "loading"});
       await scheduleLive(title, imageUrl, streamUrl, startTime, duration);
-      openPopup({
-        title: "Scheduled",
-        message: "Livestream scheduled successfully!",
-        type: "success"
-      });
+      openPopup({title: "Scheduled",message: "Livestream scheduled successfully!",type: "success"});
     } catch (error: any) {
       console.error("Error scheduling livestream:", error);
       if (error.reason === "Too many bookings for today!") {
-        openPopup({
-          title: "Error",
-          message: "You have reached the maximum number of bookings allowed for today.",
-          type: "error"
-        });
+        openPopup({title: "Error",message: "You have reached the maximum number of bookings allowed for today.",type: "error"});
       } else if (error.reason === "Cannot book more than 10 slots (5 hours) in a single booking") {
-        openPopup({
-          title: "Error",
-          message: "You cannot book more than 10 slots (5 hours) in a single booking.",
-          type: "error"
-        });
+        openPopup({title: "Error",message: "You cannot book more than 10 slots (5 hours) in a single booking.",type: "error"});
       } else if (error.reason === "Slot is already booked") {
-        openPopup({
-          title: "Error",
-          message: "One or more selected slots are already booked.",
-          type: "error"
-        });
+        openPopup({title: "Error",message: "One or more selected slots are already booked.",type: "error"});
       } else {
-        openPopup({
-          title: "Error",
-          message: "Failed to schedule livestream. Please try again.",
-          type: "error"
-        });
+        openPopup({title: "Error",message: "Failed to schedule livestream. Please try again.",type: "error"});
       }
     }
   };

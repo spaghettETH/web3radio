@@ -100,4 +100,14 @@ const isSubmitUriFromAllowedPlatforms = (uri: string) => {
     return false;
 }
 
-export { resolveIpfsUri, sanitizeUri, resolveCloudLinkUrl, getLivePlatformFromUri, resolveStreamingLink, isSubmitUriFromAllowedPlatforms };
+const allowedPlatforms = [ "youtube", "twitch" ]
+const isLiveUriFromAllowedPlatforms = (uri: string) => {
+    for(const platform of allowedPlatforms){
+        if(uri.includes(platform)){
+            return true;
+        }
+    }
+    return false;
+}
+
+export { resolveIpfsUri, sanitizeUri, resolveCloudLinkUrl, getLivePlatformFromUri, resolveStreamingLink, isSubmitUriFromAllowedPlatforms, isLiveUriFromAllowedPlatforms };
