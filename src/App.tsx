@@ -5,7 +5,6 @@ import RemoveOwnSong from "./components/SubmittedUserSongs";
 import MySaves from "./components/MySavesAudio";
 import SavesLeaderboard from "./components/SavesLeaderboard";
 import Donate from "./components/Donate";
-import ScheduleLive from "./components/ScheduleLive";
 import Logo from "./components/Logo";
 import Title from "./components/Title";
 import RadioModality from "./components/RadioModality";
@@ -15,7 +14,6 @@ import { useWeb3Radio } from "./context/Web3RadioContext";
 const App: React.FC = () => {
     const [currentSong, setCurrentSong] = useState<any>(null);
     const { isConnected } = useWeb3Radio();
-    
 
     return (
         <div className="flex gap-10 flex-col max-w-screen-lg items-center justify-center pt-10">

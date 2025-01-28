@@ -17,6 +17,7 @@ interface Web3RadioContextType {
     removeSavedSong: (id: any) => Promise<void>;
     saveSongToMySaves: (id: any) => Promise<void>;
     scheduleLiveContract: Contract | null;
+    deleteScheduledEvent: (id: any) => Promise<void>;
     mySongs: any[];
     savedSongs: any[];
     isConnected: boolean;
@@ -323,6 +324,16 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
     }, [scheduleLiveContract]);
 
+    const deleteScheduledEvent = useCallback(async (eventId: any) => {
+        const provider = getProvider();
+        if (scheduleLiveContract && provider) {
+            const tx = await scheduleLiveContract.deleteEvent(eventId);
+            await tx.wait();
+            fetchBookedSlots();
+            fetchNext24HoursEvents();
+        }
+    }, [scheduleLiveContract]);
+
     const fetchAllData = useCallback(async () => {
         const checkLiveAndPlaylist = async () => {
             console.log("[fetchAllData] Checking live and playlist");
@@ -369,6 +380,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 saveSongToMySaves,
                 savedSongs,
                 scheduleLiveContract,
+                deleteScheduledEvent,
                 mySongs,
                 isConnected,
                 radioModality,
