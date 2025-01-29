@@ -29,16 +29,6 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
       return;
     }
 
-    if(!isSubmitUriFromAllowedPlatforms(imageUrl)){
-      openPopup({title: "Image URL not supported",message: "The supported platforms are: ",type: "info", banner: <SubmittingPlatformBanner />});
-      return;
-    }
-
-    if(!isLiveUriFromAllowedPlatforms(streamUrl)){
-      openPopup({title: "Livestream URL not supported",message: "The supported platforms are: ",type: "info", banner: <StreamingPlatformBanner />});
-      return;
-    }
-
     const startTime = Math.floor(selectedDate.getTime() / 1000);
 
     try {

@@ -29,23 +29,11 @@ const BookedSlot: React.FC<BookedSlotProps> = ({ slot }) => {
 
     const handleDelete = async () => {
         try {
-            openPopup({
-                title: "Delete Scheduled Event",
-                message: "Are you sure you want to delete this scheduled event?",
-                type: "loading"
-            });
+            openPopup({title: "Delete Scheduled Event",message: "Are you sure you want to delete this scheduled event?",type: "loading"});
             await deleteScheduledEvent(slot.id);
-            openPopup({
-                title: "Success",
-                message: "Scheduled event deleted successfully",
-                type: "success"
-            });
+            openPopup({title: "Success",message: "Scheduled event deleted successfully",type: "success"});
         } catch (error) {
-            openPopup({
-                title: "Error",
-                message: "Error deleting scheduled event",
-                type: "error"
-            });
+            openPopup({title: "Error",message: "Error deleting scheduled event",type: "error"});
             console.error("Error deleting scheduled event:", error);
         }
     }

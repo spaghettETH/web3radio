@@ -39,6 +39,7 @@ export const PopupProvider: React.FC<PopupProviderProps> = ({ children }) => {
         let timer: NodeJS.Timeout;
         if (isOpen && type !== 'loading') {
             timer = setTimeout(() => {
+                setCustomJsx(null);
                 setIsOpen(false);
             }, 3500);
         }

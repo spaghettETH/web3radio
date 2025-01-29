@@ -51,26 +51,6 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
       return;
     }
 
-    if (!isSubmitUriFromAllowedPlatforms(audioUri)) {
-      openPopup({
-        title: 'Audio URI not allowed',
-        message: 'Valid platforms are: ',
-        type: 'info',
-        banner: <SubmittingPlatformBanner />
-      })
-      return;
-    }
-
-    if (!isSubmitUriFromAllowedPlatforms(imageUri)) {
-      openPopup({
-        title: 'Image URI not allowed',
-        message: 'Valid platforms are: ',
-        type: 'info',
-        banner: <SubmittingPlatformBanner />
-      })
-      return;
-    }
-
     openPopup({
       title: 'Submitting...',
       message: 'Please wait while we submit your audio to the smart contract.',

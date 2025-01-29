@@ -1,5 +1,7 @@
+import React from "react";
 import { Song, LiveStreamPlatform } from "../../interfaces/interface";
-import { resolveStreamingLink } from "../../utils/Utils";
+import { resolveCloudLinkUrl, resolveStreamingLink } from "../../utils/Utils";
+import AudioPlayer from 'react-h5-audio-player';
 
 interface StreamingContentProps {
     liveSong: Song;
@@ -28,9 +30,35 @@ const StreamingContent = ({ liveSong, liveStreamPlatform }: StreamingContentProp
             }
             {
                 (liveStreamPlatform == LiveStreamPlatform.OTHER || liveStreamPlatform == LiveStreamPlatform.NOT_SPECIFIED) &&
-                <p>
-                    {liveSong.title ? `[${liveStreamPlatform.toUpperCase()}] ${liveSong.title}` : "No live stream available. Please check back later."}
-                </p>
+                <div className="bg-black">
+                    {
+                        liveSong.img && (
+                            <img
+                                src={resolveCloudLinkUrl(liveSong.img, 'img')}
+                                alt={`${liveSong.title} Cover`}
+                                className="w-full h-[500px] object-contain"
+                            />
+                        )
+                    }
+                    <AudioPlayer
+                        autoPlay={true}
+                        src={liveSong.uri}
+                        style={{
+                            backgroundColor: 'black',
+                            color: 'white',
+                            border: 'none',
+                            boxShadow: 'none',
+                        }}
+                        showSkipControls={process.env.REACT_APP_AUDIO_CONTROLS == 'ON'}
+                        showJumpControls={process.env.REACT_APP_AUDIO_CONTROLS == 'ON'}
+                        showFilledProgress={process.env.REACT_APP_AUDIO_CONTROLS == 'ON'}
+                        showFilledVolume={process.env.REACT_APP_AUDIO_CONTROLS == 'ON'}
+                        showDownloadProgress={false}
+                        customProgressBarSection={[]}
+                        customAdditionalControls={[]}
+                    />
+
+                </div>
             }
         </div>
     )
