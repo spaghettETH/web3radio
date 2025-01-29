@@ -9,6 +9,7 @@ export enum LiveStreamPlatform {
     YOUTUBE = "youtube",
     TWITCH = "twitch",
     RADIO = "radio",
+    HLS = "hls",
     NOT_SPECIFIED = "not_specified",
 }
 

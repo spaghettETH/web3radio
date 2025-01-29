@@ -211,6 +211,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                         console.log("[fetchLiveSong] Aggiornamento della live song");
                         setPlaylist([liveSong]);
                         setLiveStreamPlatform(getLivePlatformFromUri(liveSong.uri));
+                        console.log("[fetchLiveSong] Live stream platform:", liveStreamPlatform);
                         setRadioModality(RadioMode.LIVE);
                     }else{
                         console.log("[fetchLiveSong] La live è già in esecuzione ...");

@@ -1,14 +1,15 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Song, LiveStreamPlatform } from "../../interfaces/interface";
 import { resolveCloudLinkUrl, resolveStreamingLink } from "../../utils/Utils";
 import AudioPlayer from 'react-h5-audio-player';
-
+import ReactHlsPlayer from 'react-hls-player';
 interface StreamingContentProps {
     liveSong: Song;
     liveStreamPlatform: LiveStreamPlatform;
 }
 
 const StreamingContent = ({ liveSong, liveStreamPlatform }: StreamingContentProps) => {
+    const videoRef = useRef<HTMLVideoElement>(null);
     return (
         <div className="w-full h-full">
             {
@@ -27,6 +28,20 @@ const StreamingContent = ({ liveSong, liveStreamPlatform }: StreamingContentProp
                     width="100%"
                 >
                 </iframe>
+            }
+            {
+                liveStreamPlatform == LiveStreamPlatform.HLS &&
+                <>
+                    <video className="invisible h-0 w-0" ref={videoRef} src={liveSong.uri} autoPlay={false} controls={true} />
+                    {videoRef && videoRef.current && <ReactHlsPlayer
+                        src={liveSong.uri}
+                        autoPlay={false}
+                        controls={true}
+                        width="100%"
+                        height="auto"
+                        playerRef={videoRef as React.RefObject<HTMLVideoElement>}
+                    />}
+                </>
             }
             {
                 (liveStreamPlatform == LiveStreamPlatform.RADIO || liveStreamPlatform == LiveStreamPlatform.NOT_SPECIFIED) &&

@@ -87,6 +87,10 @@ const getLivePlatformFromUri = (uri: string) => {
     if (uri.includes("twitch")) {
         return LiveStreamPlatform.TWITCH;
     }
+    //HSL
+    if (uri.includes(".m3u8") || uri.includes(".m3u")) {
+        return LiveStreamPlatform.HLS;
+    }
     return LiveStreamPlatform.RADIO;
 }
 
