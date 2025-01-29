@@ -47,3 +47,80 @@ code {
   background: #22d3ee;
   transform: translateY(-2px);
 }
+
+/* DatePicker Custom Styles */
+.react-datepicker-wrapper {
+  width: 100%;
+}
+
+.react-datepicker {
+  font-family: 'VT323', monospace !important;
+  background-color: black !important;
+  border: 1px solid #06b6d4 !important;
+  border-radius: 0.5rem !important;
+  color: white !important;
+  box-shadow: 0 4px 20px rgba(6, 182, 212, 0.2) !important;
+}
+
+.react-datepicker__header {
+  background-color: black !important;
+  border-bottom: 1px solid #06b6d4 !important;
+  padding: 1rem !important;
+}
+
+.react-datepicker__current-month,
+.react-datepicker__day-name,
+.react-datepicker__day,
+.react-datepicker__time-name {
+  color: white !important;
+}
+
+.react-datepicker__day:hover,
+.react-datepicker__month-text:hover,
+.react-datepicker__quarter-text:hover,
+.react-datepicker__year-text:hover {
+  background-color: #06b6d4 !important;
+  color: black !important;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  background-color: #06b6d4 !important;
+  color: black !important;
+}
+
+.react-datepicker__time-container {
+  border-left: 1px solid #06b6d4 !important;
+}
+
+.react-datepicker__time-container .react-datepicker__time {
+  background-color: black !important;
+}
+
+.react-datepicker__time-container .react-datepicker__time .react-datepicker__time-box ul.react-datepicker__time-list li.react-datepicker__time-list-item {
+  color: white !important;
+  background-color: black !important;
+}
+
+.react-datepicker__time-container .react-datepicker__time .react-datepicker__time-box ul.react-datepicker__time-list li.react-datepicker__time-list-item:hover {
+  background-color: #06b6d4 !important;
+  color: black !important;
+}
+
+.react-datepicker__time-container .react-datepicker__time .react-datepicker__time-box ul.react-datepicker__time-list li.react-datepicker__time-list-item--selected {
+  background-color: #06b6d4 !important;
+  color: black !important;
+}
+
+.react-datepicker__navigation-icon::before {
+  border-color: #06b6d4 !important;
+}
+
+.react-datepicker__day--disabled {
+  color: #666 !important;
+}
+
+.react-datepicker__day--disabled:hover {
+  background-color: transparent !important;
+  color: #666 !important;
+}

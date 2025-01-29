@@ -13,9 +13,11 @@ interface BookedSlot {
 
 interface BookedSlotProps {
     slot: BookedSlot;
+    isCompact?: boolean;
+    canDelete?: boolean;
 }
 
-const BookedSlot: React.FC<BookedSlotProps> = ({ slot }) => {
+const BookedSlot: React.FC<BookedSlotProps> = ({ slot, isCompact = false, canDelete = true }) => {
 
     const startTime = new Date(slot.startTime.replace(/(\d{2})\/(\d{2})\/(\d{4}),\s(\d{2}):(\d{2}):(\d{2})/, '$3-$2-$1T$4:$5:$6')).getTime();
     const endTime = new Date(slot.endTime.replace(/(\d{2})\/(\d{2})\/(\d{4}),\s(\d{2}):(\d{2}):(\d{2})/, '$3-$2-$1T$4:$5:$6')).getTime();
@@ -29,13 +31,32 @@ const BookedSlot: React.FC<BookedSlotProps> = ({ slot }) => {
 
     const handleDelete = async () => {
         try {
-            openPopup({title: "Delete Scheduled Event",message: "Are you sure you want to delete this scheduled event?",type: "loading"});
+            openPopup({ title: "Delete Scheduled Event", message: "Are you sure you want to delete this scheduled event?", type: "loading" });
             await deleteScheduledEvent(slot.id);
-            openPopup({title: "Success",message: "Scheduled event deleted successfully",type: "success"});
+            openPopup({ title: "Success", message: "Scheduled event deleted successfully", type: "success" });
         } catch (error) {
-            openPopup({title: "Error",message: "Error deleting scheduled event",type: "error"});
+            openPopup({ title: "Error", message: "Error deleting scheduled event", type: "error" });
             console.error("Error deleting scheduled event:", error);
         }
+    }
+
+    if (isCompact) {
+        return (
+            <div className="flex items-center justify-start border-2 border-gray-300 rounded-md p-2 m-2 gap-2">
+                <div>
+                    <img
+                        className="w-[100px] rounded-md"
+                        src={resolveCloudLinkUrl(slot.imageUrl, 'img')}
+                        alt={slot.title + " image"}
+                    />
+                </div>
+                <div className="flex flex-col items-start md:items-start">
+                    <p>{slot.title}</p>
+                    <p>{slot.startTime + " - " + slot.endTime}</p>
+                    {canDelete && <button onClick={handleDelete} className="text-xs text-red-500 hover:text-red-700">Delete</button>}
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -52,7 +73,7 @@ const BookedSlot: React.FC<BookedSlotProps> = ({ slot }) => {
                 <p>{"Start Time: " + slot.startTime}</p>
                 <p>{"End Time: " + slot.endTime}</p>
                 <p>{"Status: " + (isLive ? "Live" : isFinished ? "Finished" : "Scheduled")}</p>
-                <button onClick={handleDelete}>Delete</button>
+                {canDelete && <button onClick={handleDelete}>Delete</button>}
             </div>
         </div>
     )

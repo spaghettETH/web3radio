@@ -223,7 +223,6 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
                 onChange={(date) => setSelectedDate(date)}
                 showTimeSelect
                 dateFormat="Pp"
-                showTimeSelectOnly
                 timeIntervals={30}
                 timeCaption="Time"
                 className="w-full border border-white rounded-md bg-black text-white p-2"
@@ -257,7 +256,7 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
       <ul>
         {
           bookedSlots.length > 0 ?
-            bookedSlots.map((slot) => <BookedSlot key={slot.id} slot={slot} />)
+            bookedSlots.map((slot) => <BookedSlot key={slot.id} slot={slot} isCompact={true} />)
             :
             <p className="text-white">No scheduled events.</p>
         }
@@ -267,9 +266,7 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
       <ul>
         {next24HoursEvents.length > 0 ? (
           next24HoursEvents.map((event) => (
-            <li key={event.id} className="text-white">
-              <strong>{event.title}</strong>: {event.startTime} - {event.endTime}
-            </li>
+            <BookedSlot key={event.id} slot={event} isCompact={false} canDelete={false} />
           ))
         ) : (
           <p className="text-white">No live events in the next 24 hours.</p>

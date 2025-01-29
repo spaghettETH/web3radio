@@ -165,7 +165,7 @@ const ChooseTypeSection: React.FC<SectionBaseProps> = ({ setSection }) => {
       <button className="mego-modal-button" onClick={() => {
         loginWithMetamask();
       }}>
-        <img src={"/metamask.svg"} width={30} alt="Metamask" className="mr-2" />
+        <img width={17} src={"/metamask.svg"} alt="Google" className="mr-2 mt-1" />
         METAMASK
       </button>
     </>
