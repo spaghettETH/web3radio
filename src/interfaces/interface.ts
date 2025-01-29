@@ -8,7 +8,7 @@ export enum RadioMode {
 export enum LiveStreamPlatform {
     YOUTUBE = "youtube",
     TWITCH = "twitch",
-    OTHER = "other",
+    RADIO = "radio",
     NOT_SPECIFIED = "not_specified",
 }
 

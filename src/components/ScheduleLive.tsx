@@ -2,12 +2,10 @@ import React, { useState, useEffect, useCallback } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useWeb3Radio } from "../context/Web3RadioContext";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { usePopup } from "../context/PopupContext";
 import BookedSlot from "./BookedSlot";
-import { isLiveUriFromAllowedPlatforms, isSubmitUriFromAllowedPlatforms } from "../utils/Utils";
-import StreamingPlatformBanner from "./popups/StreamingPlatformBanner";
-import SubmittingPlatformBanner from "./popups/SubmittingPlatformBanner";
+import { FaVideo, FaImage, FaClock } from 'react-icons/fa';
 
 interface ScheduleLiveProps {
 }
@@ -18,6 +16,7 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
   const [streamUrl, setStreamUrl] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [duration, setDuration] = useState<number>(1); // Default: 30 minutes
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { scheduleLiveContract: contract, fetchBookedSlots, fetchNext24HoursEvents, bookedSlots, next24HoursEvents, scheduleLive } = useWeb3Radio();
   const { openPopup } = usePopup();
 
@@ -25,26 +24,31 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
     e.preventDefault();
 
     if (!title || !imageUrl || !streamUrl || !selectedDate || !contract) {
-      openPopup({title: "Required information",message: "Please fill in all fields.",type: "error"});
+      openPopup({ title: "Required information", message: "Please fill in all fields.", type: "error" });
       return;
     }
 
     const startTime = Math.floor(selectedDate.getTime() / 1000);
 
     try {
-      openPopup({title: "Scheduling...",message: "Livestream scheduling...",type: "loading"});
+      openPopup({ title: "Scheduling...", message: "Livestream scheduling...", type: "loading" });
       await scheduleLive(title, imageUrl, streamUrl, startTime, duration);
-      openPopup({title: "Scheduled",message: "Livestream scheduled successfully!",type: "success"});
+      openPopup({ title: "Scheduled", message: "Livestream scheduled successfully!", type: "success" });
+      setTitle("");
+      setImageUrl("");
+      setStreamUrl("");
+      setSelectedDate(null);
+      setDuration(1);
     } catch (error: any) {
       console.error("Error scheduling livestream:", error);
       if (error.reason === "Too many bookings for today!") {
-        openPopup({title: "Error",message: "You have reached the maximum number of bookings allowed for today.",type: "error"});
+        openPopup({ title: "Error", message: "You have reached the maximum number of bookings allowed for today.", type: "error" });
       } else if (error.reason === "Cannot book more than 10 slots (5 hours) in a single booking") {
-        openPopup({title: "Error",message: "You cannot book more than 10 slots (5 hours) in a single booking.",type: "error"});
+        openPopup({ title: "Error", message: "You cannot book more than 10 slots (5 hours) in a single booking.", type: "error" });
       } else if (error.reason === "Slot is already booked") {
-        openPopup({title: "Error",message: "One or more selected slots are already booked.",type: "error"});
+        openPopup({ title: "Error", message: "One or more selected slots are already booked.", type: "error" });
       } else {
-        openPopup({title: "Error",message: "Failed to schedule livestream. Please try again.",type: "error"});
+        openPopup({ title: "Error", message: "Failed to schedule livestream. Please try again.", type: "error" });
       }
     }
   };
@@ -56,95 +60,222 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
     }
   }, [contract, fetchBookedSlots, fetchNext24HoursEvents]);
 
-  return (
-    <div>
-      <h2>Schedule a Live Stream</h2>
-      <form onSubmit={onScheduleLive}>
-        <div>
-          <label>Title:</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Image URL:</label>
-          <input
-            type="url"
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Livestream URL:</label>
-          <input
-            type="url"
-            value={streamUrl}
-            onChange={(e) => setStreamUrl(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Date:</label>
-          <DatePicker
-            selected={selectedDate}
-            onChange={(date) => setSelectedDate(date)}
-            showTimeSelect
-            dateFormat="Pp"
-            showTimeSelectOnly
-            timeIntervals={30}
-            timeCaption="Time"
-          />
-        </div>
-        <div>
-          <label>Extend:</label>
-          <select
-            value={duration}
-            onChange={(e) => setDuration(Number(e.target.value))}
-          >
-            {[...Array(10)].map((_, i) => (
-              <option key={i} value={i + 1}>
-                {i + 1} ({(i + 1) * 30} minutes)
-              </option>
-            ))}
-          </select>
-        </div>
-        <motion.button
-          type="submit"
-          className={`bg-black text-white px-4 py-2 rounded-md uppercase font-bold mt-4 mb-4`}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-        >
-          {'Schedule Livestream'.toUpperCase()}
-        </motion.button>
-      </form>
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { duration: 0.5 }
+    }
+  };
 
-      <h3>My Scheduled Live Events</h3>
+  const formVariants = {
+    hidden: {
+      height: 0,
+      opacity: 0
+    },
+    visible: {
+      height: "auto",
+      opacity: 1,
+      transition: {
+        height: { duration: 0.4 },
+        opacity: { duration: 0.3, delay: 0.2 }
+      }
+    }
+  };
+
+
+  return (
+    <motion.div
+      className="w-full bg-black text-white p-10 rounded-lg"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <div className="flex flex-col lg:flex-row justify-between">
+        <motion.div
+          className="relative w-full lg:w-2/3"
+          initial={{ x: -50, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h4 className="text-xl font-bold uppercase">Schedule</h4>
+          <p className="text-5xl uppercase">
+            Plan your <br />live stream!
+          </p>
+        </motion.div>
+      </div>
+
+      {errorMessage && (
+        <motion.p
+          style={{ color: "red" }}
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+        >
+          {errorMessage}
+        </motion.p>
+      )}
+
+      <motion.form
+        onSubmit={onScheduleLive}
+        variants={formVariants}
+        initial="hidden"
+        animate="visible"
+        className="mt-10"
+      >
+        <motion.div
+          className="flex flex-col gap-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          <div className="w-full flex flex-col lg:flex-row gap-4">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="w-full"
+            >
+              <label htmlFor="imageUrl" className="flex items-center">
+                <FaImage className="mr-2" />
+                <p>COVER IMAGE</p>
+              </label>
+              <input
+                id="imageUrl"
+                type="url"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                required
+                placeholder="https://Link to cover image"
+                aria-label="Cover Image URL"
+                className="w-full border border-white rounded-md bg-black text-white p-2"
+              />
+            </motion.div>
+
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="w-full"
+            >
+              <label htmlFor="streamUrl" className="flex items-center">
+                <FaVideo className="mr-2" />
+                <p>STREAM URL</p>
+              </label>
+              <input
+                id="streamUrl"
+                type="url"
+                value={streamUrl}
+                onChange={(e) => setStreamUrl(e.target.value)}
+                required
+                placeholder="https://Link to stream"
+                aria-label="Stream URL"
+                className="w-full border border-white rounded-md bg-black text-white p-2"
+              />
+            </motion.div>
+          </div>
+
+          <div className="w-full flex flex-col lg:flex-row gap-4">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="w-full lg:w-2/3"
+            >
+              <label htmlFor="title" className="flex items-center">
+                <p>TITLE</p>
+              </label>
+              <input
+                id="title"
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                aria-label="Stream Title"
+                className="w-full border border-white rounded-md bg-black text-white p-2"
+              />
+            </motion.div>
+
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="w-full lg:w-1/3 flex items-end"
+            >
+              <button
+                type="submit"
+                className="submit-button uppercase h-[42px] w-full"
+              >
+                Schedule Live
+                &nbsp;→
+              </button>
+            </motion.div>
+          </div>
+
+          <div className="w-full flex flex-col lg:flex-row gap-4">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="w-full lg:w-2/3"
+            >
+              <label htmlFor="selectedDate" className="flex items-center">
+                <FaClock className="mr-2" />
+                <p>START TIME</p>
+              </label>
+              <DatePicker
+                selected={selectedDate}
+                onChange={(date) => setSelectedDate(date)}
+                showTimeSelect
+                dateFormat="Pp"
+                showTimeSelectOnly
+                timeIntervals={30}
+                timeCaption="Time"
+                className="w-full border border-white rounded-md bg-black text-white p-2"
+              />
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="w-full lg:w-1/3"
+            >
+              <label htmlFor="duration" className="flex items-center">
+                <p>EXTEND</p>
+              </label>
+              <select
+                value={duration}
+                onChange={(e) => setDuration(Number(e.target.value))}
+                className="w-full border border-white rounded-md bg-black text-white p-2"
+              >
+                {[...Array(10)].map((_, i) => (
+                  <option key={i} value={i + 1}>
+                    {i + 1} ({(i + 1) * 30} minutes)
+                  </option>
+                ))}
+              </select>
+            </motion.div>
+          </div>
+        </motion.div>
+      </motion.form>
+
+      <h3 className="text-white text-2xl font-bold mt-10">My Scheduled Live Events</h3>
       <ul>
         {
           bookedSlots.length > 0 ?
             bookedSlots.map((slot) => <BookedSlot key={slot.id} slot={slot} />)
             :
-            <p>No scheduled events.</p>
+            <p className="text-white">No scheduled events.</p>
         }
       </ul>
 
-      <h3>Live Events in the Next 24 Hours</h3>
+      <h3 className="text-white text-2xl font-bold mt-10">Live Events in the Next 24 Hours</h3>
       <ul>
         {next24HoursEvents.length > 0 ? (
           next24HoursEvents.map((event) => (
-            <li key={event.id}>
+            <li key={event.id} className="text-white">
               <strong>{event.title}</strong>: {event.startTime} - {event.endTime}
             </li>
           ))
         ) : (
-          <p>No live events in the next 24 hours.</p>
+          <p className="text-white">No live events in the next 24 hours.</p>
         )}
       </ul>
-    </div>
+    </motion.div>
   );
 };
 

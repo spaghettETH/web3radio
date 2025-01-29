@@ -3,8 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaMusic, FaFileAudio, FaImage } from 'react-icons/fa';
 import { useWeb3Radio } from "../context/Web3RadioContext";
 import { usePopup } from "../context/PopupContext";
-import { isSubmitUriFromAllowedPlatforms } from "../utils/Utils";
-import SubmittingPlatformBanner from "./popups/SubmittingPlatformBanner";
 
 interface SubmitSongFormProps {
 }

@@ -29,7 +29,7 @@ const StreamingContent = ({ liveSong, liveStreamPlatform }: StreamingContentProp
                 </iframe>
             }
             {
-                (liveStreamPlatform == LiveStreamPlatform.OTHER || liveStreamPlatform == LiveStreamPlatform.NOT_SPECIFIED) &&
+                (liveStreamPlatform == LiveStreamPlatform.RADIO || liveStreamPlatform == LiveStreamPlatform.NOT_SPECIFIED) &&
                 <div className="bg-black">
                     {
                         liveSong.img && (

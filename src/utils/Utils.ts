@@ -87,7 +87,7 @@ const getLivePlatformFromUri = (uri: string) => {
     if (uri.includes("twitch")) {
         return LiveStreamPlatform.TWITCH;
     }
-    return LiveStreamPlatform.OTHER;
+    return LiveStreamPlatform.RADIO;
 }
 
 const allowedUri = [ "drive.google", "dropbox", "dl.dropboxusercontent", "ipfs" ]
