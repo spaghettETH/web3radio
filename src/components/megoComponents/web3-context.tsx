@@ -337,12 +337,12 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
 
     // Aggiungi il listener per gli account cambiati
     //@ts-ignore
-    window.ethereum.on('accountsChanged', handleAccountsChanged);
+    window?.ethereum?.on('accountsChanged', handleAccountsChanged);
 
     // Cleanup del listener quando il componente viene smontato
     return () => {
       //@ts-ignore
-      window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+      window?.ethereum?.removeListener('accountsChanged', handleAccountsChanged);
     };
   }, []);
 
