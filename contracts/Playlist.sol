@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.6;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -23,7 +23,7 @@ contract DecentraPlaylist is Ownable {
     mapping(address => uint[]) public userSaves; // Map user to saved song IDs
     mapping(uint => uint) public songScores;     // Map song ID to score (save count)
 
-    constructor(address _nftContract) {
+    constructor(address _nftContract) Ownable(msg.sender) {
         nftContract = IERC721(_nftContract);
     }
 
