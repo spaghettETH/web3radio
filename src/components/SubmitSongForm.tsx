@@ -275,7 +275,7 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
                   />{" "}
                   I own the © of this audio and I have read the{" "}
                   <a
-                    href="https://ipfs.io/ipfs/QmWTiPuw52UK2FQFDbnwABE8oJfnSps4VHCCzPkWXY8ZtF?filename=disclaimer.html"
+                    href="https://spaghetteth.mypinata.cloud/ipfs/bafkreibdlpyu3cntpvmtpzpmkxa6wigggtlbpnh4crwihnv2bx6ox6fk4u"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
