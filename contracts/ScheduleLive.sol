@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.6;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -33,7 +33,7 @@ contract DecentraLiveSchedule is Ownable {
     event EventScheduled(uint256 indexed id, uint256 indexed startTime, address indexed creator);
     event EventDeleted(uint256 indexed id, address indexed creator);
 
-    constructor(address _nftContract) {
+    constructor(address _nftContract) Ownable(msg.sender){
         nftContract = IERC721(_nftContract);
     }
 
