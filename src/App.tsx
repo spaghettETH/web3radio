@@ -10,6 +10,7 @@ import Title from "./components/Title";
 import RadioModality from "./components/RadioModality";
 import WalletButton from "./components/megoComponents/WalletButton";
 import { useWeb3Radio } from "./context/Web3RadioContext";
+import ReportAbuse from "./components/ReportAbuse";
 
 const App: React.FC = () => {
     const [currentSong, setCurrentSong] = useState<any>(null);
@@ -28,6 +29,7 @@ const App: React.FC = () => {
                             setCurrentSong(song);
                         }}
                     />
+                    
                     <RadioModality onModalityChange={(modality: string) => {
                         console.log("Modality changed:", modality);
                     }} />

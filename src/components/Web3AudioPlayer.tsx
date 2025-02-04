@@ -5,6 +5,7 @@ import { useWeb3Radio } from "../context/Web3RadioContext";
 import { resolveCloudLinkUrl, resolveIpfsUri, resolveStreamingLink } from "../utils/Utils";
 import { RadioMode } from "../interfaces/interface";
 import StreamingContent from "./streaming/StreamingContent";
+import ReportAbuse from "./ReportAbuse";
 
 interface Web3AudioPlayerProps {
   setSong: (song: any) => void;
@@ -108,6 +109,9 @@ const Web3AudioPlayer: React.FC<Web3AudioPlayerProps> = ({ setSong }) => {
                   />
                 }
               </div>
+            </div>
+            <div className="absolute top-10 right-5 m-2 z-50">
+              <ReportAbuse />
             </div>
           </div>
         }
