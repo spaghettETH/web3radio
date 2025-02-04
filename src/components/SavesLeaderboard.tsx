@@ -75,7 +75,7 @@ const SavesLeaderboard: React.FC<SavesLeaderboardProps> = () => {
       {!loading && !error && leaderboard.length > 0 ? (
         <LeaderboardTable leaderboard={leaderboard} />
       ) : (
-        !loading && <p>No saved audio data available.</p>
+        !loading && <p className="text-white">No saved audio data available.</p>
       )}
     </div>
   );

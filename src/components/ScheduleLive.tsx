@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { usePopup } from "../context/PopupContext";
 import BookedSlot from "./BookedSlot";
 import { FaVideo, FaImage, FaClock } from 'react-icons/fa';
+import FormatBannerInfo from "./FormatBannerInfo";
 
 interface ScheduleLiveProps {
 }
@@ -135,9 +136,17 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
               transition={{ type: "spring", stiffness: 300 }}
               className="w-full"
             >
-              <label htmlFor="imageUrl" className="flex items-center">
+              <label htmlFor="imageUrl" className="flex items-center gap-2">
                 <FaImage className="mr-2" />
                 <p>COVER IMAGE</p>
+                <FormatBannerInfo
+                  bannerData={{
+                    title: "Accepted Cover Image Links:",
+                    description: "IPFS, Swarm, Pinata URIs, Google Drive, Dropbox",
+                    icon: <FaImage />
+                  }}
+                  circleWidth={20}
+                />
               </label>
               <input
                 id="imageUrl"
@@ -156,9 +165,17 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
               transition={{ type: "spring", stiffness: 300 }}
               className="w-full"
             >
-              <label htmlFor="streamUrl" className="flex items-center">
+              <label htmlFor="streamUrl" className="flex items-center gap-2">
                 <FaVideo className="mr-2" />
                 <p>STREAM URL</p>
+                <FormatBannerInfo
+                  bannerData={{
+                    title: "Accepted Stream URL Links:",
+                    description: "HLS (.m3u e .m3u8), Youtube, Twitch, Livepeer, traditional server",
+                    icon: <FaVideo />
+                  }}
+                  circleWidth={20}
+                />
               </label>
               <input
                 id="streamUrl"

@@ -191,9 +191,17 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
                   transition={{ type: "spring", stiffness: 300 }}
                   className="w-full"
                 >
-                  <label htmlFor="imageUri" className="flex items-center">
+                  <label htmlFor="imageUri" className="flex items-center gap-2">
                     <FaImage className="mr-2" />
                     <p>COVER IMAGE</p>
+                    <FormatBannerInfo
+                      bannerData={{
+                        title: "Accepted Cover Image Links:",
+                        description: "IPFS, Swarm, Pinata URIs, Google Drive, Dropbox",
+                        icon: <FaMusic />
+                      }}
+                      circleWidth={20}
+                    />
                   </label>
                   <input
                     id="imageUri"
@@ -212,9 +220,17 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
                   transition={{ type: "spring", stiffness: 300 }}
                   className="w-full"
                 >
-                  <label htmlFor="audioUri" className="flex items-center">
+                  <label htmlFor="audioUri" className="flex items-center gap-2">
                     <FaMusic className="mr-2" />
                     <p>SONG UPLOAD</p>
+                    <FormatBannerInfo
+                      bannerData={{
+                        title: "Accepted Audio Links:",
+                        description: "IPFS, Swarm, Pinata URIs, Google Drive, Dropbox",
+                        icon: <FaMusic />
+                      }}
+                      circleWidth={20}
+                    />
                   </label>
                   <input
                     id="audioUri"
@@ -265,8 +281,6 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
                   </button>
                 </motion.div>
               </div>
-
-              <FormatBannerInfo />
 
               <div className="lg:col-span-2">
                 <label htmlFor="disclaimer">
