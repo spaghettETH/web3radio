@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import { useWeb3Context } from "../components/megoComponents/web3-context";
 import { Contract } from "ethers";
-import { playlistABI, playlistAddress } from "../contracts/DecentralizePlaylist/contract";
-import { scheduleLiveABI, scheduleLiveAddress } from "../contracts/ScheduleLive/contract";
+import { getPlaylistABI, getPlaylistAddress } from "../contracts/DecentralizePlaylist/contract";
+import { getScheduleLiveABI, getScheduleLiveAddress } from "../contracts/ScheduleLive/contract";
 import { RadioMode, LiveStreamPlatform, Song } from "../interfaces/interface";
 import { getLivePlatformFromUri } from "../utils/Utils";
 
@@ -72,8 +72,8 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 console.log("[initializeProvider] Signer:", signer);
 
                 // Creiamo i contratti direttamente con il signer
-                const _playlistContract = new Contract(playlistAddress, playlistABI, signer);
-                const _scheduleLiveContract = new Contract(scheduleLiveAddress, scheduleLiveABI, signer);
+                const _playlistContract = new Contract(getPlaylistAddress(), getPlaylistABI(), signer);
+                const _scheduleLiveContract = new Contract(getScheduleLiveAddress(), getScheduleLiveABI(), signer);
 
                 setPlaylistContract(_playlistContract);
                 setScheduleLiveContract(_scheduleLiveContract);

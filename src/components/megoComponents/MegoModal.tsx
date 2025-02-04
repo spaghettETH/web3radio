@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Route, useWeb3Context } from "./web3-context";
 import { BrowserProvider, Contract } from "ethers";
-import { playlistABI, playlistAddress } from "../../contracts/DecentralizePlaylist/contract";
-import { scheduleLiveABI, scheduleLiveAddress } from "../../contracts/ScheduleLive/contract";
+import { getPlaylistABI, getPlaylistAddress } from "../../contracts/DecentralizePlaylist/contract";
+import { getScheduleLiveABI, getScheduleLiveAddress } from "../../contracts/ScheduleLive/contract";
 
 interface MegoModalProps {
   isOpen: boolean;
