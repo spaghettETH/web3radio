@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaMusic, FaFileAudio, FaImage } from 'react-icons/fa';
 import { useWeb3Radio } from "../context/Web3RadioContext";
 import { usePopup } from "../context/PopupContext";
+import FormatBannerInfo from "./FormatBannerInfo";
 
 interface SubmitSongFormProps {
 }
@@ -264,6 +265,8 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
                   </button>
                 </motion.div>
               </div>
+
+              <FormatBannerInfo />
 
               <div className="lg:col-span-2">
                 <label htmlFor="disclaimer">

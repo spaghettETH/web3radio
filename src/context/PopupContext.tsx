@@ -80,6 +80,12 @@ export const PopupProvider: React.FC<PopupProviderProps> = ({ children }) => {
                     color: 'text-blue-500',
                     border: 'border-blue-500'
                 };
+            case 'loading':
+                return {
+                    icon: null,
+                    color: 'text-gray-600',
+                    border: 'border-t-blue-500'
+                };
             default:
                 return {
                     icon: null,
@@ -94,7 +100,7 @@ export const PopupProvider: React.FC<PopupProviderProps> = ({ children }) => {
         setMessage(options.message || '');
         setType(options.type || 'loading');
         setIsOpen(true);
-        if(options.banner){
+        if (options.banner) {
             setCustomJsx(options.banner);
         }
     };

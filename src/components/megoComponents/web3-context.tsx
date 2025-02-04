@@ -186,6 +186,7 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
       return {
         getAddress: async () => loggedAs,
         signMessage: async (message: string) => {
+          //TODO: Mego backend sign message function
           throw new Error("Signing not supported for this provider");
         },
         sendTransaction: async (transaction: any) => {
