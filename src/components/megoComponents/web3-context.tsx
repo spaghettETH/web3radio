@@ -16,15 +16,13 @@ type Route =
   | "Register"
   | "Logged";
 interface Web3ContextType {
-  isMegoModalOpen: boolean;
-  openMegoModal: () => void;
+  isMegoModalOpen: boolean; openMegoModal: () => void;
   redirectToGoogleLogin: () => void;
   redirectToAppleLogin: () => void;
   closeMegoModal: () => void;
   provider: string | null;
-  metamaskProvider: any;
-  loginWithMetamask: () => Promise<void>;
-  loginWithEmail: (email: string, password: string) => Promise<void>;
+  walletConnectProvider: any;
+  loginWithWalletConnect: () => Promise<void>;
   loggedAs: string | null;
   loadingText: string;
   setLoadingText: (text: string) => void;
@@ -35,7 +33,6 @@ interface Web3ContextType {
   prevSection: Route | undefined;
   setPrevSection: (section: Route | undefined) => void;
   logout: () => void;
-  createNewWallet: (email: string, password: string) => Promise<void>; // Add the createNewWallet function to the context
   getProvider: () => any;
   getSigner: () => any;
 }
@@ -63,8 +60,8 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
   const [prevSection, setPrevSection] = useState<Route | undefined>();
   const [isMegoModalOpen, setIsMegoModalOpen] = useState<boolean>(false);
   const [provider, setProvider] = useState<string | null>(null);
-  const [metamaskProvider, setMetamaskProvider] = useState<any>(null);
-  const [noMetamaskProvider, setNoMetamaskProvider] = useState<any>(null);
+  const [walletConnectProvider, setWalletConnectProvider] = useState<any>(null);
+  const [noWalletConnectProvider, setNoWalletConnectProvider] = useState<any>(null);
   const [loggedAs, setLoggedAs] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loadingText, setLoadingText] = useState<string>("");
@@ -76,10 +73,10 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
   useEffect(() => {
     try {
       if (loggedAs) {
-        if (provider !== 'metamask') {
-          console.log("Rilevato accesso tramite un provider != metamask");
+        if (provider !== 'walletConnect') {
+          console.log("Rilevato accesso tramite un provider != walletConnect");
           const jsonRpcProvider = new ethers.JsonRpcProvider("https://base-sepolia.g.alchemy.com/v2/KxxtZXKplWuSt71LXxy-9Mr4BhucrqEP");
-          setNoMetamaskProvider(jsonRpcProvider);
+          setNoWalletConnectProvider(jsonRpcProvider);
         }
       }
     } catch (error) {
@@ -98,11 +95,8 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     setIsLoading(true);
     localStorage.setItem("justLogged", "true");
     setTimeout(() => {
-      window.location.href =
-        BASE_URL +
-        "/auth/apple" +
-        "?origin=" +
-        window.location.href.replace("https://", "").replace("http://", "");
+      window.location.href = BASE_URL + "/auth/apple" + "?origin="
+        + window.location.href.replace("https://", "").replace("http://", "");
     }, 2500);
   }
 
@@ -110,11 +104,7 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     setIsLoading(true);
     localStorage.setItem("justLogged", "true");
     setTimeout(() => {
-      window.location.href =
-        BASE_URL +
-        "/auth/google" +
-        "?origin=" +
-        window.location.href.replace("https://", "").replace("http://", "");
+      window.location.href = BASE_URL + "/auth/google" + "?origin=" + window.location.href.replace("https://", "").replace("http://", "");
     }, 2500);
 
     console.log("redirectToGoogleLogin - ECCOCI QUI");
@@ -122,7 +112,6 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
 
   function redirectToQuestionary() {
     if (localStorage.getItem("isQuestionary") === "true") {
-
       openMegoModal();
     }
   }
@@ -130,59 +119,55 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     redirectToQuestionary();
   }, []);
 
+  const logoutWalletConnect = async () => {
+
+    try {
+      // Rainbowkit walletconnect disconnect
+      //@ts-ignore
+      window.ethereum.removeAllListeners();
+      //@ts-ignore
+      setWalletConnectProvider(null);
+      setProvider(null);
+      setLoggedAs(null);
+      localStorage.removeItem("provider");
+      localStorage.removeItem("loggedAs");
+    } catch (error) {
+      console.error("Error logging out of walletconnect:", error);
+    }
+  }
+
   function logout() {
     setProvider(null);
     setLoggedAs(null);
-    logoutMetamask();
+    logoutWalletConnect();
     localStorage.removeItem("provider");
     localStorage.removeItem("loggedAs");
-    //window.location.href = "/";
+    console.log("[DEBUG]Effettuando il logout, loggedAs in localStorage:", localStorage.getItem("loggedAs"));
+    window.history.replaceState(null, "", window.location.pathname);
   }
 
-  const loginWithEmail = async (email: string, password: string) => {
-    console.log("loginWithEmail - ECCOCI QUI");
-    const lowerCaseEmail = email.toLowerCase();
-    setLoadingText("Checking email and password");
-    const check = await axios.post(`${BASE_URL}/wallets/check`, {
-      email: lowerCaseEmail,
-      password: password,
-    });
-    if (check.data.error === false) {
-      setIsLoading(false);
-      setLoadingText("");
-      // Logica per gestire il login
-      const address = check.data.addresses.eth;
-      setLoggedAs(address);
-      localStorage.setItem("loggedAs", check.data.addresses.eth);
-      localStorage.setItem("provider", "email");
-      localStorage.setItem("email", email);
-      setProvider("email");
 
-      //Creare provider 
-      const jsonRpcProvider = new ethers.JsonRpcProvider("https://sepolia.drpc.org");
-      console.log("jsonRpcProvider", jsonRpcProvider);
-      setNoMetamaskProvider(jsonRpcProvider); // Imposta il provider
-    } else {
-      setLoadingText("");
-      alert(check.data.message);
-      setIsLoading(false);
-    }
-  };
+  //DEBUG
+  useEffect(() => {
+    console.log("[DEBUG]loggedAs ripristinato:", loggedAs);
+    console.log("[DEBUG]provider ripristinato:", provider);
+  }, [loggedAs, provider]);
+
 
   const getProvider = () => {
-    if (provider === "metamask") {
-      return metamaskProvider;
+    if (provider === "walletConnect") {
+      return walletConnectProvider;
     } else {
-      return noMetamaskProvider;
+      return noWalletConnectProvider;
     }
   };
 
   const getSigner = async () => {
-    if (provider === "metamask" && metamaskProvider) {
-      const signer = await metamaskProvider.getSigner();
+    if (provider === "walletConnect" && walletConnectProvider) {
+      const signer = await walletConnectProvider.getSigner();
       return signer;
     } else {
-      // Per Google e altri provider non-Metamask, creiamo un signer personalizzato
+      // Per Google e altri provider non-walletConnect, creiamo un signer personalizzato
       return {
         getAddress: async () => loggedAs,
         signMessage: async (message: string) => {
@@ -200,11 +185,11 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     }
   };
 
-  const loginWithMetamask = async () => {
-    setLoadingText("Checking metamask ...");
+  const loginWithWalletConnect = async () => {
+    setLoadingText("Checking walletconnect ...");
     //@ts-ignore
     if (!window.ethereum) {
-      alert("Metamask is not installed");
+      alert("walletConnect is not installed");
       return;
     }
     try {
@@ -215,9 +200,9 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
       const address = await signer.getAddress();
       setLoggedAs(address);
       localStorage.setItem("loggedAs", address);
-      localStorage.setItem("provider", "metamask");
-      setProvider("metamask");
-      setMetamaskProvider(_provider);
+      localStorage.setItem("provider", "walletConnect");
+      setProvider("walletConnect");
+      setWalletConnectProvider(_provider);
 
       //Switch chain to the one specified in the .env file
       if (process.env.REACT_APP_CHAIN_ID) {
@@ -232,50 +217,6 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     }
   };
 
-  const logoutMetamask = () => {
-
-    try {
-      //@ts-ignore
-      window.ethereum.removeAllListeners();
-      //@ts-ignore
-      setMetamaskProvider(null);
-      setProvider(null);
-      setLoggedAs(null);
-      localStorage.removeItem("provider");
-      localStorage.removeItem("loggedAs");
-    } catch (error) {
-      console.error("Error logging out of metamask:", error);
-    }
-  }
-  // Aggiungi la funzione per creare un nuovo wallet
-  async function createNewWallet(email: string, password: string) {
-    if (!isLoading) {
-      setIsLoading(true);
-      setLoadingText("Creating new mego wallet");
-      const lowerCaseEmail = email.toLowerCase();
-      const create = await axios.post(`${BASE_URL}/wallets/email/new`, {
-        email: lowerCaseEmail,
-        password: password,
-      });
-
-      if (!create.data.error) {
-        await loginWithEmail(email, password);
-      } else {
-        alert(create.data.message);
-        setIsLoading(false);
-        setLoadingText("");
-      }
-    }
-  }
-
-  //Handle refresh page
-  useEffect(() => {
-    const megoProvider = localStorage.getItem("provider");
-    if (megoProvider === 'metamask') {
-      loginWithMetamask();
-    }
-  }, [])
-
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const urlProvider = searchParams.get("provider");
@@ -284,14 +225,14 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     if (urlProvider) {
       setProvider(urlProvider);
       localStorage.setItem("provider", urlProvider);
-      
+
       // Inizializza il provider JSON-RPC per Google
       if (urlProvider === 'google') {
         const jsonRpcProvider = new ethers.JsonRpcProvider(process.env.REACT_APP_JSON_RPC_PROVIDER);
-        setNoMetamaskProvider(jsonRpcProvider);
+        setNoWalletConnectProvider(jsonRpcProvider);
       }
     }
-    
+
     if (urlLoggedAs) {
       setLoggedAs(urlLoggedAs);
       localStorage.setItem("loggedAs", urlLoggedAs);
@@ -300,12 +241,16 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     if (!urlProvider && !urlLoggedAs) {
       const storedProvider = localStorage.getItem("provider");
       const storedLoggedAs = localStorage.getItem("loggedAs");
+      console.log("[DEBUG]storedProvider:", storedProvider);
+      console.log("[DEBUG]storedLoggedAs:", storedLoggedAs);
       if (storedProvider) {
         setProvider(storedProvider);
         // Inizializza il provider anche per sessioni ripristinate
         if (storedProvider === 'google') {
           const jsonRpcProvider = new ethers.JsonRpcProvider(process.env.REACT_APP_JSON_RPC_PROVIDER);
-          setNoMetamaskProvider(jsonRpcProvider);
+          setNoWalletConnectProvider(jsonRpcProvider);
+        } else if (storedProvider === 'walletConnect') {
+          loginWithWalletConnect();
         }
       }
       if (storedLoggedAs) setLoggedAs(storedLoggedAs);
@@ -314,7 +259,7 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     if (urlProvider === 'google' && urlLoggedAs) {
       try {
         const jsonRpcProvider = new ethers.JsonRpcProvider("https://base-sepolia.g.alchemy.com/v2/KxxtZXKplWuSt71LXxy-9Mr4BhucrqEP");
-        setNoMetamaskProvider(jsonRpcProvider);
+        setNoWalletConnectProvider(jsonRpcProvider);
         setProvider('google');
         setLoggedAs(urlLoggedAs);
         localStorage.setItem("provider", 'google');
@@ -323,28 +268,6 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
         console.error("[Google Auth] Error initializing provider:", error);
       }
     }
-  }, []);
-
-  useEffect(() => {
-    const handleAccountsChanged = (accounts: string[]) => {
-      console.log("handleAccountsChanged", accounts);
-      if (accounts.length === 0) {
-        // L'utente ha disconnesso MetaMask
-        console.log("MetaMask disconnesso");
-        logoutMetamask(); // Chiama la funzione di logout o gestisci la disconnessione come necessario
-        window.location.href = "/";
-      }
-    };
-
-    // Aggiungi il listener per gli account cambiati
-    //@ts-ignore
-    window?.ethereum?.on('accountsChanged', handleAccountsChanged);
-
-    // Cleanup del listener quando il componente viene smontato
-    return () => {
-      //@ts-ignore
-      window?.ethereum?.removeListener('accountsChanged', handleAccountsChanged);
-    };
   }, []);
 
   //Handle chain change
@@ -379,28 +302,9 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
   }, []);
 
   const value: Web3ContextType = {
-    getProvider,
-    getSigner,
-    isMegoModalOpen,
-    openMegoModal,
-    redirectToAppleLogin,
-    redirectToGoogleLogin,
-    closeMegoModal,
-    provider,
-    metamaskProvider,
-    loginWithMetamask,
-    section,
-    setSection,
-    prevSection,
-    setPrevSection,
-    loggedAs,
-    isLoading,
-    logout,
-    setIsLoading,
-    loadingText,
-    setLoadingText,
-    loginWithEmail,
-    createNewWallet, // Aggiungi la funzione al contesto
+    getProvider, getSigner, isMegoModalOpen, openMegoModal,
+    redirectToAppleLogin, redirectToGoogleLogin, closeMegoModal, provider, walletConnectProvider, loginWithWalletConnect, section,
+    setSection, prevSection, setPrevSection, loggedAs, isLoading, logout, setIsLoading, loadingText, setLoadingText,
   };
   return (
     <Web3Context.Provider value={value}>

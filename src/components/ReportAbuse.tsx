@@ -22,7 +22,7 @@ const ReportAbuse = () => {
   }, []);
 
   const handleClick = () => {
-    window.location.href = REPORT_URL;
+    window.open(REPORT_URL, "_blank", "noopener,noreferrer");
   };
 
   return (
