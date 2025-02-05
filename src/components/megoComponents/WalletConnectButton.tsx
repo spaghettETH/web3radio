@@ -42,7 +42,7 @@ const WalletConnectStatus: React.FC<WalletConnectStatusProps> = ({
     return (
       <button className="mego-modal-button" onClick={() => loginWithWalletConnect(account.address)}>
         <img width={17} src="/walletconnect.svg" alt="WalletConnect" className="mr-2 mt-1" />
-        WALLET CONNECT
+        RAINBOW CONNECT
       </button>
     );
   }

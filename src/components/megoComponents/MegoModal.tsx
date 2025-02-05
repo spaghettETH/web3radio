@@ -146,10 +146,13 @@ const ChooseTypeSection: React.FC<SectionBaseProps> = ({ setSection }) => {
         <img src="/apple.svg" alt="Apple" className="mr-2" />
         APPLE ACCOUNT
       </button>
+
       <button className="mego-modal-button" onClick={redirectToGoogleLogin}>
         <img width={17} src="/google.svg" alt="Google" className="mr-2 mt-1" />
         GOOGLE ACCOUNT
       </button>
+
+      
       <WalletConnectButton />
     </>
   );
