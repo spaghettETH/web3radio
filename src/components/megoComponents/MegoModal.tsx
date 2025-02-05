@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Route, useWeb3Context } from "./web3-context";
-import { BrowserProvider, Contract } from "ethers";
-import { getPlaylistABI, getPlaylistAddress } from "../../contracts/DecentralizePlaylist/contract";
-import { getScheduleLiveABI, getScheduleLiveAddress } from "../../contracts/ScheduleLive/contract";
+import WalletConnectButton from "./WalletConnectButton"
 
 interface MegoModalProps {
   isOpen: boolean;
@@ -60,14 +58,8 @@ const MegoModal: React.FC<MegoModalProps> = ({ isOpen, onClose }) => {
     switch (section) {
       case "ChooseType":
         return <ChooseTypeSection setSection={setNewSection} />;
-      case "Email":
-        return <EmailSection setSection={setNewSection} />;
-      case "Login":
-        return <LoginSection />;
       case "Logged":
         return <LoggedSection logout={logout} />;
-      case "Register":
-        return <RegisterSection />;
     }
   }
 
@@ -147,48 +139,22 @@ type SectionBaseProps = { setSection: (route: Route) => void };
 
 const ChooseTypeSection: React.FC<SectionBaseProps> = ({ setSection }) => {
   const { redirectToAppleLogin, redirectToGoogleLogin } = useWeb3Context();
-  const { loginWithMetamask } = useWeb3Context();
+
   return (
     <>
       <button className="mego-modal-button mego-apple" onClick={redirectToAppleLogin}>
-        <img src={"/apple.svg"} alt="Apple" className="mr-2" />
+        <img src="/apple.svg" alt="Apple" className="mr-2" />
         APPLE ACCOUNT
       </button>
       <button className="mego-modal-button" onClick={redirectToGoogleLogin}>
-        <img width={17} src={"/google.svg"} alt="Google" className="mr-2 mt-1" />
+        <img width={17} src="/google.svg" alt="Google" className="mr-2 mt-1" />
         GOOGLE ACCOUNT
       </button>
-      {/*       <button className="mego-modal-button mego-email" onClick={() => setSection("Email")}>
-        <img src={"/email.svg"} width={30} alt="Email" className="mr-2" />
-        E-MAIL
-      </button> */}
-      <button className="mego-modal-button" onClick={() => {
-        loginWithMetamask();
-      }}>
-        <img width={17} src={"/metamask.svg"} alt="Google" className="mr-2 mt-1" />
-        METAMASK
-      </button>
+      <WalletConnectButton />
     </>
   );
 };
-const EmailSection: React.FC<SectionBaseProps> = ({ setSection }) => {
-  return (
-    <>
-      <button
-        className="mego-modal-button outlined"
-        onClick={() => setSection("Login")}
-      >
-        LOGIN
-      </button>
-      <button
-        className="mego-modal-button outlined"
-        onClick={() => setSection("Register")}
-      >
-        SIGN UP
-      </button>
-    </>
-  );
-};
+
 const LoggedSection: React.FC<{ logout: () => void }> = ({ logout }) => {
   return (
     <>
@@ -209,118 +175,5 @@ const LoggedSection: React.FC<{ logout: () => void }> = ({ logout }) => {
     </>
   );
 };
-const LoginSection = () => {
-  const { createNewWallet, loginWithEmail } = useWeb3Context();
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
 
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    loginWithEmail(email, password);
-  };
-
-  return (
-    <>
-      <h5 className="mego-login-text">
-        Type your e-mail address and Password to login
-      </h5>
-      <form
-        onSubmit={handleLogin}
-        className="d-flex flex-column align-items-center w-100"
-      >
-        <input
-          className="mego-input"
-          id="email"
-          placeholder="E-mail address..."
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          type="email"
-          name="email"
-          required
-          title="Insert a valid email"
-        />
-        <input
-          className="mego-input"
-          id="password"
-          placeholder="Password..."
-          type="password"
-          name="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
-          title="Password must contain at least 8 characters, including one uppercase letter, one lowercase letter, and one number"
-        />
-        <button
-          className="mego-modal-button mt-3"
-          type="submit"
-          style={{ maxWidth: 200 }}
-        >
-          LOGIN
-        </button>
-      </form>
-    </>
-  );
-};
-
-const RegisterSection = () => {
-  const { createNewWallet } = useWeb3Context();
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    createNewWallet(email, password);
-  };
-
-  return (
-    <>
-      <h5 className="mego-login-text">
-        Type your e-mail address and Password to register
-      </h5>
-      <form
-        onSubmit={handleLogin}
-        className="d-flex flex-column align-items-center w-100"
-      >
-        <input
-          className="mego-input"
-          id="email"
-          placeholder="E-mail address..."
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          type="email"
-          name="email"
-          required
-          title="Insert a valid email"
-        />
-        <input
-          className="mego-input"
-          id="password"
-          placeholder="Password..."
-          type="password"
-          name="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
-          title="Password must contain at least 8 characters, including one uppercase letter, one lowercase letter, and one number"
-        />
-        <p
-          className="mego-login-text "
-          style={{ marginTop: -10, marginBottom: 0, fontSize: 11 }}
-        >
-          Password must contain at least 8 characters, including one uppercase
-          letter, one lowercase letter, and one number
-        </p>
-        <button
-          className="mego-modal-button mt-3"
-          type="submit"
-          style={{ maxWidth: 200 }}
-        >
-          REGISTER
-        </button>
-      </form>
-    </>
-  );
-};
 export default MegoModal;
