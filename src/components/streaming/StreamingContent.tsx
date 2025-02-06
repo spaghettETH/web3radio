@@ -3,6 +3,7 @@ import { Song, LiveStreamPlatform } from "../../interfaces/interface";
 import { resolveCloudLinkUrl, resolveStreamingLink } from "../../utils/Utils";
 import AudioPlayer from 'react-h5-audio-player';
 import ReactHlsPlayer from 'react-hls-player';
+import ReportAbuse from "../ReportAbuse";
 interface StreamingContentProps {
     liveSong: Song;
     liveStreamPlatform: LiveStreamPlatform;
@@ -29,6 +30,9 @@ const StreamingContent = ({ liveSong, liveStreamPlatform }: StreamingContentProp
                 >
                 </iframe>
             }
+            <div className="absolute top-10 right-5 m-2 z-50">
+              <ReportAbuse />
+            </div>
             {
                 liveStreamPlatform == LiveStreamPlatform.HLS &&
                 <>
