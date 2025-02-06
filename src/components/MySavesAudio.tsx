@@ -3,13 +3,13 @@ import SavedAudio from "./SavedAudio";
 import { useWeb3Radio } from "../context/Web3RadioContext";
 import { usePopup } from "../context/PopupContext";
 import { LiveStreamPlatform } from "../interfaces/interface";
-interface MySavesProps {
-  currentSong: any;
-}
-const MySavesAudio: React.FC<MySavesProps> = ({ currentSong }) => {
+
+interface MySavesProps {}
+
+const MySavesAudio: React.FC<MySavesProps> = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const { playlistContract: contract, fetchMySaves, savedSongs, removeSavedSong, liveStreamPlatform, saveSongToMySaves } = useWeb3Radio();
+  const { playlistContract: contract, fetchMySaves, savedSongs, removeSavedSong, liveStreamPlatform, saveSongToMySaves, currentSong } = useWeb3Radio();
   const { openPopup, closePopup } = usePopup();
 
   const saveSongDisabled = useMemo(() => {

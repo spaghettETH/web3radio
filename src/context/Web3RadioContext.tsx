@@ -10,6 +10,8 @@ import { getLivePlatformFromUri } from "../utils/Utils";
 interface Web3RadioContextType {
     playlistContract: Contract | null;
     playlist: any[];
+    currentSong: any;
+    setCurrentSong: (song: any) => void;
     fetchPlaylist: () => Promise<void>;
     fetchUserSongs: () => Promise<void>;
     fetchMySaves: () => Promise<void>;
@@ -38,6 +40,9 @@ export const Web3RadioContext = createContext<Web3RadioContextType | undefined>(
 
 export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [playlist, setPlaylist] = useState<Song[]>([]);
+    const [currentSong, setCurrentSong] = useState<any>(null);
+
+
     const [liveStreamPlatform, setLiveStreamPlatform] = useState<LiveStreamPlatform>(LiveStreamPlatform.NOT_SPECIFIED);
     const { loggedAs, getProvider, isLoading, openMegoModal, getSigner } = useWeb3Context();
 
@@ -372,6 +377,8 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             value={{
                 playlistContract,
                 playlist,
+                currentSong,
+                setCurrentSong,
                 fetchPlaylist,
                 fetchUserSongs,
                 fetchMySaves,

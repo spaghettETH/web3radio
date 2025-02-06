@@ -75,7 +75,7 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
       if (loggedAs) {
         if (provider !== 'walletConnect') {
           console.log("Rilevato accesso tramite un provider != walletConnect");
-          const jsonRpcProvider = new ethers.JsonRpcProvider("https://base-sepolia.g.alchemy.com/v2/KxxtZXKplWuSt71LXxy-9Mr4BhucrqEP");
+          const jsonRpcProvider = new ethers.JsonRpcProvider(process.env.REACT_APP_JSON_RPC_PROVIDER);
           setNoWalletConnectProvider(jsonRpcProvider);
         }
       }

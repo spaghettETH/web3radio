@@ -8,15 +8,13 @@ import StreamingContent from "./streaming/StreamingContent";
 import ReportAbuse from "./ReportAbuse";
 
 interface Web3AudioPlayerProps {
-  setSong: (song: any) => void;
 }
 
-const Web3AudioPlayer: React.FC<Web3AudioPlayerProps> = ({ setSong }) => {
+const Web3AudioPlayer: React.FC<Web3AudioPlayerProps> = () => {
 
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [shuffledPlaylist, setShuffledPlaylist] = useState<any[]>([]);
-  const [currentSong, setCurrentSong] = useState<any>(null);
-  const { playlist, liveStreamPlatform, radioModality } = useWeb3Radio();
+  const { playlist, liveStreamPlatform, radioModality, currentSong, setCurrentSong } = useWeb3Radio();
 
   const shuffleArray = (array: any) => {
     const shuffled = [...array];
@@ -33,7 +31,6 @@ const Web3AudioPlayer: React.FC<Web3AudioPlayerProps> = ({ setSong }) => {
       const shuffledPlaylist = shuffleArray(playlist);
       setShuffledPlaylist(shuffledPlaylist);
       setCurrentSong(shuffledPlaylist[0]);
-      setSong(shuffledPlaylist[0]);
       setCurrentIndex(0);
     }
   }, [playlist]);

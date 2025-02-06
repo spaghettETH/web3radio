@@ -1,5 +1,3 @@
-
-
 export enum RadioMode {
     LIVE = "live",
     PLAYLIST = "playlist",

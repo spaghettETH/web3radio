@@ -13,8 +13,7 @@ import { useWeb3Radio } from "./context/Web3RadioContext";
 import ReportAbuse from "./components/ReportAbuse";
 
 const App: React.FC = () => {
-    const [currentSong, setCurrentSong] = useState<any>(null);
-    const { isConnected } = useWeb3Radio();
+    const { isConnected, currentSong } = useWeb3Radio();
 
     return (
         <div className="flex gap-10 flex-col max-w-screen-lg items-center justify-center pt-10">
@@ -23,30 +22,11 @@ const App: React.FC = () => {
             <Title />
             {isConnected ? (
                 <>
-                    <Web3AudioPlayer
-                        setSong={(song: any) => {
-                            console.log("Setting current song:", song);
-                            setCurrentSong(song);
-                        }}
-                    />
-                    
-                    <RadioModality onModalityChange={(modality: string) => {
-                        console.log("Modality changed:", modality);
-                    }} />
-                    {currentSong && currentSong.submitter ? (
-                        <Donate creatorAddress={currentSong.submitter} />
-                    ) : (
-                        <p>No creator information available.</p>
-                    )}
-                    <RemoveOwnSong />
-                    <div className="w-full px-10">
-                        <SubmitSongForm />
-                    </div>
-                    <div className="w-full">
-                        <MySaves currentSong={currentSong} />
-                        <SavesLeaderboard />
-                    </div>
-                    <Donate creatorAddress={currentSong?.submitter} />
+                    <Web3AudioPlayer/>
+                    <RadioModality
+                        onModalityChange={(modality: string) => {
+                            console.log("Modality changed:", modality);
+                        }} />
                 </>
             ) : (
                 <p>Please connect to MetaMask.</p>
