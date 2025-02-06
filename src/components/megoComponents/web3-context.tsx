@@ -301,6 +301,24 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     };
   }, []);
 
+  
+  //Usando windows.etherium verificiamo se l'address del wallet cambia (in caso di cambiamento refresh)
+  useEffect(() => {
+    const handleAccountsChanged = async (accounts: string[]) => {
+      if (accounts.length > 0) {
+        setLoggedAs(accounts[0]);
+        localStorage.setItem("loggedAs", accounts[0]);
+      }
+    };
+    //@ts-ignore
+    window?.ethereum?.on('accountsChanged', handleAccountsChanged);
+    return () => {
+      //@ts-ignore
+      window?.ethereum?.removeListener('accountsChanged', handleAccountsChanged);
+    };
+  }, []);
+
+
   const value: Web3ContextType = {
     getProvider, getSigner, isMegoModalOpen, openMegoModal,
     redirectToAppleLogin, redirectToGoogleLogin, closeMegoModal, provider, walletConnectProvider, loginWithWalletConnect, section,
