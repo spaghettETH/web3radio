@@ -5,6 +5,7 @@ import { getPlaylistABI, getPlaylistAddress } from "../contracts/DecentralizePla
 import { getScheduleLiveABI, getScheduleLiveAddress } from "../contracts/ScheduleLive/contract";
 import { RadioMode, LiveStreamPlatform, Song } from "../interfaces/interface";
 import { getLivePlatformFromUri } from "../utils/Utils";
+import { getSoulBoundTokenABI, getSoulBoundTokenAddress } from "../contracts/SoulBoundToken/contract";
 
 
 interface Web3RadioContextType {
@@ -42,13 +43,13 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const [playlist, setPlaylist] = useState<Song[]>([]);
     const [currentSong, setCurrentSong] = useState<any>(null);
 
-
     const [liveStreamPlatform, setLiveStreamPlatform] = useState<LiveStreamPlatform>(LiveStreamPlatform.NOT_SPECIFIED);
     const { loggedAs, getProvider, isLoading, openMegoModal, getSigner } = useWeb3Context();
 
     // Contracts
     const [playlistContract, setPlaylistContract] = useState<Contract | null>(null);
     const [scheduleLiveContract, setScheduleLiveContract] = useState<Contract | null>(null);
+    const [soulBoundTokenContract, setSoulBoundTokenContract] = useState<Contract | null>(null);
     const [mySongs, setMySongs] = useState<any[]>([]);
     const [savedSongs, setSavedSongs] = useState<any[]>([]);
     const [isConnected, setIsConnected] = useState<boolean>(false);
@@ -70,28 +71,28 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const initializeProvider = useCallback(async () => {
         if (loggedAs) {
             try {
-                console.log("[initializeProvider] LoggedAs:", loggedAs);
-
-                // Otteniamo il signer
                 const signer = await getSigner();
-                console.log("[initializeProvider] Signer:", signer);
-
-                // Creiamo i contratti direttamente con il signer
+                // Contracts
                 const _playlistContract = new Contract(getPlaylistAddress(), getPlaylistABI(), signer);
                 const _scheduleLiveContract = new Contract(getScheduleLiveAddress(), getScheduleLiveABI(), signer);
+                const _SoulBoundTokenContract = new Contract(getSoulBoundTokenAddress(), getSoulBoundTokenABI(), signer);
 
                 setPlaylistContract(_playlistContract);
                 setScheduleLiveContract(_scheduleLiveContract);
-
-                //TODO: Controllare se l'utente ha il SBT
-                const userHasSBT = true;
-                if (!userHasSBT) {
-                    setIsConnected(false);
-                    setUserHasSBT(false);
-                    return;
-                }
+                setSoulBoundTokenContract(_SoulBoundTokenContract);
 
                 setIsConnected(true);
+
+                //TODO: Controllare se l'utente ha il SBT
+                const hasSBT : number = await _SoulBoundTokenContract.balanceOf(loggedAs);
+                if (hasSBT == 0) {
+                    console.log("[fetchSoulBoundToken] L'utente non possiede un SBT");
+                    setUserHasSBT(false);
+                    return;
+                }else{
+                    setUserHasSBT(true);
+                }
+
                 console.log("[initializeProvider] Contracts initialized with signer");
             } catch (error) {
                 console.error("[initializeProvider] Error:", error);
@@ -109,7 +110,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     const fetchPlaylist = useCallback(async () => {
         const provider = getProvider();
-        if (playlistContract && provider) {
+        if (playlistContract && provider && userHasSBT) {
             try {
                 const playlistIds = await playlistContract.viewPlaylist();
                 const playlistData = await Promise.all(
@@ -141,7 +142,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     // Fetch user's submitted songs
     const fetchUserSongs = useCallback(async () => {
         const provider = getProvider();
-        if (playlistContract && provider) {
+        if (playlistContract && provider && userHasSBT) {
             try {
                 const userAddress = loggedAs;
                 const userSongIds = await playlistContract.getUserSongs(userAddress);
@@ -169,7 +170,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const fetchMySaves = useCallback(async () => {
         const provider = getProvider();
 
-        if (playlistContract && provider) {
+        if (playlistContract && provider && userHasSBT) {
             try {
                 console.log("Fetching saved song IDs...");
                 const savedSongIds = await playlistContract.retrieveMySaves();
@@ -199,7 +200,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         console.log("[fetchLiveSong] Fetching live song");
         try {
             const provider = getProvider();
-            if (scheduleLiveContract && provider) {
+            if (scheduleLiveContract && provider && userHasSBT) {
                 const onAirInformation = await scheduleLiveContract.onAirNow();
                 let isOnAir = onAirInformation["0"]
                 if (isOnAir) {
@@ -237,7 +238,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const removeSubmittedUserSong = useCallback(async (id: any) => {
         const songId = id.replace("p-", ""); //This is for de-sync playlist and liveschedule SC (id policy)
         const provider = getProvider();
-        if (playlistContract && provider) {
+        if (playlistContract && provider && userHasSBT) {
             const tx = await playlistContract.removeOwnSong(songId);
             await tx.wait();
             fetchUserSongs();
@@ -248,7 +249,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         const songId = id.replace("p-", ""); //This is for de-sync playlist and liveschedule SC (id policy)
         console.log("[removeSavedSong] Song ID to remove:", songId);
         const provider = getProvider();
-        if (playlistContract && provider) {
+        if (playlistContract && provider && userHasSBT) {
             const tx = await playlistContract.removeFromMySaves(songId);
             await tx.wait();
             fetchMySaves();
@@ -258,7 +259,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const saveSongToMySaves = useCallback(async (id: any) => {
         const songId = id.replace("p-", ""); //This is for de-sync playlist and liveschedule SC (id policy)
         const provider = getProvider();
-        if (playlistContract && provider) {
+        if (playlistContract && provider && userHasSBT) {
             const tx = await playlistContract.addToMySaves(songId);
             await tx.wait();
             fetchMySaves();
@@ -267,7 +268,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     const fetchBookedSlots = useCallback(async () => {
         const provider = getProvider();
-        if (scheduleLiveContract && provider) {
+        if (scheduleLiveContract && provider && userHasSBT) {
             try {
                 const eventIds = await scheduleLiveContract.getMyBookedShows();
                 const events = await Promise.all(
@@ -294,7 +295,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     const fetchNext24HoursEvents = useCallback(async () => {
         const provider = getProvider();
-        if (scheduleLiveContract && provider) {
+        if (scheduleLiveContract && provider && userHasSBT) {
             try {
                 const eventIds = await scheduleLiveContract.getLiveShowsInNext24Hours();
                 const events = await Promise.all(
@@ -321,7 +322,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     const scheduleLive = useCallback(async (title: string, imageUrl: string, streamUrl: string, startTime: number, duration: number) => {
         const provider = getProvider();
-        if (scheduleLiveContract && provider) {
+        if (scheduleLiveContract && provider && userHasSBT) {
             const tx = await scheduleLiveContract.scheduleEvent(title, imageUrl, streamUrl, startTime, duration);
             await tx.wait();
             fetchBookedSlots();
@@ -331,7 +332,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     const deleteScheduledEvent = useCallback(async (eventId: any) => {
         const provider = getProvider();
-        if (scheduleLiveContract && provider) {
+        if (scheduleLiveContract && provider && userHasSBT) {
             const tx = await scheduleLiveContract.deleteEvent(eventId);
             await tx.wait();
             fetchBookedSlots();
@@ -363,7 +364,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     }, [fetchUserSongs, fetchMySaves]);
 
     useEffect(() => {
-        if (playlistContract) {
+        if (playlistContract && userHasSBT) {
             fetchStaticData();
             const cleanup = fetchAllData();
             return () => {
