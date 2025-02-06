@@ -306,8 +306,8 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
   useEffect(() => {
     const handleAccountsChanged = async (accounts: string[]) => {
       if (accounts.length > 0) {
-        setLoggedAs(accounts[0]);
-        localStorage.setItem("loggedAs", accounts[0]);
+        //refresh the page
+        window.location.reload();
       }
     };
     //@ts-ignore
