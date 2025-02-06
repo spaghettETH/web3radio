@@ -4,8 +4,6 @@ import { FaFlag } from 'react-icons/fa';
 
 const ReportAbuse = () => {
   // URL del form per il report abuse
-  const REPORT_URL = "https://docs.google.com/forms/d/13X15cLYB36KFcvd0mB57NF2Qlbnrg1edg_e_o5uN2j8/preview";
-
   // Ref per il tooltip
   const tooltipRef = useRef<HTMLDivElement | null>(null);
   // Stato per memorizzare l'offset calcolato (metà larghezza del tooltip)
@@ -22,7 +20,7 @@ const ReportAbuse = () => {
   }, []);
 
   const handleClick = () => {
-    window.open(REPORT_URL, "_blank", "noopener,noreferrer");
+    window.open(process.env.REACT_APP_REPORT_ABUSE_URL, "_blank", "noopener,noreferrer");
   };
 
   return (

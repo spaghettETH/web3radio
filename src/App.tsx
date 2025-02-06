@@ -23,6 +23,7 @@ const App: React.FC = () => {
             {isConnected ? (
                 <>
                     <Web3AudioPlayer/>
+                    <Donate />
                     <RadioModality
                         onModalityChange={(modality: string) => {
                             console.log("Modality changed:", modality);

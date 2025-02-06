@@ -53,7 +53,6 @@ const RadioModality: React.FC<RadioModalityProps> = ({ onModalityChange }) => {
                     <MySaves />
                     <SavesLeaderboard />
                 </div>
-                <Donate />
             </div>
         </div>
     );
