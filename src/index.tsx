@@ -17,7 +17,7 @@ const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 
 const config = getDefaultConfig({
   appName: 'Web3Radio',
-  projectId: 'YOUR_PROJECT_ID',
+  projectId: process.env.REACT_APP_WALLET_CONNECT_ID || '',
   chains: [sepolia, optimism],
   ssr: false,
 });
