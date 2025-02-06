@@ -137,7 +137,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 setLiveStreamPlatform(LiveStreamPlatform.NOT_SPECIFIED);
             }
         }
-    }, [playlistContract]);
+    }, [playlistContract, userHasSBT]);
 
     // Fetch user's submitted songs
     const fetchUserSongs = useCallback(async () => {
@@ -165,7 +165,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 setMySongs([]);
             }
         }
-    }, [playlistContract, getProvider]);
+    }, [playlistContract, getProvider, userHasSBT]);
 
     const fetchMySaves = useCallback(async () => {
         const provider = getProvider();
@@ -193,7 +193,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 setSavedSongs([]);
             }
         }
-    }, [playlistContract]);
+    }, [playlistContract, getProvider, userHasSBT]);
 
     //TODO: Implement this!
     const fetchLiveSong = useCallback(async () => {
@@ -233,7 +233,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             console.error("[fetchLiveSong] Error:", error);
             return null;
         }
-    }, [scheduleLiveContract, playlist]);
+    }, [scheduleLiveContract, playlist, getProvider, userHasSBT]);
 
     const removeSubmittedUserSong = useCallback(async (id: any) => {
         const songId = id.replace("p-", ""); //This is for de-sync playlist and liveschedule SC (id policy)
@@ -243,7 +243,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             await tx.wait();
             fetchUserSongs();
         }
-    }, [playlistContract]);
+    }, [playlistContract, getProvider, userHasSBT]);
 
     const removeSavedSong = useCallback(async (id: any) => {
         const songId = id.replace("p-", ""); //This is for de-sync playlist and liveschedule SC (id policy)
@@ -254,7 +254,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             await tx.wait();
             fetchMySaves();
         }
-    }, [playlistContract]);
+    }, [playlistContract, getProvider, userHasSBT]);
 
     const saveSongToMySaves = useCallback(async (id: any) => {
         const songId = id.replace("p-", ""); //This is for de-sync playlist and liveschedule SC (id policy)
@@ -264,7 +264,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             await tx.wait();
             fetchMySaves();
         }
-    }, [playlistContract]);
+    }, [playlistContract, getProvider, userHasSBT]);
 
     const fetchBookedSlots = useCallback(async () => {
         const provider = getProvider();
@@ -291,7 +291,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 console.error("Error fetching booked slots:", error);
             }
         }
-    }, [scheduleLiveContract]);
+    }, [scheduleLiveContract, getProvider, userHasSBT]);
 
     const fetchNext24HoursEvents = useCallback(async () => {
         const provider = getProvider();
@@ -318,7 +318,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 console.error("Error fetching live shows in the next 24 hours:", error);
             }
         }
-    }, [scheduleLiveContract]);
+    }, [scheduleLiveContract, getProvider, userHasSBT]);
 
     const scheduleLive = useCallback(async (title: string, imageUrl: string, streamUrl: string, startTime: number, duration: number) => {
         const provider = getProvider();
@@ -328,7 +328,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             fetchBookedSlots();
             fetchNext24HoursEvents();
         }
-    }, [scheduleLiveContract]);
+    }, [scheduleLiveContract, getProvider, userHasSBT]);
 
     const deleteScheduledEvent = useCallback(async (eventId: any) => {
         const provider = getProvider();
@@ -338,7 +338,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             fetchBookedSlots();
             fetchNext24HoursEvents();
         }
-    }, [scheduleLiveContract]);
+    }, [scheduleLiveContract, getProvider, userHasSBT]);
 
     const fetchAllData = useCallback(async () => {
         const checkLiveAndPlaylist = async () => {

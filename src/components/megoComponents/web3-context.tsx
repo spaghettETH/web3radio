@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import MegoModal from "./MegoModal";
 import "./mego-style.css";
-import axios from "axios"; // Import axios for the createNewWallet function
 import { BrowserProvider, ethers } from "ethers";
 type Route =
   | "ChooseType"
@@ -208,6 +207,7 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
       if (process.env.REACT_APP_CHAIN_ID) {
         await _provider.send("wallet_switchEthereumChain", [{ chainId: `0x${parseInt(process.env.REACT_APP_CHAIN_ID).toString(16)}` }]); // Converti l'ID in esadecimale
       }
+      closeMegoModal();
     } catch (error) {
       console.error("Error initializing provider:", error);
       console.log(error);
