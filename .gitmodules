@@ -1,0 +1,3 @@
+[submodule "submodules/react-components"]
+	path = submodules/react-components
+	url = git@github.com:megotickets/react-components.git
