@@ -22,11 +22,9 @@ root.render(
       <Web3MegoClientProvider>
         <Layout>
           <PopupProvider>
-            <Web3Provider>
-              <Web3RadioProvider>
-                <App />
-              </Web3RadioProvider>
-            </Web3Provider>
+            <Web3RadioProvider>
+              <App />
+            </Web3RadioProvider>
           </PopupProvider>
         </Layout>
       </Web3MegoClientProvider>

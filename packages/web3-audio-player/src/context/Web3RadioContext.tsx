@@ -86,17 +86,17 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 //TODO: Controllare se l'utente ha il SBT
                 const hasSBT : number = await _SoulBoundTokenContract.balanceOf(loggedAs);
                 if (hasSBT == 0) {
-                    console.log("[fetchSoulBoundToken] L'utente non possiede un SBT");
+                    console.log("[initializeProvider] L'utente non possiede un SBT");
                     setUserHasSBT(false);
                     return;
                 }else{
+                    console.log("[initializeProvider] L'utente possiede un SBT");
                     setUserHasSBT(true);
                 }
 
                 console.log("[initializeProvider] Contracts initialized with signer");
             } catch (error) {
-                console.error("[initializeProvider] Error:", error);
-                setIsConnected(false);
+                console.log("[initializeProvider] Error:", error);
             }
         }
     }, [loggedAs, getSigner]);
@@ -374,6 +374,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     }, [playlistContract, fetchStaticData, fetchAllData]);
 
     return (
+        // @ts-ignore
         <Web3RadioContext.Provider
             value={{
                 playlistContract,
