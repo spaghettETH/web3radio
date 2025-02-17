@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import WalletButton from "./megoComponents/WalletButton";
+import { MegoWalletButton } from "@megotickets/wallet";
 
 const ConnectWithMego: React.FC = () => {
   // Otteniamo il nome del token e l'URL di claim dalle variabili di ambiente
@@ -26,7 +26,16 @@ const ConnectWithMego: React.FC = () => {
       <p className="text-lg text-gray-300 text-center">
         Connect with MEGO to access the platform
       </p>
-      <WalletButton />
+      <MegoWalletButton 
+        customStyle={{
+            megoWalletContainerStyle: {
+                borderColor: "white",
+                color: "white",
+            },
+            megoWalletIconStyle: {
+                stroke: "white",
+            },
+        }} />
     </motion.div>
   );
 };
