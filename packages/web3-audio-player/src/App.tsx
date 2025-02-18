@@ -16,6 +16,11 @@ const App: React.FC = () => {
             <div className="mt-10">
                 {isConnected &&
                     <MegoWalletButton
+                        providerConfiguration={{
+                            appleProvider: false,
+                            googleProvider: false,
+                            emailProvider: false,
+                        }}
                         customStyle={{
                             megoWalletContainerStyle: {
                                 borderColor: "black",

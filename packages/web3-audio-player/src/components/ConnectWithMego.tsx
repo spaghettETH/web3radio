@@ -12,7 +12,7 @@ const ConnectWithMego: React.FC = () => {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
-  
+
   return (
     <motion.div
       variants={containerVariants}
@@ -26,15 +26,20 @@ const ConnectWithMego: React.FC = () => {
       <p className="text-lg text-gray-300 text-center">
         Connect with MEGO to access the platform
       </p>
-      <MegoWalletButton 
+      <MegoWalletButton
+        providerConfiguration={{
+          appleProvider: false,
+          googleProvider: false,
+          emailProvider: false,
+        }}
         customStyle={{
-            megoWalletContainerStyle: {
-                borderColor: "white",
-                color: "white",
-            },
-            megoWalletIconStyle: {
-                stroke: "white",
-            },
+          megoWalletContainerStyle: {
+            borderColor: "white",
+            color: "white",
+          },
+          megoWalletIconStyle: {
+            stroke: "white",
+          },
         }} />
     </motion.div>
   );
