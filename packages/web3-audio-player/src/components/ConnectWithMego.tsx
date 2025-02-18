@@ -27,6 +27,7 @@ const ConnectWithMego: React.FC = () => {
         Connect with MEGO to access the platform
       </p>
       <MegoWalletButton
+        forceChainId={Number(process.env.REACT_APP_CHAIN_ID)}
         providerConfiguration={{
           appleProvider: false,
           googleProvider: false,

@@ -16,6 +16,7 @@ const App: React.FC = () => {
             <div className="mt-10">
                 {isConnected &&
                     <MegoWalletButton
+                        forceChainId={Number(process.env.REACT_APP_CHAIN_ID)}
                         providerConfiguration={{
                             appleProvider: false,
                             googleProvider: false,
