@@ -3,6 +3,8 @@ pragma solidity ^0.8.6;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 contract DecentraLiveSchedule is Ownable {
     IERC721 public nftContract;
@@ -13,7 +15,6 @@ contract DecentraLiveSchedule is Ownable {
     mapping(uint256 => uint256) public slotToEventId; // Maps slot timestamp to event ID
     mapping(address => uint256) public lastBookingTime; // A: Tracks last booking timestamp
     mapping(address => uint256) public dailyBookingCount; // B: Tracks booking count in last 24 hours
-
 
     struct LiveEvent {
         uint256 id;
@@ -29,24 +30,44 @@ contract DecentraLiveSchedule is Ownable {
     mapping(uint256 => LiveEvent) public eventsById; // Maps event ID to details
     mapping(address => uint256[]) public userEvents; // Tracks user-created event IDs
     uint256 public nextEventId; // Counter for unique event IDs
+    mapping(address => bool) public isProxy;
 
-    event EventScheduled(uint256 indexed id, uint256 indexed startTime, address indexed creator);
+    event EventScheduled(
+        uint256 indexed id,
+        uint256 indexed startTime,
+        address indexed creator
+    );
     event EventDeleted(uint256 indexed id, address indexed creator);
 
-    constructor(address _nftContract) Ownable(msg.sender){
+    constructor(address _nftContract) Ownable(msg.sender) {
         nftContract = IERC721(_nftContract);
     }
 
-    modifier onlyNFTHolder() {
+    modifier onlyNFTHolderOrProxy() {
         require(
-            nftContract.balanceOf(msg.sender) > 0,
-            "Must own an NFT to schedule live events"
+            nftContract.balanceOf(msg.sender) > 0 || isProxy[msg.sender],
+            "Must own an NFT or be a proxy"
         );
         _;
     }
 
+    function setProxyAddress(address _proxy, bool _state) external onlyOwner {
+        isProxy[_proxy] = _state;
+    }
+
+    function returnSubmitter(
+        bytes memory signature,
+        bytes memory proof
+    ) internal pure returns (address) {
+        bytes32 hashed = MessageHashUtils.toEthSignedMessageHash(proof);
+        return ECDSA.recover(hashed, signature);
+    }
+
     modifier validSlot(uint256 slot) {
-        require(slot % SLOT_DURATION == 0, "Slot must align with 30-minute intervals");
+        require(
+            slot % SLOT_DURATION == 0,
+            "Slot must align with 30-minute intervals"
+        );
         require(slot > block.timestamp, "Slot must be in the future");
         require(slotToOwner[slot] == address(0), "Slot is already booked");
         _;
@@ -75,20 +96,33 @@ contract DecentraLiveSchedule is Ownable {
         string memory imageUrl,
         string memory livestreamUrl,
         uint256 slot,
-        uint256 slotCount
-    ) external onlyNFTHolder validSlot(slot) enforceDailyBookingLimit {
+        uint256 slotCount,
+        bytes memory signature
+    ) external onlyNFTHolderOrProxy validSlot(slot) enforceDailyBookingLimit {
+        address submitter = msg.sender;
+        if (isProxy[msg.sender]) {
+            submitter = returnSubmitter(
+                signature,
+                abi.encodePacked("Schedule event: ", title)
+            );
+        }
         require(slotCount > 0, "Slot count must be greater than zero");
         require(bytes(title).length > 0, "Title is required");
         require(bytes(imageUrl).length > 0, "Image URL is required");
         require(bytes(livestreamUrl).length > 0, "Livestream URL is required");
-        require(slotCount <= 10, "Cannot book more than 10 slots (5 hours) in a single booking");
-
+        require(
+            slotCount <= 10,
+            "Cannot book more than 10 slots (5 hours) in a single booking"
+        );
 
         uint256 endTime = slot + (slotCount * SLOT_DURATION);
 
         for (uint256 i = 0; i < slotCount; i++) {
             uint256 currentSlot = slot + (i * SLOT_DURATION);
-            require(slotToOwner[currentSlot] == address(0), "One or more slots are already booked");
+            require(
+                slotToOwner[currentSlot] == address(0),
+                "One or more slots are already booked"
+            );
         }
 
         LiveEvent memory newEvent = LiveEvent({
@@ -98,47 +132,60 @@ contract DecentraLiveSchedule is Ownable {
             livestreamUrl: livestreamUrl,
             startTime: slot,
             endTime: endTime,
-            creator: msg.sender,
+            creator: submitter,
             isActive: true
         });
 
         for (uint256 i = 0; i < slotCount; i++) {
             uint256 currentSlot = slot + (i * SLOT_DURATION);
-            slotToOwner[currentSlot] = msg.sender;
+            slotToOwner[currentSlot] = submitter;
             slotToEventId[currentSlot] = nextEventId;
         }
 
         eventsById[nextEventId] = newEvent;
-        userEvents[msg.sender].push(nextEventId);
+        userEvents[submitter].push(nextEventId);
 
         // Update the daily booking count
-        dailyBookingCount[msg.sender]++;
-        lastBookingTime[msg.sender] = block.timestamp;
+        dailyBookingCount[submitter]++;
+        lastBookingTime[submitter] = block.timestamp;
 
-
-        emit EventScheduled(nextEventId, slot, msg.sender);
+        emit EventScheduled(nextEventId, slot, submitter);
 
         nextEventId++;
     }
 
-    function deleteEvent(uint256 eventId) external {
+    function deleteEvent(uint256 eventId, bytes memory signature) external {
+        address submitter = msg.sender;
+        if (isProxy[msg.sender]) {
+            submitter = returnSubmitter(
+                signature,
+                abi.encodePacked("Delete event: ", eventId)
+            );
+        }
         require(eventId < nextEventId, "Invalid event ID");
         LiveEvent storage eventDetails = eventsById[eventId];
-        require(eventDetails.creator == msg.sender, "Only the creator can delete this event");
+        require(
+            eventDetails.creator == submitter,
+            "Only the creator can delete this event"
+        );
         require(eventDetails.isActive, "Event is already inactive");
 
         eventDetails.isActive = false;
 
-        for (uint256 slot = eventDetails.startTime; slot < eventDetails.endTime; slot += SLOT_DURATION) {
+        for (
+            uint256 slot = eventDetails.startTime;
+            slot < eventDetails.endTime;
+            slot += SLOT_DURATION
+        ) {
             delete slotToOwner[slot];
             delete slotToEventId[slot];
         }
 
-        emit EventDeleted(eventId, msg.sender);
+        emit EventDeleted(eventId, submitter);
     }
 
-    function getMyBookedShows() external view returns (uint256[] memory) {
-        return userEvents[msg.sender];
+    function getMyBookedShows(address user) external view returns (uint256[] memory) {
+        return userEvents[user];
     }
 
     function getAllEventIds() external view returns (uint256[] memory) {
@@ -151,13 +198,16 @@ contract DecentraLiveSchedule is Ownable {
         return allEventIds;
     }
 
-    function getEventDetails(uint256 eventId) external view returns (LiveEvent memory) {
+    function getEventDetails(
+        uint256 eventId
+    ) external view returns (LiveEvent memory) {
         require(eventId < nextEventId, "Invalid event ID");
         return eventsById[eventId];
     }
 
     function onAirNow() external view returns (bool, LiveEvent memory) {
-        uint256 currentSlot = block.timestamp - (block.timestamp % SLOT_DURATION); // Align to the current slot
+        uint256 currentSlot = block.timestamp -
+            (block.timestamp % SLOT_DURATION); // Align to the current slot
 
         // Check if the current slot is mapped to an event
         uint256 eventId = slotToEventId[currentSlot];
@@ -172,18 +222,27 @@ contract DecentraLiveSchedule is Ownable {
         return (false, LiveEvent(0, "", "", "", 0, 0, address(0), false));
     }
 
-    function getLiveShowsInNext24Hours() external view returns (uint256[] memory) {
-        uint256 currentSlot = block.timestamp - (block.timestamp % SLOT_DURATION); // Align to the current slot
+    function getLiveShowsInNext24Hours()
+        external
+        view
+        returns (uint256[] memory)
+    {
+        uint256 currentSlot = block.timestamp -
+            (block.timestamp % SLOT_DURATION); // Align to the current slot
         uint256 slotsToCheck = (24 * 60 * 60) / SLOT_DURATION; // Number of 30-minute slots in 24 hours
         uint256[] memory eventIds = new uint256[](slotsToCheck);
         uint256 count = 0;
 
         for (uint256 i = 0; i < slotsToCheck; i++) {
             uint256 slot = currentSlot + (i * SLOT_DURATION);
-            if (slotToOwner[slot] != address(0)) { // Check if the slot is booked
+            if (slotToOwner[slot] != address(0)) {
+                // Check if the slot is booked
                 uint256 eventId = slotToEventId[slot];
                 LiveEvent memory eventDetails = eventsById[eventId];
-                if (eventDetails.isActive && !existsInArray(eventIds, eventId, count)) {
+                if (
+                    eventDetails.isActive &&
+                    !existsInArray(eventIds, eventId, count)
+                ) {
                     eventIds[count] = eventId;
                     count++;
                 }
@@ -199,7 +258,11 @@ contract DecentraLiveSchedule is Ownable {
         return filteredEventIds;
     }
 
-    function existsInArray(uint256[] memory array, uint256 value, uint256 length) private pure returns (bool) {
+    function existsInArray(
+        uint256[] memory array,
+        uint256 value,
+        uint256 length
+    ) private pure returns (bool) {
         for (uint256 i = 0; i < length; i++) {
             if (array[i] == value) {
                 return true;
@@ -207,7 +270,4 @@ contract DecentraLiveSchedule is Ownable {
         }
         return false;
     }
-
-
-
 }
