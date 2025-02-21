@@ -16,6 +16,7 @@ contract DecentraPlaylist is Ownable {
         string uri;
         string img;
         string title;
+        bytes32 tag; // Added tag for categorization
         address submitter;
         bool isActive; // Indicates if the song is active
     }
@@ -25,6 +26,7 @@ contract DecentraPlaylist is Ownable {
     mapping(address => uint[]) public userSaves; // Map user to saved song IDs
     mapping(uint => uint) public songScores; // Map song ID to score (save count)
     mapping(address => bool) public isProxy;
+    mapping(bytes32 => uint[]) public songIDsByTag; // Map tag to list of song IDs
 
     constructor(address _nftContract) Ownable(msg.sender) {
         nftContract = IERC721(_nftContract);
@@ -59,6 +61,7 @@ contract DecentraPlaylist is Ownable {
         string memory uri,
         string memory img,
         string memory title,
+        bytes32 tag, // Added tag parameter
         bytes memory signature
     ) external onlyNFTHolderOrProxy {
         address submitter = msg.sender;
@@ -73,12 +76,14 @@ contract DecentraPlaylist is Ownable {
             uri: uri,
             img: img,
             title: title,
+            tag: tag,
             submitter: submitter,
             isActive: true
         });
 
         songsById[nextSongId] = newSong; // Add to mapping
         userSongs[msg.sender].push(nextSongId); // Track songs per user
+        songIDsByTag[tag].push(nextSongId); // Add song ID to tag mapping
         nextSongId++;
     }
 
@@ -141,6 +146,11 @@ contract DecentraPlaylist is Ownable {
         if (songScores[_id] > 0) {
             songScores[_id]--; // Decrement the song's score
         }
+    }
+
+    // Getter function to retrieve all song IDs for a given tag
+    function getSongsByTag(bytes32 tag) external view returns (uint[] memory) {
+        return songIDsByTag[tag];
     }
 
     // Simplified Getter Functions
