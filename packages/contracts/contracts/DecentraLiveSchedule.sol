@@ -21,6 +21,7 @@ contract DecentraLiveSchedule is Ownable {
         string title;
         string imageUrl;
         string livestreamUrl;
+        bytes32 tag; // Added tag for categorization
         uint256 startTime;
         uint256 endTime;
         address creator;
@@ -31,6 +32,7 @@ contract DecentraLiveSchedule is Ownable {
     mapping(address => uint256[]) public userEvents; // Tracks user-created event IDs
     uint256 public nextEventId; // Counter for unique event IDs
     mapping(address => bool) public isProxy;
+    mapping(bytes32 => uint256[]) public eventIDsByTag; // Maps tag to event IDs
 
     event EventScheduled(
         uint256 indexed id,
@@ -95,6 +97,7 @@ contract DecentraLiveSchedule is Ownable {
         string memory title,
         string memory imageUrl,
         string memory livestreamUrl,
+        bytes32 tag, // Added tag parameter
         uint256 slot,
         uint256 slotCount,
         bytes memory signature
@@ -130,6 +133,7 @@ contract DecentraLiveSchedule is Ownable {
             title: title,
             imageUrl: imageUrl,
             livestreamUrl: livestreamUrl,
+            tag: tag,
             startTime: slot,
             endTime: endTime,
             creator: submitter,
@@ -144,6 +148,7 @@ contract DecentraLiveSchedule is Ownable {
 
         eventsById[nextEventId] = newEvent;
         userEvents[submitter].push(nextEventId);
+        eventIDsByTag[tag].push(nextEventId); // Add event ID to tag mapping
 
         // Update the daily booking count
         dailyBookingCount[submitter]++;
@@ -182,6 +187,10 @@ contract DecentraLiveSchedule is Ownable {
         }
 
         emit EventDeleted(eventId, submitter);
+    }
+
+    function getEventsByTag(bytes32 tag) external view returns (uint256[] memory) {
+        return eventIDsByTag[tag];
     }
 
     function getMyBookedShows(address user) external view returns (uint256[] memory) {
