@@ -1,16 +1,29 @@
 {
-  "name": "contracts",
+  "name": "web3-radio-contracts",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx hardhat test",
+    "network": "node scripts/_network.js",
+    "verify-contract": "node scripts/_verify_contract.js",
+    "verify-factory": "node scripts/_verify_factory.js",
+    "task": "node scripts/_task.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "turinglabs <seb@turinglabs.org>",
+  "license": "MIT",
   "packageManager": "pnpm@10.4.1",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.0",
+    "@nomiclabs/hardhat-waffle": "^2.0.0",
+    "chai": "^4.2.0",
+    "ethereum-waffle": "^3.0.0",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.22.18"
+  },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.2.0"
+    "@nomiclabs/hardhat-etherscan": "^3.1.7",
+    "@openzeppelin/contracts": "^5.2.0",
+    "axios": "^0.27.2",
+    "bip39": "^3.0.4",
+    "minimist": "^1.2.5"
   }
 }
