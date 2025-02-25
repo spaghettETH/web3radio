@@ -4,6 +4,9 @@ import { FaMusic, FaFileAudio, FaImage } from 'react-icons/fa';
 import { useWeb3Radio } from "../context/Web3RadioContext";
 import { usePopup } from "../context/PopupContext";
 import FormatBannerInfo from "./FormatBannerInfo";
+import { useWeb3Context, readContract, writeContract, config, waitForTransactionReceipt } from "@megotickets/wallet";
+import { getPlaylistABI, getPlaylistAddress } from "../contracts/DecentralizePlaylist/contract";
+
 
 interface SubmitSongFormProps {
 }
@@ -41,7 +44,7 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!title || !audioUri || !imageUri || !disclaimerChecked || !contract) {
+    if (!title || !audioUri || !imageUri || !disclaimerChecked) {
       openPopup({
         title: 'All fields are required and the disclaimer must be checked.',
         message: 'Please fill in all fields and check the disclaimer.',
@@ -61,8 +64,14 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
       const normalizedAudioUri = normalizeLink(audioUri);
       const normalizedImageUri = normalizeLink(imageUri);
 
-      const tx = await contract.addSong(normalizedAudioUri, normalizedImageUri, title);
-      await tx.wait();
+      const tx = await writeContract(config, {
+        abi: getPlaylistABI(),
+        address: getPlaylistAddress() as `0x${string}`,
+        functionName: "addSong",
+        args: [normalizedAudioUri, normalizedImageUri, title],
+      });
+
+      await waitForTransactionReceipt(config, { hash: tx });
 
       openPopup({
         title: 'Submitted!',

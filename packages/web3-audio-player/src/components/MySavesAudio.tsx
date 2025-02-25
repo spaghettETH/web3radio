@@ -9,7 +9,7 @@ interface MySavesProps {}
 const MySavesAudio: React.FC<MySavesProps> = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const { playlistContract: contract, fetchMySaves, savedSongs, removeSavedSong, liveStreamPlatform, saveSongToMySaves, currentSong } = useWeb3Radio();
+  const { fetchMySaves, savedSongs, removeSavedSong, liveStreamPlatform, saveSongToMySaves, currentSong } = useWeb3Radio();
   const { openPopup, closePopup } = usePopup();
 
   const saveSongDisabled = useMemo(() => {
@@ -19,13 +19,16 @@ const MySavesAudio: React.FC<MySavesProps> = () => {
 
   // Save the currently playing song to the user's saves
   const handleSaveSong = async () => {
-    if (!currentSong || !currentSong.id || !contract) {
+    console.log("[handleSaveSong] currentSong", currentSong); 
+
+    if (!currentSong || !currentSong.id) {
       openPopup({title: 'Error',message: `No song is currently playing or the song data is incomplete.`,type: 'info'});
       return;
     }
     openPopup({title: 'Saving...',message: `Saving song: ${currentSong.title}`,type: 'loading'});
     try {
       console.log(`Saving song: ${currentSong.title}`);
+      console.log("[handleSaveSong] currentSong.id", currentSong.id);
       await saveSongToMySaves(currentSong.id);
       openPopup({title: 'Saved!',message: `Song "${currentSong.title}" saved successfully!`,type: 'success'});
       fetchMySaves(); // Refresh the saved songs list after saving

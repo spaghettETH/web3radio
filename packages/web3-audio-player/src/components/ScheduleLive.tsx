@@ -7,6 +7,7 @@ import { usePopup } from "../context/PopupContext";
 import BookedSlot from "./BookedSlot";
 import { FaVideo, FaImage, FaClock } from 'react-icons/fa';
 import FormatBannerInfo from "./FormatBannerInfo";
+import { useAccount } from "@megotickets/wallet";
 
 interface ScheduleLiveProps {
 }
@@ -18,13 +19,14 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [duration, setDuration] = useState<number>(1); // Default: 30 minutes
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { scheduleLiveContract: contract, fetchBookedSlots, fetchNext24HoursEvents, bookedSlots, next24HoursEvents, scheduleLive } = useWeb3Radio();
+  const { fetchBookedSlots, fetchNext24HoursEvents, bookedSlots, next24HoursEvents, scheduleLive } = useWeb3Radio();
+  const { address } = useAccount();
   const { openPopup } = usePopup();
 
   const onScheduleLive = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!title || !imageUrl || !streamUrl || !selectedDate || !contract) {
+    if (!title || !imageUrl || !streamUrl || !selectedDate) {
       openPopup({ title: "Required information", message: "Please fill in all fields.", type: "error" });
       return;
     }
@@ -55,11 +57,11 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
   };
 
   useEffect(() => {
-    if (contract) {
+    if (address) {
       fetchBookedSlots();
       fetchNext24HoursEvents();
     }
-  }, [contract, fetchBookedSlots, fetchNext24HoursEvents]);
+  }, [fetchBookedSlots, fetchNext24HoursEvents, address]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -235,6 +237,7 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
                 <FaClock className="mr-2" />
                 <p>START TIME</p>
               </label>
+              {/* @ts-ignore */}
               <DatePicker
                 selected={selectedDate}
                 onChange={(date) => setSelectedDate(date)}

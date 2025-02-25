@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import LeaderboardTable from "./LeaderboardTable";
 import LoaderSkeleton from "./LoaderSkelethon";
 import { useWeb3Radio } from "../context/Web3RadioContext";
+import { useAccount, readContract, config } from "@megotickets/wallet";
+import { getPlaylistABI, getPlaylistAddress } from "../contracts/DecentralizePlaylist/contract";
 // Helper to resolve IPFS URIs
 
 interface SavesLeaderboardProps { 
@@ -10,30 +12,56 @@ const SavesLeaderboard: React.FC<SavesLeaderboardProps> = () => {
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const { playlistContract:contract } = useWeb3Radio();
+  const {address} = useAccount();
   // Fetch leaderboard data
   const fetchLeaderboard = useCallback(async () => {
-    if (!contract) return;
+    if (!address) return;
 
     setLoading(true);
     setError(null);
 
     try {
-      const songIds = await contract.viewPlaylist(); // Fetch all song IDs
+      console.log("[fetchLeaderboard] -> address", address);
+      const songIds = await readContract(config,{
+        address: getPlaylistAddress() as `0x${string}`,
+        abi: getPlaylistABI(),
+        functionName: "viewPlaylist",
+        account: address as `0x${string}`
+      }) as Array<Number>; // Fetch all song IDs
+
+      console.log("[fetchLeaderboard] -> songIds", songIds);
       const scores = await Promise.all(
-        songIds.map(async (id:any) => ({
-          id: id.toString(),
-          score: (await contract.songScores(id)).toString(),
-        }))
+        songIds.map(async (id:any) => {
+          
+          const score = await readContract(config,{
+            address: getPlaylistAddress() as `0x${string}`,
+            abi: getPlaylistABI(),
+            functionName: "songScores",
+            args: [id],
+            account: address as `0x${string}`
+          }) as any;
+          console.log("[fetchLeaderboard] -> id", id);
+          console.log("[fetchLeaderboard] -> score", score);
+          return {
+            id: id.toString(),
+            score: score.toString(),
+          }
+        })
       );
 
       const leaderboardData = await Promise.all(
         songIds.map(async (id:any, index:number) => {
-          const song = await contract.songsById(id);
+          const song = await readContract(config,{
+            address: getPlaylistAddress() as `0x${string}`,
+            abi: getPlaylistABI(),
+            functionName: "songsById",
+            args: [id]
+          }) as any;
+          console.log("[fetchLeaderboard] -> song", song, "index", index);
           return {
-            id: song.id.toString(),
-            title: song.title,
-            uri: song.uri,
+            id: song[0].toString(),
+            title: song[3],
+            uri: song[1],
             score: scores[index].score,
           };
         })
@@ -44,12 +72,12 @@ const SavesLeaderboard: React.FC<SavesLeaderboardProps> = () => {
 
       setLeaderboard(leaderboardData);
     } catch (err) {
-      console.error("Error fetching leaderboard:", err);
+      console.error("[fetchLeaderboard] -> Error fetching leaderboard:", err);
       setError("Failed to fetch the leaderboard. Please try again later.");
     } finally {
       setLoading(false);
     }
-  }, [contract]);
+  }, [address]);
 
   // Fetch leaderboard data on component mount or when contract changes
   useEffect(() => {
