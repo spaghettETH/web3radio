@@ -1,5 +1,6 @@
 import React from "react";
 import GridBackground from './GridBackground';
+import Footer from "./Footer";
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -12,6 +13,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="w-full max-w-screen-lg">
                 {children}
             </div>
+            <Footer />
         </div>
     );
 };
