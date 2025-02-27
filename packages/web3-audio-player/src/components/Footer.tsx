@@ -7,8 +7,8 @@ const Footer: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col items-center justify-center">
           <div className="text-center mb-4">
-            <h3 className="text-xl font-bold mb-2">Web3 Radio Italy</h3>
-            <p className="text-gray-400">La prima radio decentralizzata italiana</p>
+            <h3 className="text-xl font-bold mb-2">Decentralized WebRadio</h3>
+            <p className="text-gray-400">The first decentralized radio in Italy</p>
           </div>
           
           <div className="flex space-x-6 mb-4">
@@ -49,7 +49,7 @@ const Footer: React.FC = () => {
           </div>
           
           <div className="text-sm text-gray-500">
-            &copy; {new Date().getFullYear()} Web3 Radio Italy. Tutti i diritti riservati.
+            &copy; {new Date().getFullYear()} Decentralized WebRadio. All rights reserved.
           </div>
         </div>
       </div>
