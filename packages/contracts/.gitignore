@@ -1,0 +1,12 @@
+node_modules
+.env
+coverage
+coverage.json
+typechain
+blockscout
+
+# Hardhat files
+cache
+artifacts
+configs/*
+!configs/example.json

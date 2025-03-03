@@ -1,0 +1,13 @@
+{
+    "network": "localhost",
+    "contract_addresses": {
+        "Playlist": "",
+        "ScheduleLive": ""
+    },
+    "owner_mnemonic": "",
+    "provider": "http://0.0.0.0:8545",
+    "fork": "https://opt-mainnet.g.alchemy.com/v2/<ALCHEMY_API_KEY>",
+    "passport_address": "",
+    "owner_key": "",
+    "owner_address": ""
+}
