@@ -16,7 +16,7 @@ async function main() {
     console.log("Signature is: " + signature)
     try {
 
-        const result = await axios.post("http://localhost:3001/relay", {
+        const result = await axios.post("https://hammerhead-app-34p34.ondigitalocean.app/relay", {
             functionName: "addSong",
             contract: 'playlist',
             address: userWallet.address,
