@@ -1,9 +1,8 @@
 const argv = require('minimist')(process.argv.slice(2));
 const fs = require('fs')
 const child_process = require('child_process')
-const { generate, derive } = require('../_address')
+const { generate, derive } = require('./_address')
 let configFile
-let scriptFile
 
 async function run() {
     try {
@@ -16,21 +15,22 @@ async function run() {
             configs.network !== undefined &&
             configs.owner_mnemonic !== undefined
         ) {
-            let arguments = ""
-            for (let k in configs.constructor_arguments) {
-                if(k > 0){
-                    arguments += ","
-                }
-                arguments += '"' + configs.constructor_arguments[k] + '"'
-            }
+            let arguments = '"' + configs.passport_address + '"'
             fs.writeFileSync('./artifacts/arguments.js', `module.exports = [` + arguments + `]`)
             child_process.execSync(
                 'ETHERSCAN="' + configs.etherscan_key + '" ' +
-                'POLYGONSCAN="' + configs.polygonscan_key + '" ' +
                 'PROVIDER="' + configs.provider + '" ' +
                 'NETWORK="' + configs.network + '" ' +
                 'npx hardhat verify --show-stack-traces --network ' + configs.network +
-                ' ' + configs.contract_address +
+                ' ' + configs.contract_addresses.Playlist +
+                ' --constructor-args ./artifacts/arguments.js', { stdio: 'inherit' }
+            )
+            child_process.execSync(
+                'ETHERSCAN="' + configs.etherscan_key + '" ' +
+                'PROVIDER="' + configs.provider + '" ' +
+                'NETWORK="' + configs.network + '" ' +
+                'npx hardhat verify --show-stack-traces --network ' + configs.network +
+                ' ' + configs.contract_addresses.ScheduleLive +
                 ' --constructor-args ./artifacts/arguments.js', { stdio: 'inherit' }
             )
             console.log('All done, exiting!')

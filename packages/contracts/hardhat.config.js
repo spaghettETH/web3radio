@@ -49,7 +49,7 @@ if (process.env.PROVIDER !== undefined) {
 }
 
 if (process.env.ETHERSCAN !== undefined && process.env.ETHERSCAN !== '') {
-  hardhatConfigs.etherscan = { apiKey: { mainnet: process.env.ETHERSCAN, optimism: process.env.ETHERSCAN, optimismSepolia: process.env.ETHERSCAN } }
+  hardhatConfigs.etherscan = { apiKey: { mainnet: process.env.ETHERSCAN, optimisticEthereum: process.env.ETHERSCAN } }
 }
 if (process.env.NETWORK === 'hardhat' || process.env.NETWORK === 'localhost') {
   hardhatConfigs.etherscan = {
