@@ -108,6 +108,10 @@ contract DecentraLiveSchedule is Ownable {
                 signature,
                 abi.encodePacked("Schedule event: ", title)
             );
+            require(
+                nftContract.balanceOf(submitter) > 0,
+                "User must own an NFT"
+            );
         }
         require(slotCount > 0, "Slot count must be greater than zero");
         require(bytes(title).length > 0, "Title is required");
@@ -165,6 +169,10 @@ contract DecentraLiveSchedule is Ownable {
             submitter = returnSubmitter(
                 signature,
                 abi.encodePacked("Delete event: ", eventId)
+            );
+            require(
+                nftContract.balanceOf(submitter) > 0,
+                "User must own an NFT"
             );
         }
         require(eventId < nextEventId, "Invalid event ID");
@@ -228,7 +236,7 @@ contract DecentraLiveSchedule is Ownable {
         }
 
         // Return no active event if no match
-        return (false, LiveEvent(0, "", "", "", 0, 0, address(0), false));
+        return (false, LiveEvent(0, "", "", "", bytes32(0), 0, 0, address(0), false));
     }
 
     function getLiveShowsInNext24Hours()

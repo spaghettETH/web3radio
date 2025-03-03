@@ -44,7 +44,7 @@ contract DecentraPlaylist is Ownable {
         );
         _;
     }
-    
+
     function setProxyAddress(address _proxy, bool _state) external onlyOwner {
         isProxy[_proxy] = _state;
     }
@@ -69,6 +69,10 @@ contract DecentraPlaylist is Ownable {
             submitter = returnSubmitter(
                 signature,
                 abi.encodePacked("Add song: ", uri)
+            );
+            require(
+                nftContract.balanceOf(submitter) > 0,
+                "User must own an NFT"
             );
         }
         Song memory newSong = Song({
@@ -117,6 +121,10 @@ contract DecentraPlaylist is Ownable {
                 signature,
                 abi.encodePacked("Add to my saves: ", _id)
             );
+            require(
+                nftContract.balanceOf(submitter) > 0,
+                "User must own an NFT"
+            );
         }
         for (uint i = 0; i < userSaves[submitter].length; i++) {
             require(userSaves[submitter][i] != _id, "Song already saved");
@@ -134,6 +142,10 @@ contract DecentraPlaylist is Ownable {
             submitter = returnSubmitter(
                 signature,
                 abi.encodePacked("Remove from my saves: ", _id)
+            );
+            require(
+                nftContract.balanceOf(submitter) > 0,
+                "User must own an NFT"
             );
         }
         uint[] storage saves = userSaves[submitter];
