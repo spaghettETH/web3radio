@@ -11,7 +11,7 @@ exports.derive = async function derive(mnemonic, amount) {
     const node = ethers.utils.HDNode.fromMnemonic(mnemonic)
     let keys = []
     let addresses = []
-    for (let i = 0; i < amount; i++) {
+    for (let i = 1; i <= amount; i++) {
         const derivePath = node.derivePath(ETH_DERIVATION_PATH + '/' + i)
         const privkey = derivePath.privateKey
         const address = derivePath.address
