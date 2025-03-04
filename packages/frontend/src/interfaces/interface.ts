@@ -18,3 +18,9 @@ export type Song = {
     uri: string;
     submitter: string;
 }
+
+export enum BlockChainOperationResult {
+    SUCCESS = "success",
+    ERROR = "error",
+    PENDING = "pending",
+}

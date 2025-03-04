@@ -3,7 +3,7 @@ import { useWeb3Context, readContract, writeContract, config, useAccount, waitFo
 import { Contract } from "ethers";
 import { getPlaylistABI, getPlaylistAddress } from "../contracts/DecentralizePlaylist/contract";
 import { getScheduleLiveABI, getScheduleLiveAddress } from "../contracts/ScheduleLive/contract";
-import { RadioMode, LiveStreamPlatform, Song } from "../interfaces/interface";
+import { RadioMode, LiveStreamPlatform, Song, BlockChainOperationResult } from "../interfaces/interface";
 import { getLivePlatformFromUri } from "../utils/Utils";
 import { getSoulBoundTokenABI, getSoulBoundTokenAddress } from "../contracts/SoulBoundToken/contract";
 
@@ -18,7 +18,7 @@ interface Web3RadioContextType {
     fetchMySaves: () => Promise<void>;
     removeSubmittedUserSong: (id: any) => Promise<void>;
     removeSavedSong: (id: any) => Promise<void>;
-    saveSongToMySaves: (id: any) => Promise<void>;
+    saveSongToMySaves: (id: any) => Promise<BlockChainOperationResult>;
     scheduleLiveContract: Contract | null;
     deleteScheduledEvent: (id: any) => Promise<void>;
     mySongs: any[];
@@ -44,7 +44,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const [currentSong, setCurrentSong] = useState<any>(null);
 
     const [liveStreamPlatform, setLiveStreamPlatform] = useState<LiveStreamPlatform>(LiveStreamPlatform.NOT_SPECIFIED);
-    const { loggedAs, getProvider, isLoading, openMegoModal, getSigner } = useWeb3Context();
+    const { loggedAs, getProvider, isLoading, openMegoModal, provider, signMessageWithGoogle, signMessageWithApple } = useWeb3Context();
 
     // Contracts
     const [playlistContract, setPlaylistContract] = useState<Contract | null>(null);
@@ -78,7 +78,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 //TODO: Controllare se l'utente ha il SBT
                 console.log("ABI: ", getSoulBoundTokenABI());
                 console.log("ADDRESS: ", getSoulBoundTokenAddress());
-                const hasSBT = await readContract(config,{
+                const hasSBT = await readContract(config, {
                     abi: getSoulBoundTokenABI(),
                     address: getSoulBoundTokenAddress() as `0x${string}`,
                     functionName: "balanceOf",
@@ -91,7 +91,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                     console.log("[initializeProvider] L'utente non possiede un SBT");
                     setUserHasSBT(false);
                     return;
-                }else{
+                } else {
                     console.log("[initializeProvider] L'utente possiede un SBT");
                     setUserHasSBT(true);
                 }
@@ -113,7 +113,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const fetchPlaylist = useCallback(async () => {
         if (userHasSBT) {
             try {
-                const playlistIds =  await readContract(config,{
+                const playlistIds = await readContract(config, {
                     abi: getPlaylistABI(),
                     address: getPlaylistAddress() as `0x${string}`,
                     functionName: "viewPlaylist"
@@ -123,7 +123,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
                 const playlistData = await Promise.all(
                     playlistIds.map(async (id: any) => {
-                        const song = await readContract(config,{
+                        const song = await readContract(config, {
                             abi: getPlaylistABI(),
                             address: getPlaylistAddress() as `0x${string}`,
                             functionName: "getSongDetails",
@@ -140,7 +140,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                             }
                             : null;
                     })
-                ); 
+                );
                 setPlaylist(playlistData.filter((song) => song !== null) as Song[]); // Filtra le canzoni inattive
                 setRadioModality(RadioMode.PLAYLIST);
                 setLiveStreamPlatform(LiveStreamPlatform.NOT_SPECIFIED);
@@ -158,7 +158,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         if (userHasSBT) {
             try {
                 const userAddress = loggedAs;
-                const userSongIds = await readContract(config,{
+                const userSongIds = await readContract(config, {
                     abi: getPlaylistABI(),
                     address: getPlaylistAddress() as `0x${string}`,
                     functionName: "getUserSongs",
@@ -166,7 +166,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 }) as Array<Number>;
                 let userSongs = await Promise.all(
                     userSongIds.map(async (id: any) => {
-                        const song = await readContract(config,{
+                        const song = await readContract(config, {
                             abi: getPlaylistABI(),
                             address: getPlaylistAddress() as `0x${string}`,
                             functionName: "getSongDetails",
@@ -196,7 +196,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             console.log("[fetchMySaves] -> getPlaylistAddress()", getPlaylistAddress());
             console.log("[fetchMySaves] -> getPlaylistABI()", getPlaylistABI());
             try {
-                const savedSongIds = await readContract(config,{
+                const savedSongIds = await readContract(config, {
                     abi: getPlaylistABI(),
                     address: getPlaylistAddress() as `0x${string}`,
                     functionName: "retrieveMySaves",
@@ -210,7 +210,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 const formattedSaves = await Promise.all(
                     savedSongIds.map(async (id: any) => {
                         console.log("[fetchMySaves] -> id", id);
-                        const song = await readContract(config,{
+                        const song = await readContract(config, {
                             abi: getPlaylistABI(),
                             address: getPlaylistAddress() as `0x${string}`,
                             functionName: "songsById",
@@ -240,7 +240,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         console.log("[fetchLiveSong] Fetching live song");
         try {
             if (userHasSBT) {
-                const onAirInformation = await readContract(config,{
+                const onAirInformation = await readContract(config, {
                     abi: getScheduleLiveABI(),
                     address: getScheduleLiveAddress() as `0x${string}`,
                     functionName: "onAirNow"
@@ -262,7 +262,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                         setPlaylist([liveSong]);
                         setLiveStreamPlatform(getLivePlatformFromUri(liveSong.uri));
                         setRadioModality(RadioMode.LIVE);
-                    }else{
+                    } else {
                         console.log("[fetchLiveSong] La live è già in esecuzione ...");
                     }
                     return liveSong;
@@ -282,7 +282,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const removeSubmittedUserSong = useCallback(async (id: any) => {
         const songId = id.replace("p-", ""); //This is for de-sync playlist and liveschedule SC (id policy)
         if (userHasSBT) {
-            const tx = await writeContract(config,{
+            const tx = await writeContract(config, {
                 abi: getPlaylistABI(),
                 address: getPlaylistAddress() as `0x${string}`,
                 functionName: "removeOwnSong",
@@ -298,9 +298,9 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const removeSavedSong = useCallback(async (id: any) => {
         const songId = id.replace("p-", ""); //This is for de-sync playlist and liveschedule SC (id policy)
         console.log("[removeSavedSong] Song ID to remove:", songId);
-        
-        if ( userHasSBT) {
-            const tx = await writeContract(config,{
+
+        if (userHasSBT) {
+            const tx = await writeContract(config, {
                 abi: getPlaylistABI(),
                 address: getPlaylistAddress() as `0x${string}`,
                 functionName: "removeFromMySaves",
@@ -311,10 +311,19 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
     }, [playlistContract, getProvider, userHasSBT]);
 
-    const saveSongToMySaves = useCallback(async (id: any) => {
+    const saveSongToMySaves = useCallback(async (id: any) =>  {
+
+        // Check if connected with mego
+        const isConnectedWithMego = provider !== 'walletConnect'
+        if(isConnectedWithMego && provider){
+            setMegoPendingDate("saveSongToMySaves", id, "Save song " + id);
+            createSignature("Save song " + id);
+            return BlockChainOperationResult.PENDING;
+        }
+
         const songId = id.replace("p-", ""); //This is for de-sync playlist and liveschedule SC (id policy)
         if (userHasSBT) {
-            const tx = await writeContract(config,{
+            const tx = await writeContract(config, {
                 abi: getPlaylistABI(),
                 address: getPlaylistAddress() as `0x${string}`,
                 functionName: "addToMySaves",
@@ -323,13 +332,14 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             await waitForTransactionReceipt(config, { hash: tx });
             fetchMySaves();
         }
+        return BlockChainOperationResult.SUCCESS;
     }, [playlistContract, getProvider, userHasSBT]);
 
     const fetchBookedSlots = useCallback(async () => {
         if (userHasSBT) {
             try {
                 console.log("[fetchBookedSlots] Fetching booked slots");
-                const eventIds = await readContract(config,{
+                const eventIds = await readContract(config, {
                     abi: getScheduleLiveABI(),
                     address: getScheduleLiveAddress() as `0x${string}`,
                     functionName: "getMyBookedShows",
@@ -338,7 +348,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 console.log("[fetchBookedSlots] -> eventIds", eventIds);
                 const events = await Promise.all(
                     eventIds.map(async (eventId: any) => {
-                        const event = await readContract(config,{
+                        const event = await readContract(config, {
                             abi: getScheduleLiveABI(),
                             address: getScheduleLiveAddress() as `0x${string}`,
                             functionName: "getEventDetails",
@@ -366,14 +376,14 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const fetchNext24HoursEvents = useCallback(async () => {
         if (userHasSBT) {
             try {
-                const eventIds = await readContract(config,{
+                const eventIds = await readContract(config, {
                     abi: getScheduleLiveABI(),
                     address: getScheduleLiveAddress() as `0x${string}`,
                     functionName: "getLiveShowsInNext24Hours"
                 }) as Array<Number>;
                 const events = await Promise.all(
                     eventIds.map(async (eventId: any) => {
-                        const event = await readContract(config,{
+                        const event = await readContract(config, {
                             abi: getScheduleLiveABI(),
                             address: getScheduleLiveAddress() as `0x${string}`,
                             functionName: "getEventDetails",
@@ -400,7 +410,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     const scheduleLive = useCallback(async (title: string, imageUrl: string, streamUrl: string, startTime: number, duration: number) => {
         if (userHasSBT) {
-            const tx = await writeContract(config,{
+            const tx = await writeContract(config, {
                 abi: getScheduleLiveABI(),
                 address: getScheduleLiveAddress() as `0x${string}`,
                 functionName: "scheduleEvent",
@@ -415,7 +425,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const deleteScheduledEvent = useCallback(async (eventId: any) => {
         if (userHasSBT) {
             console.log("[deleteScheduledEvent] Deleting scheduled event -> ", eventId);
-            const tx = await writeContract(config,{
+            const tx = await writeContract(config, {
                 abi: getScheduleLiveABI(),
                 address: getScheduleLiveAddress() as `0x${string}`,
                 functionName: "deleteEvent",
@@ -460,6 +470,58 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             };
         }
     }, [playlistContract, fetchStaticData, fetchAllData]);
+
+    // Check last blockchain operation started with mego
+    useEffect(() => {
+        const megoWritePendingOp = localStorage.getItem("megoWritePendingOp");
+        const megoWritePendingData = localStorage.getItem("megoWritePendingData");
+        const megoSignatureMessage = localStorage.getItem("megoSignatureMessage");
+        
+        if (!megoWritePendingOp || !megoWritePendingData) {
+            console.log("[mego] No pending operation");
+            return;
+        }
+
+        //Read signature from mego (query params)
+        const urlParams = new URLSearchParams(window.location.search);
+        const signature = urlParams.get('signature');
+        if(!signature){
+            console.log("[mego] No signature found");
+            cleanMegoPendingDate();
+            return;
+        }
+        
+        const data = JSON.parse(megoWritePendingData);
+        console.log("[mego] megoWritePendingOp:", megoWritePendingOp);
+        console.log("[mego] megoWritePendingData:", data);
+        console.log("[mego] megoSignatureMessage:", megoSignatureMessage);
+        console.log("[mego] signature:", signature);
+    }, []);
+
+    const setMegoPendingDate = (op: string, data: any, signMessage: string) => {
+        localStorage.setItem("megoWritePendingOp", op);
+        localStorage.setItem("megoWritePendingData", JSON.stringify(data));
+        localStorage.setItem("megoSignatureMessage", signMessage);
+    }
+
+    const cleanMegoPendingDate = () => {
+        localStorage.removeItem("megoWritePendingOp");
+        localStorage.removeItem("megoWritePendingData");
+        localStorage.removeItem("megoSignatureMessage");
+    }
+
+    const createSignature = (message: string) => {
+        const isConnectedWithMego = provider !== 'walletConnect'
+        if (isConnectedWithMego && provider) {
+            const redirectUrl = window.location.origin
+            if (provider.includes("google")) {
+                signMessageWithGoogle(redirectUrl, message);
+            } else if (provider.includes("apple")) {
+                signMessageWithApple(redirectUrl, message);
+            }
+            return false;
+        }
+    }
 
     return (
         // @ts-ignore

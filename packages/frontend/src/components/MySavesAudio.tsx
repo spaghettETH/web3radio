@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import SavedAudio from "./SavedAudio";
 import { useWeb3Radio } from "../context/Web3RadioContext";
 import { usePopup } from "../context/PopupContext";
-import { LiveStreamPlatform } from "../interfaces/interface";
+import { BlockChainOperationResult, LiveStreamPlatform } from "../interfaces/interface";
 
 interface MySavesProps {}
 
@@ -29,9 +29,13 @@ const MySavesAudio: React.FC<MySavesProps> = () => {
     try {
       console.log(`Saving song: ${currentSong.title}`);
       console.log("[handleSaveSong] currentSong.id", currentSong.id);
-      await saveSongToMySaves(currentSong.id);
-      openPopup({title: 'Saved!',message: `Song "${currentSong.title}" saved successfully!`,type: 'success'});
-      fetchMySaves(); // Refresh the saved songs list after saving
+      const res = await saveSongToMySaves(currentSong.id);
+      if(res === BlockChainOperationResult.SUCCESS){
+        openPopup({title: 'Saved!',message: `Song "${currentSong.title}" saved successfully!`,type: 'success'});
+        fetchMySaves(); // Refresh the saved songs list after saving
+      }else if(res === BlockChainOperationResult.ERROR){
+        openPopup({title: 'Error',message: `Failed to save the song. Ensure you're connected and authorized.`,type: 'error'});
+      }
     } catch (error) {
       console.error("Error saving the song:", error);
       openPopup({title: 'Error',message: `Failed to save the song. Ensure you're connected and authorized.`,type: 'error'});
