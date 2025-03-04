@@ -29,9 +29,9 @@ const ConnectWithMego: React.FC = () => {
       <MegoWalletButton
         forceChainId={Number(process.env.REACT_APP_CHAIN_ID)}
         providerConfiguration={{
-          appleProvider: false,
-          googleProvider: false,
-          emailProvider: false,
+          appleProvider: true,
+          googleProvider: true,
+          emailProvider: true,
         }}
         customStyle={{
           megoWalletContainerStyle: {

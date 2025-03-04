@@ -53,7 +53,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const [mySongs, setMySongs] = useState<any[]>([]);
     const [savedSongs, setSavedSongs] = useState<any[]>([]);
     const [isConnected, setIsConnected] = useState<boolean>(false);
-    const [userHasSBT, setUserHasSBT] = useState<boolean>(true);
+    const [userHasSBT, setUserHasSBT] = useState<boolean>(false);
     const [radioModality, setRadioModality] = useState<RadioMode>(RadioMode.LIVE);
 
     // Booked slots
