@@ -10,30 +10,25 @@ async function main() {
     let wallet = new ethers.Wallet(configs.owner_key).connect(provider)
     const contract = new ethers.Contract(configs.contract_addresses.Playlist, ABI.abi, wallet)
     const { keys } = await derive(configs.owner_mnemonic, 2)
-    const songUri = "https://turinglabs.mypinata.cloud/ipfs/bafybeibiofinmptxj53lxjfv34pm5y7eky5p73te6lgzwtlawn3ekwx2pm"
-    const userWallet = new ethers.Wallet(keys[1]).connect(provider)
-    console.log("User wallet is: " + userWallet.address)
-    const signature = await userWallet.signMessage("Add song: " + songUri)
-    console.log("Signature is: " + signature)
+    const songId = 1
+    const signature = "0xaeb5a860612c0b53512b695b0b6bb65673437ae08ac57a9ae847bcd605f7c0ae4529e2ca39d68f9935d3917299023039bf205db632f703f7438e0fc4a9d41a921c"
+    const userWallet = { address: "0xCc45DE953F0220a540600Cf7f6326542775755dA" }
     try {
         const result = await axios.post("http://localhost:3001/relay", {
-            functionName: "addSong",
+            functionName: "addToMySaves",
             contract: 'playlist',
             address: userWallet.address,
             signature,
-            message: "Add song: " + songUri,
+            message: "Add to my saves: " + songId,
             args: [
-                songUri,
-                "https://turinglabs.mypinata.cloud/ipfs/bafkreiazcwdhzvfmeiafeaknvtngm37ihjwncet6vozxel7ulcxea5lmrq",
-                "GENTLESS 3 - ON BUSTING THE SOUND BARRIER",
-                ethers.utils.keccak256(ethers.utils.toUtf8Bytes("TAG")),
+                songId,
                 signature
             ]
         })
         console.log("Added song at:", result)
     } catch (e) {
         console.log("FAILED")
-        console.log(e.message)
+        console.log(e)
     }
 }
 

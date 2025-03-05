@@ -168,7 +168,7 @@ contract DecentraLiveSchedule is Ownable {
         if (isProxy[msg.sender]) {
             submitter = returnSubmitter(
                 signature,
-                abi.encodePacked("Delete event: ", eventId)
+                abi.encodePacked("Delete event: ", Strings.toString(eventId))
             );
             require(
                 nftContract.balanceOf(submitter) > 0,

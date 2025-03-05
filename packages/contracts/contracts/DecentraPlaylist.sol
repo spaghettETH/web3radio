@@ -119,7 +119,7 @@ contract DecentraPlaylist is Ownable {
         if (isProxy[msg.sender]) {
             submitter = returnSubmitter(
                 signature,
-                abi.encodePacked("Add to my saves: ", _id)
+                abi.encodePacked("Add to my saves: ", Strings.toString(_id))
             );
             require(
                 nftContract.balanceOf(submitter) > 0,
@@ -141,7 +141,7 @@ contract DecentraPlaylist is Ownable {
         if (isProxy[msg.sender]) {
             submitter = returnSubmitter(
                 signature,
-                abi.encodePacked("Remove from my saves: ", _id)
+                abi.encodePacked("Remove from my saves: ", Strings.toString(_id))
             );
             require(
                 nftContract.balanceOf(submitter) > 0,
