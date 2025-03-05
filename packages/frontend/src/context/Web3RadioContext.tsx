@@ -293,6 +293,15 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     }, [scheduleLiveContract, playlist, getProvider, userHasSBT]);
 
     const removeSubmittedUserSong = useCallback(async (id: any) => {
+
+        if(isConnectedWithMego()) {
+            openPopup({
+                title: 'Error',
+                message: 'Mego implementation is not available yet.',
+                type: 'info'
+            });
+        }
+        
         const songId = id.replace("p-", ""); //This is for de-sync playlist and liveschedule SC (id policy)
         if (userHasSBT) {
             const tx = await writeContract(config, {
