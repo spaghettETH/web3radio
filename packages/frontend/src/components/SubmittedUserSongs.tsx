@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import SavedAudio from "./SavedAudio";
 import { useWeb3Radio } from "../context/Web3RadioContext";
 import { usePopup } from "../context/PopupContext";
+import { BlockChainOperationResult } from "../interfaces/interface";
 
 // Is for testing purposes (altering contract getMySaves function)
 
@@ -31,12 +32,20 @@ const SubmittedUserSongs: React.FC<SubmittedUserSongsProps> = () => {
     });
     try {
       console.log(`Removing song with ID: ${songId}`); // Debugging
-      await removeSubmittedUserSong(songId);
-      openPopup({
-        title: 'Removed!',
-        message: `Song "${songId}" removed successfully!`,
-        type: 'success'
-      });
+      const result = await removeSubmittedUserSong(songId);
+      if(result === BlockChainOperationResult.SUCCESS) {
+        openPopup({
+          title: 'Removed!',
+          message: `Song "${songId}" removed successfully!`,
+          type: 'success'
+        });
+      } else if(result === BlockChainOperationResult.ERROR) {
+        openPopup({
+          title: 'Error',
+          message: `Failed to remove the song.`,
+          type: 'error'
+        });
+      }
     } catch (error) {
       console.error("Error removing song:", error);
       openPopup({

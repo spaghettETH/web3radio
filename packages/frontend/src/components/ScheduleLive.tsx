@@ -5,9 +5,12 @@ import { useWeb3Radio } from "../context/Web3RadioContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePopup } from "../context/PopupContext";
 import BookedSlot from "./BookedSlot";
-import { FaVideo, FaImage, FaClock } from 'react-icons/fa';
+import { FaVideo, FaImage, FaClock, FaMusic } from 'react-icons/fa';
 import FormatBannerInfo from "./FormatBannerInfo";
-import { useAccount } from "@megotickets/wallet";
+import { useAccount, useWeb3Context } from "@megotickets/wallet";
+import { BlockChainOperationResult } from "../interfaces/interface";
+import { Tags } from "./utils/Tags";
+import { ethers } from "ethers";
 
 interface ScheduleLiveProps {
 }
@@ -18,15 +21,20 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
   const [streamUrl, setStreamUrl] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [duration, setDuration] = useState<number>(1); // Default: 30 minutes
+  const [tag, setTag] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { fetchBookedSlots, fetchNext24HoursEvents, bookedSlots, next24HoursEvents, scheduleLive } = useWeb3Radio();
   const { address } = useAccount();
+  const { loggedAs } = useWeb3Context();
   const { openPopup } = usePopup();
+  
+  // Tutti i tag musicali
+  const [musicTags, setMusicTags] = useState<string[]>(Tags);
 
   const onScheduleLive = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!title || !imageUrl || !streamUrl || !selectedDate) {
+    if (!title || !imageUrl || !streamUrl || !selectedDate || !tag) {
       openPopup({ title: "Required information", message: "Please fill in all fields.", type: "error" });
       return;
     }
@@ -35,13 +43,22 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
 
     try {
       openPopup({ title: "Scheduling...", message: "Livestream scheduling...", type: "loading" });
-      await scheduleLive(title, imageUrl, streamUrl, startTime, duration);
-      openPopup({ title: "Scheduled", message: "Livestream scheduled successfully!", type: "success" });
+      
+      // Converti il tag in bytes32 usando keccak256
+      const tagBytes32 = ethers.keccak256(ethers.toUtf8Bytes(tag));
+      
+      const result = await scheduleLive(title, imageUrl, streamUrl, startTime, duration, tagBytes32);
+      if(result === BlockChainOperationResult.SUCCESS) {
+        openPopup({ title: "Scheduled", message: "Livestream scheduled successfully!", type: "success" });
+      } else if (result === BlockChainOperationResult.ERROR) {
+        openPopup({ title: "Error", message: "Failed to schedule livestream. Please try again.", type: "error" });
+      }
       setTitle("");
       setImageUrl("");
       setStreamUrl("");
       setSelectedDate(null);
       setDuration(1);
+      setTag("");
     } catch (error: any) {
       console.error("Error scheduling livestream:", error);
       if (error.reason === "Too many bookings for today!") {
@@ -57,11 +74,13 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
   };
 
   useEffect(() => {
-    if (address) {
+    console.log("[fetchBookedSlots] check address", address);
+    if (address || loggedAs) {
+      console.log("[fetchBookedSlots] Fetching booked slots");
       fetchBookedSlots();
       fetchNext24HoursEvents();
     }
-  }, [fetchBookedSlots, fetchNext24HoursEvents, address]);
+  }, [fetchBookedSlots, fetchNext24HoursEvents, address, loggedAs]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -193,6 +212,32 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
           </div>
 
           <div className="w-full flex flex-col lg:flex-row gap-4">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="w-full lg:w-1/3"
+            >
+              <label htmlFor="tag" className="flex items-center">
+                <FaMusic className="mr-2" />
+                <p>GENERE MUSICALE</p>
+              </label>
+              <select
+                id="tag"
+                value={tag}
+                onChange={(e) => setTag(e.target.value)}
+                required
+                aria-label="Music Genre"
+                className="w-full border border-white rounded-md bg-black text-white p-2"
+              >
+                <option value="">Seleziona un genere</option>
+                {musicTags.map((musicTag) => (
+                  <option key={musicTag} value={musicTag}>
+                    {musicTag}
+                  </option>
+                ))}
+              </select>
+            </motion.div>
+            
             <motion.div
               whileHover={{ scale: 1.02 }}
               transition={{ type: "spring", stiffness: 300 }}

@@ -17,7 +17,7 @@ interface Web3RadioContextType {
     fetchPlaylist: () => Promise<void>;
     fetchUserSongs: () => Promise<void>;
     fetchMySaves: () => Promise<void>;
-    removeSubmittedUserSong: (id: any) => Promise<void>;
+    removeSubmittedUserSong: (id: any) => Promise<BlockChainOperationResult>;
     removeSavedSong: (id: any) => Promise<BlockChainOperationResult>;
     saveSongToMySaves: (id: any) => Promise<BlockChainOperationResult>;
     scheduleLiveContract: Contract | null;
@@ -33,7 +33,7 @@ interface Web3RadioContextType {
     fetchBookedSlots: () => Promise<void>;
     next24HoursEvents: any[];
     fetchNext24HoursEvents: () => Promise<void>;
-    scheduleLive: (title: string, imageUrl: string, streamUrl: string, startTime: number, duration: number) => Promise<void>;
+    scheduleLive: (title: string, imageUrl: string, streamUrl: string, startTime: number, duration: number, tagBytes32: string) => Promise<BlockChainOperationResult>;
 
     liveStreamPlatform: LiveStreamPlatform;
 }
@@ -300,6 +300,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 message: 'Mego implementation is not available yet.',
                 type: 'info'
             });
+            return BlockChainOperationResult.PENDING;
         }
         
         const songId = id.replace("p-", ""); //This is for de-sync playlist and liveschedule SC (id policy)
@@ -315,6 +316,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
             fetchUserSongs();
         }
+        return BlockChainOperationResult.SUCCESS;
     }, [playlistContract, getProvider, userHasSBT]);
 
     const removeSavedSong = useCallback(async (id: any) => {
@@ -324,9 +326,15 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
         const isMego = isConnectedWithMego();
         if (isMego) {
-            setMegoPendingDate("removeFromMySaves", songId, signMessageForTransaction, "Removing...", "Removing song " + songId, "playlist", loggedAs as string);
-            createSignature(signMessageForTransaction);
+            openPopup({
+                title: 'Error',
+                message: 'Mego implementation is not available yet.',
+                type: 'info'
+            });
             return BlockChainOperationResult.PENDING;
+            /* setMegoPendingDate("removeFromMySaves", songId, signMessageForTransaction, "Removing...", "Removing song " + songId, "playlist", loggedAs as string);
+            createSignature(signMessageForTransaction);
+            return BlockChainOperationResult.PENDING; */
         }
 
         if (userHasSBT) {
@@ -351,9 +359,15 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         const isMego = isConnectedWithMego();
         //Convert songId to number
         if (isMego && provider) {
-            setMegoPendingDate("addToMySaves", songId, signMessageForTransaction, "Saving...", "Saving song " + songId, "playlist", loggedAs as string);
-            createSignature(signMessageForTransaction);
+            openPopup({
+                title: 'Error',
+                message: 'Mego implementation is not available yet.',
+                type: 'info'
+            });
             return BlockChainOperationResult.PENDING;
+            /* setMegoPendingDate("addToMySaves", songId, signMessageForTransaction, "Saving...", "Saving song " + songId, "playlist", loggedAs as string);
+            createSignature(signMessageForTransaction);
+            return BlockChainOperationResult.PENDING; */
         }
 
         if (userHasSBT) {
@@ -371,14 +385,17 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     }, [playlistContract, getProvider, userHasSBT]);
 
     const fetchBookedSlots = useCallback(async () => {
+        console.log("[fetchBookedSlots] Fetching booked slots");
+
         if (userHasSBT) {
             try {
-                console.log("[fetchBookedSlots] Fetching booked slots");
+                console.log("[fetchBookedSlots] Fetching because user has SBT");
                 const eventIds = await readContract(config, {
                     abi: getScheduleLiveABI(),
                     address: getScheduleLiveAddress() as `0x${string}`,
                     functionName: "getMyBookedShows",
-                    account: address as `0x${string}`
+                    account: address as `0x${string}`,
+                    args: [address as `0x${string}`]
                 }) as Array<Number>;
                 console.log("[fetchBookedSlots] -> eventIds", eventIds);
                 const events = await Promise.all(
@@ -406,9 +423,10 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 console.error("Error fetching booked slots:", error);
             }
         }
-    }, [scheduleLiveContract, getProvider, userHasSBT]);
+    }, [scheduleLiveContract, getProvider, userHasSBT, address]);
 
     const fetchNext24HoursEvents = useCallback(async () => {
+        console.log("[fetchNext24HoursEvents] Fetching next 24 hours events");
         if (userHasSBT) {
             try {
                 const eventIds = await readContract(config, {
@@ -416,6 +434,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                     address: getScheduleLiveAddress() as `0x${string}`,
                     functionName: "getLiveShowsInNext24Hours"
                 }) as Array<Number>;
+                console.log("[fetchNext24HoursEvents] -> eventIds", eventIds);
                 const events = await Promise.all(
                     eventIds.map(async (eventId: any) => {
                         const event = await readContract(config, {
@@ -443,18 +462,29 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
     }, [scheduleLiveContract, getProvider, userHasSBT]);
 
-    const scheduleLive = useCallback(async (title: string, imageUrl: string, streamUrl: string, startTime: number, duration: number) => {
+    const scheduleLive = useCallback(async (title: string, imageUrl: string, streamUrl: string, startTime: number, duration: number, tagBytes32: string) => {
+        
+        if(isConnectedWithMego()) {
+            openPopup({
+                title: 'Error',
+                message: 'Mego implementation is not available yet.',
+                type: 'info'
+            });
+            return BlockChainOperationResult.PENDING;
+        }
         if (userHasSBT) {
+            const signature = await signMessage(config, { message: "Schedule live: " + title });
             const tx = await writeContract(config, {
                 abi: getScheduleLiveABI(),
                 address: getScheduleLiveAddress() as `0x${string}`,
                 functionName: "scheduleEvent",
-                args: [title, imageUrl, streamUrl, startTime, duration]
+                args: [title, imageUrl, streamUrl, tagBytes32, startTime, duration, signature]
             });
             await waitForTransactionReceipt(config, { hash: tx });
             fetchBookedSlots();
             fetchNext24HoursEvents();
         }
+        return BlockChainOperationResult.SUCCESS;
     }, [scheduleLiveContract, getProvider, userHasSBT]);
 
     const deleteScheduledEvent = useCallback(async (eventId: any) => {

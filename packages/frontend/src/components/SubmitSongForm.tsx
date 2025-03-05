@@ -7,7 +7,7 @@ import FormatBannerInfo from "./FormatBannerInfo";
 import { useWeb3Context, readContract, writeContract, config, waitForTransactionReceipt, signMessage } from "@megotickets/wallet";
 import { getPlaylistABI, getPlaylistAddress } from "../contracts/DecentralizePlaylist/contract";
 import { ethers } from "ethers";
-
+import { Tags } from "./utils/Tags";
 
 interface SubmitSongFormProps {
 }
@@ -28,42 +28,7 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
 
 
   //All music tags
-  const [musicTags, setMusicTags] = useState<string[]>([
-    "Rock",
-    "Pop",
-    "HipHop",
-    "Rap",
-    "Jazz",
-    "Blues",
-    "Classical",
-    "Electronic",
-    "Reggae",
-    "Folk",
-    "Country",
-    "Latin",
-    "Metal",
-    "R&B",
-    "Soul",
-    "Punk",
-    "Alternative",
-    "LoFi",
-    "Afrobeat",
-    "Funk",
-    "Ska",
-    "Soundtrack",
-    "World",
-    "Experimental",
-    "Instrumental",
-    "Chillout",
-    "Techno",
-    "Interview",
-    "Podcast",
-    "Audiobook",
-    "Poetry",
-    "Journalism",
-    "Meditation",
-    "Documentary"
-  ]);
+  const [musicTags, setMusicTags] = useState<string[]>(Tags);
 
 
   const normalizeLink = (url: string) => {
