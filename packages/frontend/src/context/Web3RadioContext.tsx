@@ -21,7 +21,7 @@ interface Web3RadioContextType {
     removeSavedSong: (id: any) => Promise<BlockChainOperationResult>;
     saveSongToMySaves: (id: any) => Promise<BlockChainOperationResult>;
     scheduleLiveContract: Contract | null;
-    deleteScheduledEvent: (id: any) => Promise<void>;
+    deleteScheduledEvent: (id: any) => Promise<BlockChainOperationResult>;
     mySongs: any[];
     savedSongs: any[];
     isConnected: boolean;
@@ -488,19 +488,31 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     }, [scheduleLiveContract, getProvider, userHasSBT]);
 
     const deleteScheduledEvent = useCallback(async (eventId: any) => {
+
+        if(isConnectedWithMego()) {
+            openPopup({
+                title: 'Error',
+                message: 'Mego implementation is not available yet.',
+                type: 'info'
+            });
+            return BlockChainOperationResult.PENDING;
+        }
         if (userHasSBT) {
             console.log("[deleteScheduledEvent] Deleting scheduled event -> ", eventId);
+            const signMessageForTransaction = "Delete scheduled event: " + eventId;
+            const signature = await signMessage(config, { message: signMessageForTransaction });
             const tx = await writeContract(config, {
                 abi: getScheduleLiveABI(),
                 address: getScheduleLiveAddress() as `0x${string}`,
                 functionName: "deleteEvent",
-                args: [eventId]
+                args: [eventId, signature]
             });
             await waitForTransactionReceipt(config, { hash: tx });
             console.log("[deleteScheduledEvent] Event deleted");
             fetchBookedSlots();
             fetchNext24HoursEvents();
         }
+        return BlockChainOperationResult.SUCCESS;
     }, [scheduleLiveContract, getProvider, userHasSBT]);
 
     const fetchAllData = useCallback(async () => {

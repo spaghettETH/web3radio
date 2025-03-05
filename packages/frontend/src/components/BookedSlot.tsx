@@ -1,5 +1,6 @@
 import { usePopup } from "../context/PopupContext";
 import { useWeb3Radio } from "../context/Web3RadioContext";
+import { BlockChainOperationResult } from "../interfaces/interface";
 import { resolveCloudLinkUrl } from "../utils/Utils";
 
 interface BookedSlot {
@@ -32,8 +33,12 @@ const BookedSlot: React.FC<BookedSlotProps> = ({ slot, isCompact = false, canDel
     const handleDelete = async () => {
         try {
             openPopup({ title: "Delete Scheduled Event", message: "Are you sure you want to delete this scheduled event?", type: "loading" });
-            await deleteScheduledEvent(slot.id);
-            openPopup({ title: "Success", message: "Scheduled event deleted successfully", type: "success" });
+            const res = await deleteScheduledEvent(slot.id);
+            if(res === BlockChainOperationResult.SUCCESS) {
+                openPopup({ title: "Success", message: "Scheduled event deleted successfully", type: "success" });
+            } else {
+                openPopup({ title: "Error", message: "Error deleting scheduled event", type: "error" });
+            }
         } catch (error) {
             openPopup({ title: "Error", message: "Error deleting scheduled event", type: "error" });
             console.error("Error deleting scheduled event:", error);

@@ -27,7 +27,7 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
   const { address } = useAccount();
   const { loggedAs } = useWeb3Context();
   const { openPopup } = usePopup();
-  
+
   // Tutti i tag musicali
   const [musicTags, setMusicTags] = useState<string[]>(Tags);
 
@@ -43,12 +43,12 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
 
     try {
       openPopup({ title: "Scheduling...", message: "Livestream scheduling...", type: "loading" });
-      
+
       // Converti il tag in bytes32 usando keccak256
       const tagBytes32 = ethers.keccak256(ethers.toUtf8Bytes(tag));
-      
+
       const result = await scheduleLive(title, imageUrl, streamUrl, startTime, duration, tagBytes32);
-      if(result === BlockChainOperationResult.SUCCESS) {
+      if (result === BlockChainOperationResult.SUCCESS) {
         openPopup({ title: "Scheduled", message: "Livestream scheduled successfully!", type: "success" });
       } else if (result === BlockChainOperationResult.ERROR) {
         openPopup({ title: "Error", message: "Failed to schedule livestream. Please try again.", type: "error" });
@@ -237,7 +237,7 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
                 ))}
               </select>
             </motion.div>
-            
+
             <motion.div
               whileHover={{ scale: 1.02 }}
               transition={{ type: "spring", stiffness: 300 }}
@@ -255,20 +255,6 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
                 aria-label="Stream Title"
                 className="w-full border border-white rounded-md bg-black text-white p-2"
               />
-            </motion.div>
-
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 300 }}
-              className="w-full lg:w-1/3 flex items-end"
-            >
-              <button
-                type="submit"
-                className="submit-button uppercase h-[42px] w-full"
-              >
-                Schedule Live
-                &nbsp;→
-              </button>
             </motion.div>
           </div>
 
@@ -312,6 +298,21 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
                   </option>
                 ))}
               </select>
+
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="w-full lg:w-1/3 flex items-end"
+            >
+              <button
+                type="submit"
+                className={`submit-button uppercase h-[42px] w-full ${!title || !imageUrl || !streamUrl || !selectedDate || !tag ? "cursor-not-allowed" : ""}`}
+                disabled={!title || !imageUrl || !streamUrl || !selectedDate || !tag}
+              >
+                Schedule Live
+                &nbsp;→
+              </button>
             </motion.div>
           </div>
         </motion.div>
