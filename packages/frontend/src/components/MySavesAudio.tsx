@@ -4,7 +4,7 @@ import { useWeb3Radio } from "../context/Web3RadioContext";
 import { usePopup } from "../context/PopupContext";
 import { BlockChainOperationResult, LiveStreamPlatform } from "../interfaces/interface";
 
-interface MySavesProps {}
+interface MySavesProps { }
 
 const MySavesAudio: React.FC<MySavesProps> = () => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -19,26 +19,26 @@ const MySavesAudio: React.FC<MySavesProps> = () => {
 
   // Save the currently playing song to the user's saves
   const handleSaveSong = async () => {
-    console.log("[handleSaveSong] currentSong", currentSong); 
+    console.log("[handleSaveSong] currentSong", currentSong);
 
     if (!currentSong || !currentSong.id) {
-      openPopup({title: 'Error',message: `No song is currently playing or the song data is incomplete.`,type: 'info'});
+      openPopup({ title: 'Error', message: `No song is currently playing or the song data is incomplete.`, type: 'info' });
       return;
     }
-    openPopup({title: 'Saving...',message: `Saving song: ${currentSong.title}`,type: 'loading'});
+    openPopup({ title: 'Saving...', message: `Saving song: ${currentSong.title}`, type: 'loading' });
     try {
       console.log(`Saving song: ${currentSong.title}`);
       console.log("[handleSaveSong] currentSong.id", currentSong.id);
       const res = await saveSongToMySaves(currentSong.id);
-      if(res === BlockChainOperationResult.SUCCESS){
-        openPopup({title: 'Saved!',message: `Song "${currentSong.title}" saved successfully!`,type: 'success'});
+      if (res === BlockChainOperationResult.SUCCESS) {
+        openPopup({ title: 'Saved!', message: `Song "${currentSong.title}" saved successfully!`, type: 'success' });
         fetchMySaves(); // Refresh the saved songs list after saving
-      }else if(res === BlockChainOperationResult.ERROR){
-        openPopup({title: 'Error',message: `Failed to save the song. Ensure you're connected and authorized.`,type: 'error'});
+      } else if (res === BlockChainOperationResult.ERROR) {
+        openPopup({ title: 'Error', message: `Failed to save the song. Ensure you're connected and authorized.`, type: 'error' });
       }
     } catch (error) {
       console.error("Error saving the song:", error);
-      openPopup({title: 'Error',message: `Failed to save the song. Ensure you're connected and authorized.`,type: 'error'});
+      openPopup({ title: 'Error', message: `Failed to save the song. Ensure you're connected and authorized.`, type: 'error' });
     }
   };
 
@@ -50,12 +50,20 @@ const MySavesAudio: React.FC<MySavesProps> = () => {
         message: `Deleting saved song: ${id}`,
         type: 'loading'
       });
-      await removeSavedSong(id);
-      openPopup({
-        title: 'Deleted!',
-        message: `Song "${id}" deleted successfully!`,
-        type: 'success'
-      });
+      const res = await removeSavedSong(id);
+      if (res === BlockChainOperationResult.SUCCESS) {
+        openPopup({
+          title: 'Deleted!',
+          message: `Song "${id}" deleted successfully!`,
+          type: 'success'
+        });
+      } else if (res === BlockChainOperationResult.ERROR) {
+        openPopup({
+          title: 'Error',
+          message: `Failed to delete the song. Ensure you're connected and authorized.`,
+          type: 'error'
+        });
+      }
     } catch (error) {
       console.error("Error deleting the song:", error);
       openPopup({

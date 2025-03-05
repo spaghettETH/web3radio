@@ -4,8 +4,9 @@ import { FaMusic, FaFileAudio, FaImage } from 'react-icons/fa';
 import { useWeb3Radio } from "../context/Web3RadioContext";
 import { usePopup } from "../context/PopupContext";
 import FormatBannerInfo from "./FormatBannerInfo";
-import { useWeb3Context, readContract, writeContract, config, waitForTransactionReceipt } from "@megotickets/wallet";
+import { useWeb3Context, readContract, writeContract, config, waitForTransactionReceipt, signMessage } from "@megotickets/wallet";
 import { getPlaylistABI, getPlaylistAddress } from "../contracts/DecentralizePlaylist/contract";
+import { ethers } from "ethers";
 
 
 interface SubmitSongFormProps {
@@ -15,6 +16,7 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
   const [title, setTitle] = useState<string>("");
   const [audioUri, setAudioUri] = useState<string>("");
   const [imageUri, setImageUri] = useState<string>("");
+  const [tag, setTag] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [disclaimerChecked, setDisclaimerChecked] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -22,6 +24,47 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
   const { playlistContract: contract, fetchPlaylist, fetchUserSongs } = useWeb3Radio();
   const { openPopup } = usePopup();
+  const { provider } = useWeb3Context();
+
+
+  //All music tags
+  const [musicTags, setMusicTags] = useState<string[]>([
+    "Rock",
+    "Pop",
+    "HipHop",
+    "Rap",
+    "Jazz",
+    "Blues",
+    "Classical",
+    "Electronic",
+    "Reggae",
+    "Folk",
+    "Country",
+    "Latin",
+    "Metal",
+    "R&B",
+    "Soul",
+    "Punk",
+    "Alternative",
+    "LoFi",
+    "Afrobeat",
+    "Funk",
+    "Ska",
+    "Soundtrack",
+    "World",
+    "Experimental",
+    "Instrumental",
+    "Chillout",
+    "Techno",
+    "Interview",
+    "Podcast",
+    "Audiobook",
+    "Poetry",
+    "Journalism",
+    "Meditation",
+    "Documentary"
+  ]);
+
 
   const normalizeLink = (url: string) => {
     if (url.includes("dropbox.com")) {
@@ -44,7 +87,17 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!title || !audioUri || !imageUri || !disclaimerChecked) {
+    const isConnectedWithMego = provider !== 'walletConnect'
+    if (isConnectedWithMego) {
+      openPopup({
+        title: 'Error',
+        message: 'Mego implementation is not available yet.',
+        type: 'info'
+      });
+      return;
+    }
+
+    if (!title || !audioUri || !imageUri || !tag || !disclaimerChecked) {
       openPopup({
         title: 'All fields are required and the disclaimer must be checked.',
         message: 'Please fill in all fields and check the disclaimer.',
@@ -64,11 +117,17 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
       const normalizedAudioUri = normalizeLink(audioUri);
       const normalizedImageUri = normalizeLink(imageUri);
 
+      // Converti il tag in bytes32 usando keccak256
+      const tagBytes32 = ethers.keccak256(ethers.toUtf8Bytes(tag));
+
+      const signMessageForTransaction = "Add to playlist: " + title;
+      const signature = await signMessage(config, { message: signMessageForTransaction });
+
       const tx = await writeContract(config, {
         abi: getPlaylistABI(),
         address: getPlaylistAddress() as `0x${string}`,
         functionName: "addSong",
-        args: [normalizedAudioUri, normalizedImageUri, title],
+        args: [normalizedAudioUri, normalizedImageUri, title, tagBytes32, signature],
       });
 
       await waitForTransactionReceipt(config, { hash: tx });
@@ -83,6 +142,7 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
       setTitle("");
       setAudioUri("");
       setImageUri("");
+      setTag("");
       setDisclaimerChecked(false);
     } catch (error) {
       console.error("Error submitting audio:", error);
@@ -258,6 +318,32 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   transition={{ type: "spring", stiffness: 300 }}
+                  className="w-full lg:w-1/3"
+                >
+                  <label htmlFor="tag" className="flex items-center">
+                    <FaMusic className="mr-2" />
+                    <p>GENERE MUSICALE</p>
+                  </label>
+                  <select
+                    id="tag"
+                    value={tag}
+                    onChange={(e) => setTag(e.target.value)}
+                    required
+                    aria-label="Music Genre"
+                    className="w-full border border-white rounded-md bg-black text-white p-2"
+                  >
+                    <option value="">Seleziona un genere</option>
+                    {musicTags.map((musicTag) => (
+                      <option key={musicTag} value={musicTag}>
+                        {musicTag}
+                      </option>
+                    ))}
+                  </select>
+                </motion.div>
+
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 300 }}
                   className="w-full lg:w-2/3"
                 >
                   <label htmlFor="title" className="flex items-center">
@@ -274,7 +360,9 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
                     className="w-full border border-white rounded-md bg-black text-white p-2"
                   />
                 </motion.div>
+              </div>
 
+              <div className="w-full flex justify-end">
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   transition={{ type: "spring", stiffness: 300 }}

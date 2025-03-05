@@ -1,12 +1,13 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
-import { useWeb3Context, readContract, writeContract, config, useAccount, waitForTransactionReceipt } from "@megotickets/wallet";
+import { useWeb3Context, readContract, writeContract, config, useAccount, waitForTransactionReceipt, signMessage } from "@megotickets/wallet";
 import { Contract } from "ethers";
 import { getPlaylistABI, getPlaylistAddress } from "../contracts/DecentralizePlaylist/contract";
 import { getScheduleLiveABI, getScheduleLiveAddress } from "../contracts/ScheduleLive/contract";
 import { RadioMode, LiveStreamPlatform, Song, BlockChainOperationResult } from "../interfaces/interface";
 import { getLivePlatformFromUri } from "../utils/Utils";
 import { getSoulBoundTokenABI, getSoulBoundTokenAddress } from "../contracts/SoulBoundToken/contract";
-
+import { usePopup } from "./PopupContext";
+import axios from "axios";
 
 interface Web3RadioContextType {
     playlistContract: Contract | null;
@@ -17,7 +18,7 @@ interface Web3RadioContextType {
     fetchUserSongs: () => Promise<void>;
     fetchMySaves: () => Promise<void>;
     removeSubmittedUserSong: (id: any) => Promise<void>;
-    removeSavedSong: (id: any) => Promise<void>;
+    removeSavedSong: (id: any) => Promise<BlockChainOperationResult>;
     saveSongToMySaves: (id: any) => Promise<BlockChainOperationResult>;
     scheduleLiveContract: Contract | null;
     deleteScheduledEvent: (id: any) => Promise<void>;
@@ -61,6 +62,16 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const [next24HoursEvents, setNext24HoursEvents] = useState<any[]>([]);
 
     const { address } = useAccount();
+    const { openPopup } = usePopup();
+
+
+    const isConnectedWithMego = () => {
+        const isConnectedWithMego = provider !== 'walletConnect'
+        if (isConnectedWithMego && provider) {
+            return true;
+        }
+        return false;
+    }
 
     useEffect(() => {
         const isUserLogged = localStorage.getItem("loggedAs");
@@ -191,16 +202,19 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     }, [playlistContract, getProvider, userHasSBT]);
 
     const fetchMySaves = useCallback(async () => {
+
         if (userHasSBT) {
             console.log("[fetchMySaves] Fetching saved song IDs... with address: ", loggedAs);
             console.log("[fetchMySaves] -> getPlaylistAddress()", getPlaylistAddress());
             console.log("[fetchMySaves] -> getPlaylistABI()", getPlaylistABI());
+            const signMessageForTransaction = "Fetch my saves";
             try {
                 const savedSongIds = await readContract(config, {
                     abi: getPlaylistABI(),
                     address: getPlaylistAddress() as `0x${string}`,
                     functionName: "retrieveMySaves",
-                    account: address as `0x${string}`
+                    account: address as `0x${string}`,
+                    args: [address as `0x${string}`]
                 }) as Array<Number>;
                 console.log("[fetchMySaves] -> savedSongIds", savedSongIds);
                 // Fetch details for each saved song
@@ -227,7 +241,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                         return formattedSong;
                     })
                 );
-                setSavedSongs(formattedSaves.filter((song) => song.isActive)); // Exclude inactive songs
+                setSavedSongs(formattedSaves.filter((song) => song.isActive !== "0x0000000000000000000000000000000000000000")); // Exclude inactive songs
             } catch (error) {
                 console.error("[fetchMySaves] Error fetching my saves:", error);
                 setSavedSongs([]);
@@ -235,7 +249,6 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
     }, [playlistContract, getProvider, userHasSBT]);
 
-    //TODO: Implement this!
     const fetchLiveSong = useCallback(async () => {
         console.log("[fetchLiveSong] Fetching live song");
         try {
@@ -298,36 +311,49 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const removeSavedSong = useCallback(async (id: any) => {
         const songId = id.replace("p-", ""); //This is for de-sync playlist and liveschedule SC (id policy)
         console.log("[removeSavedSong] Song ID to remove:", songId);
+        const signMessageForTransaction = "Remove saved song " + songId;
+
+        const isMego = isConnectedWithMego();
+        if (isMego) {
+            setMegoPendingDate("removeFromMySaves", songId, signMessageForTransaction, "Removing...", "Removing song " + songId, "playlist", loggedAs as string);
+            createSignature(signMessageForTransaction);
+            return BlockChainOperationResult.PENDING;
+        }
 
         if (userHasSBT) {
+            const signature = await signMessage(config, { message: signMessageForTransaction });
             const tx = await writeContract(config, {
                 abi: getPlaylistABI(),
                 address: getPlaylistAddress() as `0x${string}`,
                 functionName: "removeFromMySaves",
-                args: [songId]
+                args: [songId, signature]
             });
             await waitForTransactionReceipt(config, { hash: tx });
             fetchMySaves();
         }
+        return BlockChainOperationResult.SUCCESS;
     }, [playlistContract, getProvider, userHasSBT]);
 
-    const saveSongToMySaves = useCallback(async (id: any) =>  {
+    const saveSongToMySaves = useCallback(async (id: any) => {
 
+        const songId = id.replace("p-", "");
+        const signMessageForTransaction = "Add to my saves: " + songId;
         // Check if connected with mego
-        const isConnectedWithMego = provider !== 'walletConnect'
-        if(isConnectedWithMego && provider){
-            setMegoPendingDate("saveSongToMySaves", id, "Save song " + id);
-            createSignature("Save song " + id);
+        const isMego = isConnectedWithMego();
+        //Convert songId to number
+        if (isMego && provider) {
+            setMegoPendingDate("addToMySaves", songId, signMessageForTransaction, "Saving...", "Saving song " + songId, "playlist", loggedAs as string);
+            createSignature(signMessageForTransaction);
             return BlockChainOperationResult.PENDING;
         }
 
-        const songId = id.replace("p-", ""); //This is for de-sync playlist and liveschedule SC (id policy)
         if (userHasSBT) {
+            const signature = await signMessage(config, { message: signMessageForTransaction });
             const tx = await writeContract(config, {
                 abi: getPlaylistABI(),
                 address: getPlaylistAddress() as `0x${string}`,
                 functionName: "addToMySaves",
-                args: [songId]
+                args: [songId, signature]
             });
             await waitForTransactionReceipt(config, { hash: tx });
             fetchMySaves();
@@ -471,12 +497,16 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
     }, [playlistContract, fetchStaticData, fetchAllData]);
 
-    // Check last blockchain operation started with mego
-    useEffect(() => {
+
+    const executeMegoPendingOp = async () => {
         const megoWritePendingOp = localStorage.getItem("megoWritePendingOp");
         const megoWritePendingData = localStorage.getItem("megoWritePendingData");
         const megoSignatureMessage = localStorage.getItem("megoSignatureMessage");
-        
+        const megoPopupTitle = localStorage.getItem("megoPopupTitle");
+        const megoPopupMessage = localStorage.getItem("megoPopupMessage");
+        const megoWritePendingContract = localStorage.getItem("megoWritePendingContract");
+        const megoUserAddress = localStorage.getItem("megoUserAddress");
+
         if (!megoWritePendingOp || !megoWritePendingData) {
             console.log("[mego] No pending operation");
             return;
@@ -485,29 +515,77 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         //Read signature from mego (query params)
         const urlParams = new URLSearchParams(window.location.search);
         const signature = urlParams.get('signature');
-        if(!signature){
+        if (!signature) {
             console.log("[mego] No signature found");
             cleanMegoPendingDate();
             return;
         }
-        
+
         const data = JSON.parse(megoWritePendingData);
         console.log("[mego] megoWritePendingOp:", megoWritePendingOp);
         console.log("[mego] megoWritePendingData:", data);
         console.log("[mego] megoSignatureMessage:", megoSignatureMessage);
         console.log("[mego] signature:", signature);
+
+        //Oper popup
+        openPopup({
+            title: megoPopupTitle || 'Pending operation',
+            message: megoPopupMessage || 'Pending operation...',
+            type: 'loading'
+        });
+
+        try {
+            const result = await axios.post("https://hammerhead-app-34p34.ondigitalocean.app/relay", {
+                functionName: megoWritePendingOp,
+                contract: megoWritePendingContract,
+                address: megoUserAddress,
+                signature,
+                message: megoSignatureMessage,
+                args: [
+                    data,
+                    signature
+                ]
+            })
+            openPopup({
+                title: 'Success',
+                message: 'Operation executed successfully',
+                type: 'success'
+            }); 
+            window.location.reload();
+        } catch (error) {
+            openPopup({
+                title: 'Error',
+                message: 'Error during operation',
+                type: 'error'
+            });
+        } finally {
+            cleanMegoPendingDate();
+        }
+    }
+
+    // Check last blockchain operation started with mego
+    useEffect(() => {
+        executeMegoPendingOp();
     }, []);
 
-    const setMegoPendingDate = (op: string, data: any, signMessage: string) => {
+    const setMegoPendingDate = (op: string, data: any, signMessage: string, popupTitle: string, popupMessage: string, contract: string, userAddress: string) => {
         localStorage.setItem("megoWritePendingOp", op);
         localStorage.setItem("megoWritePendingData", JSON.stringify(data));
         localStorage.setItem("megoSignatureMessage", signMessage);
+        localStorage.setItem("megoPopupTitle", popupTitle);
+        localStorage.setItem("megoPopupMessage", popupMessage);
+        localStorage.setItem("megoWritePendingContract", contract);
+        localStorage.setItem("megoUserAddress", userAddress);
     }
 
     const cleanMegoPendingDate = () => {
         localStorage.removeItem("megoWritePendingOp");
         localStorage.removeItem("megoWritePendingData");
         localStorage.removeItem("megoSignatureMessage");
+        localStorage.removeItem("megoPopupTitle");
+        localStorage.removeItem("megoPopupMessage");
+        localStorage.removeItem("megoWritePendingContract");
+        localStorage.removeItem("megoUserAddress");
     }
 
     const createSignature = (message: string) => {
@@ -522,6 +600,10 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             return false;
         }
     }
+
+
+
+
 
     return (
         // @ts-ignore
