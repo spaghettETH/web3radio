@@ -4,7 +4,7 @@ import { FaMusic, FaFileAudio, FaImage } from 'react-icons/fa';
 import { useWeb3Radio } from "../context/Web3RadioContext";
 import { usePopup } from "../context/PopupContext";
 import FormatBannerInfo from "./FormatBannerInfo";
-import { useWeb3Context, readContract, writeContract, config, waitForTransactionReceipt, signMessage } from "@megotickets/wallet";
+import { useWeb3Context, readContract, writeContract, config, waitForTransactionReceipt, signMessage, useAccount } from "@megotickets/wallet";
 import { getPlaylistABI, getPlaylistAddress } from "../contracts/DecentralizePlaylist/contract";
 import { ethers } from "ethers";
 import { Tags } from "./utils/Tags";
@@ -22,9 +22,10 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
-  const { playlistContract: contract, fetchPlaylist, fetchUserSongs } = useWeb3Radio();
+  const { playlistContract: contract, fetchPlaylist, fetchUserSongs, createSignatureWithMego, setMegoPendingDate } = useWeb3Radio();
   const { openPopup } = usePopup();
-  const { provider } = useWeb3Context();
+  const { provider, loggedAs } = useWeb3Context();
+  const { address } = useAccount();
 
 
   //All music tags
@@ -53,37 +54,43 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
     e.preventDefault();
 
     const isConnectedWithMego = provider !== 'walletConnect'
-    if (isConnectedWithMego) {
-      openPopup({
-        title: 'Error',
-        message: 'Mego implementation is not available yet.',
-        type: 'info'
-      });
-      return;
-    }
-
-    if (!title || !audioUri || !imageUri || !tag || !disclaimerChecked) {
-      openPopup({
-        title: 'All fields are required and the disclaimer must be checked.',
-        message: 'Please fill in all fields and check the disclaimer.',
-        type: 'info'
-      });
-      return;
-    }
-
-    openPopup({
-      title: 'Submitting...',
-      message: 'Please wait while we submit your audio to the smart contract.',
-      type: 'loading'
-    });
-    setErrorMessage(null);
-
     try {
       const normalizedAudioUri = normalizeLink(audioUri);
       const normalizedImageUri = normalizeLink(imageUri);
-
-      // Converti il tag in bytes32 usando keccak256
       const tagBytes32 = ethers.keccak256(ethers.toUtf8Bytes(tag));
+
+      if (isConnectedWithMego) {
+        const userAddress = address || loggedAs;
+        const signMessageForTransaction = "Add song: "+audioUri;
+        openPopup({
+          title: 'Submitting song...',
+          message: 'Please wait while we submit your audio to the smart contract.',
+          type: 'loading'
+        });
+        setMegoPendingDate("addSong",
+          [normalizedAudioUri, normalizedImageUri, title, tagBytes32],
+          signMessageForTransaction, "Submitting...", "Submitting song..." + title, "playlist", userAddress as string);
+        createSignatureWithMego(signMessageForTransaction);
+        return;
+      }
+
+      if (!title || !audioUri || !imageUri || !tag || !disclaimerChecked) {
+        openPopup({
+          title: 'All fields are required and the disclaimer must be checked.',
+          message: 'Please fill in all fields and check the disclaimer.',
+          type: 'info'
+        });
+        return;
+      }
+
+      openPopup({
+        title: 'Submitting...',
+        message: 'Please wait while we submit your audio to the smart contract.',
+        type: 'loading'
+      });
+      setErrorMessage(null);
+
+
 
       const signMessageForTransaction = "Add to playlist: " + title;
       const signature = await signMessage(config, { message: signMessageForTransaction });

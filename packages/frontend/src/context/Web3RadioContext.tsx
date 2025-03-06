@@ -36,6 +36,9 @@ interface Web3RadioContextType {
     scheduleLive: (title: string, imageUrl: string, streamUrl: string, startTime: number, duration: number, tagBytes32: string) => Promise<BlockChainOperationResult>;
 
     liveStreamPlatform: LiveStreamPlatform;
+
+    createSignatureWithMego: (message: string) => void;
+    setMegoPendingDate: (op: string, data: any, signMessage: string, popupTitle: string, popupMessage: string, contract: string, userAddress: string) => void;
 }
 
 export const Web3RadioContext = createContext<Web3RadioContextType | undefined>(undefined);
@@ -562,11 +565,14 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             return;
         }
 
-        const data = JSON.parse(megoWritePendingData);
+        let data = JSON.parse(megoWritePendingData);
         console.log("[mego] megoWritePendingOp:", megoWritePendingOp);
         console.log("[mego] megoWritePendingData:", data);
         console.log("[mego] megoSignatureMessage:", megoSignatureMessage);
         console.log("[mego] signature:", signature);
+
+
+        console.log("[mego] data:", data);
 
         //Oper popup
         openPopup({
@@ -583,7 +589,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 signature,
                 message: megoSignatureMessage,
                 args: [
-                    data,
+                    ...data,
                     signature
                 ]
             })
@@ -592,8 +598,8 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 message: 'Operation executed successfully',
                 type: 'success'
             }); 
-            window.location.reload();
         } catch (error) {
+            console.log("[mego] Error during operation", error);
             openPopup({
                 title: 'Error',
                 message: 'Error during operation',
@@ -672,7 +678,9 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 next24HoursEvents,
                 fetchNext24HoursEvents,
                 scheduleLive,
-                liveStreamPlatform
+                liveStreamPlatform,
+                createSignatureWithMego,
+                setMegoPendingDate
             }}
         >
             {children}
