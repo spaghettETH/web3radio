@@ -203,8 +203,9 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     const fetchMySaves = useCallback(async () => {
 
+        const userAddress = address || loggedAs;
         if (userHasSBT) {
-            console.log("[fetchMySaves] Fetching saved song IDs... with address: ", loggedAs);
+            console.log("[fetchMySaves] Fetching saved song IDs... with address: ", userAddress);
             console.log("[fetchMySaves] -> getPlaylistAddress()", getPlaylistAddress());
             console.log("[fetchMySaves] -> getPlaylistABI()", getPlaylistABI());
             const signMessageForTransaction = "Fetch my saves";
@@ -213,8 +214,8 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                     abi: getPlaylistABI(),
                     address: getPlaylistAddress() as `0x${string}`,
                     functionName: "retrieveMySaves",
-                    account: address as `0x${string}`,
-                    args: [address as `0x${string}`]
+                    account: userAddress as `0x${string}`,
+                    args: [userAddress as `0x${string}`]
                 }) as Array<Number>;
                 console.log("[fetchMySaves] -> savedSongIds", savedSongIds);
                 // Fetch details for each saved song
@@ -322,19 +323,13 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const removeSavedSong = useCallback(async (id: any) => {
         const songId = id.replace("p-", ""); //This is for de-sync playlist and liveschedule SC (id policy)
         console.log("[removeSavedSong] Song ID to remove:", songId);
-        const signMessageForTransaction = "Remove saved song " + songId;
+        const signMessageForTransaction = "Remove from my saves: " + songId;
 
         const isMego = isConnectedWithMego();
         if (isMego) {
-            openPopup({
-                title: 'Error',
-                message: 'Mego implementation is not available yet.',
-                type: 'info'
-            });
-            return BlockChainOperationResult.PENDING;
-            /* setMegoPendingDate("removeFromMySaves", songId, signMessageForTransaction, "Removing...", "Removing song " + songId, "playlist", loggedAs as string);
-            createSignature(signMessageForTransaction);
-            return BlockChainOperationResult.PENDING; */
+            setMegoPendingDate("removeFromMySaves", songId, signMessageForTransaction, "Removing...", "Removing song " + songId, "playlist", loggedAs as string);
+            createSignatureWithMego(signMessageForTransaction);
+            return BlockChainOperationResult.PENDING; 
         }
 
         if (userHasSBT) {
@@ -359,15 +354,9 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         const isMego = isConnectedWithMego();
         //Convert songId to number
         if (isMego && provider) {
-            openPopup({
-                title: 'Error',
-                message: 'Mego implementation is not available yet.',
-                type: 'info'
-            });
+            setMegoPendingDate("addToMySaves", songId, signMessageForTransaction, "Saving...", "Saving song " + songId, "playlist", loggedAs as string);
+            createSignatureWithMego(signMessageForTransaction);
             return BlockChainOperationResult.PENDING;
-            /* setMegoPendingDate("addToMySaves", songId, signMessageForTransaction, "Saving...", "Saving song " + songId, "playlist", loggedAs as string);
-            createSignature(signMessageForTransaction);
-            return BlockChainOperationResult.PENDING; */
         }
 
         if (userHasSBT) {
@@ -560,6 +549,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
         if (!megoWritePendingOp || !megoWritePendingData) {
             console.log("[mego] No pending operation");
+            cleanMegoPendingDate(); //Defensive programming (DP)
             return;
         }
 
@@ -639,7 +629,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         localStorage.removeItem("megoUserAddress");
     }
 
-    const createSignature = (message: string) => {
+    const createSignatureWithMego = (message: string) => {
         const isConnectedWithMego = provider !== 'walletConnect'
         if (isConnectedWithMego && provider) {
             const redirectUrl = window.location.origin
