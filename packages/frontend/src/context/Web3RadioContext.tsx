@@ -48,7 +48,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const [currentSong, setCurrentSong] = useState<any>(null);
 
     const [liveStreamPlatform, setLiveStreamPlatform] = useState<LiveStreamPlatform>(LiveStreamPlatform.NOT_SPECIFIED);
-    const { loggedAs, getProvider, isLoading, openMegoModal, provider, signMessageWithGoogle, signMessageWithApple } = useWeb3Context();
+    const { loggedAs, getProvider, isLoading, openMegoModal, provider, signMessageWithGoogle, signMessageWithApple, isConnectedWithMego } = useWeb3Context();
 
     // Contracts
     const [playlistContract, setPlaylistContract] = useState<Contract | null>(null);
@@ -66,15 +66,6 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     const { address } = useAccount();
     const { openPopup } = usePopup();
-
-
-    const isConnectedWithMego = () => {
-        const isConnectedWithMego = provider !== 'walletConnect'
-        if (isConnectedWithMego && provider) {
-            return true;
-        }
-        return false;
-    }
 
     useEffect(() => {
         const isUserLogged = localStorage.getItem("loggedAs");
