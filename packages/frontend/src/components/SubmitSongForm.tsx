@@ -62,6 +62,8 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
       if (isConnectedWithMego) {
         const userAddress = address || loggedAs;
         const signMessageForTransaction = "Add song: "+audioUri;
+        //const signMessageForTransaction = "Add song: " + title;
+        //const signMessageForTransaction = "Add song: TEST";
         openPopup({
           title: 'Submitting song...',
           message: 'Please wait while we submit your audio to the smart contract.',
