@@ -379,6 +379,8 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const fetchBookedSlots = useCallback(async () => {
         console.log("[fetchBookedSlots] Fetching booked slots");
 
+        const userAddress = address || loggedAs;
+
         if (userHasSBT) {
             try {
                 console.log("[fetchBookedSlots] Fetching because user has SBT");
@@ -386,8 +388,8 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                     abi: getScheduleLiveABI(),
                     address: getScheduleLiveAddress() as `0x${string}`,
                     functionName: "getMyBookedShows",
-                    account: address as `0x${string}`,
-                    args: [address as `0x${string}`]
+                    account: userAddress as `0x${string}`,
+                    args: [userAddress as `0x${string}`]
                 }) as Array<Number>;
                 console.log("[fetchBookedSlots] -> eventIds", eventIds);
                 const events = await Promise.all(
@@ -456,16 +458,14 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     const scheduleLive = useCallback(async (title: string, imageUrl: string, streamUrl: string, startTime: number, duration: number, tagBytes32: string) => {
         
+        const signMessageForTransaction = "Schedule live: " + title;
         if(isConnectedWithMego()) {
-            openPopup({
-                title: 'Error',
-                message: 'Mego implementation is not available yet.',
-                type: 'info'
-            });
+            setMegoPendingDate("scheduleLive", [title, imageUrl, streamUrl, tagBytes32, startTime, duration], signMessageForTransaction, "Scheduling...", "Scheduling live " + title, "scheduleLive", loggedAs as string);
+            createSignatureWithMego(signMessageForTransaction);
             return BlockChainOperationResult.PENDING;
         }
         if (userHasSBT) {
-            const signature = await signMessage(config, { message: "Schedule live: " + title });
+            const signature = await signMessage(config, { message: signMessageForTransaction });
             const tx = await writeContract(config, {
                 abi: getScheduleLiveABI(),
                 address: getScheduleLiveAddress() as `0x${string}`,
