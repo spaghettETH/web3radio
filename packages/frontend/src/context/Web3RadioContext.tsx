@@ -37,8 +37,8 @@ interface Web3RadioContextType {
 
     liveStreamPlatform: LiveStreamPlatform;
 
-    createSignatureWithMego: (message: string) => void;
-    setMegoPendingDate: (op: string, data: any, signMessage: string, popupTitle: string, popupMessage: string, contract: string, userAddress: string) => void;
+    createSignatureWithMego: (message: string, encoded?: boolean) => void;
+    setMegoPendingDate: (op: string, data: any, signMessage: string, popupTitle: string, popupMessage: string, contract: string, userAddress: string, message?: string) => void;
 }
 
 export const Web3RadioContext = createContext<Web3RadioContextType | undefined>(undefined);
@@ -66,6 +66,8 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     const { address } = useAccount();
     const { openPopup } = usePopup();
+
+    let count = 0;
 
     useEffect(() => {
         const isUserLogged = localStorage.getItem("loggedAs");
@@ -146,6 +148,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                             : null;
                     })
                 );
+                console.log("[fetchPlaylist] -> playlistData", playlistData);
                 setPlaylist(playlistData.filter((song) => song !== null) as Song[]); // Filtra le canzoni inattive
                 setRadioModality(RadioMode.PLAYLIST);
                 setLiveStreamPlatform(LiveStreamPlatform.NOT_SPECIFIED);
@@ -162,13 +165,16 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const fetchUserSongs = useCallback(async () => {
         if (userHasSBT) {
             try {
+                console.log("[fetchUserSongs] Fetching user's songs");
                 const userAddress = loggedAs;
+                console.log("[fetchUserSongs] -> userAddress", userAddress);
                 const userSongIds = await readContract(config, {
                     abi: getPlaylistABI(),
                     address: getPlaylistAddress() as `0x${string}`,
                     functionName: "getUserSongs",
                     args: [userAddress]
                 }) as Array<Number>;
+                console.log("[fetchUserSongs] -> userSongIds", userSongIds);
                 let userSongs = await Promise.all(
                     userSongIds.map(async (id: any) => {
                         const song = await readContract(config, {
@@ -536,6 +542,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         const megoWritePendingOp = localStorage.getItem("megoWritePendingOp");
         const megoWritePendingData = localStorage.getItem("megoWritePendingData");
         const megoSignatureMessage = localStorage.getItem("megoSignatureMessage");
+        const megoMessage = localStorage.getItem("megoMessage");
         const megoPopupTitle = localStorage.getItem("megoPopupTitle");
         const megoPopupMessage = localStorage.getItem("megoPopupMessage");
         const megoWritePendingContract = localStorage.getItem("megoWritePendingContract");
@@ -555,6 +562,8 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             cleanMegoPendingDate();
             return;
         }
+
+        console.log("signature", signature);
 
         let data = JSON.parse(megoWritePendingData);
         console.log("[mego] megoWritePendingOp:", megoWritePendingOp);
@@ -578,7 +587,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 contract: megoWritePendingContract,
                 address: megoUserAddress,
                 signature,
-                message: megoSignatureMessage,
+                message: megoMessage,
                 args: [
                     ...data,
                     signature
@@ -603,13 +612,17 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     // Check last blockchain operation started with mego
     useEffect(() => {
-        executeMegoPendingOp();
+        if(count === 0) {
+            executeMegoPendingOp();
+            count++;
+        }
     }, []);
 
-    const setMegoPendingDate = (op: string, data: any, signMessage: string, popupTitle: string, popupMessage: string, contract: string, userAddress: string) => {
+    const setMegoPendingDate = (op: string, data: any, signMessage: string, popupTitle: string, popupMessage: string, contract: string, userAddress: string, message?: string) => {
         localStorage.setItem("megoWritePendingOp", op);
         localStorage.setItem("megoWritePendingData", JSON.stringify(data));
         localStorage.setItem("megoSignatureMessage", signMessage);
+        localStorage.setItem("megoMessage", message || signMessage);
         localStorage.setItem("megoPopupTitle", popupTitle);
         localStorage.setItem("megoPopupMessage", popupMessage);
         localStorage.setItem("megoWritePendingContract", contract);
@@ -620,20 +633,21 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         localStorage.removeItem("megoWritePendingOp");
         localStorage.removeItem("megoWritePendingData");
         localStorage.removeItem("megoSignatureMessage");
+        localStorage.removeItem("megoMessage");
         localStorage.removeItem("megoPopupTitle");
         localStorage.removeItem("megoPopupMessage");
         localStorage.removeItem("megoWritePendingContract");
         localStorage.removeItem("megoUserAddress");
     }
 
-    const createSignatureWithMego = (message: string) => {
+    const createSignatureWithMego = (message: string, encoded: boolean = false) => {
         const isConnectedWithMego = provider !== 'walletConnect'
         if (isConnectedWithMego && provider) {
             const redirectUrl = window.location.origin
             if (provider.includes("google")) {
-                signMessageWithGoogle(redirectUrl, message);
+                signMessageWithGoogle(redirectUrl, message, encoded);
             } else if (provider.includes("apple")) {
-                signMessageWithApple(redirectUrl, message);
+                signMessageWithApple(redirectUrl, message, encoded);
             }
             return false;
         }

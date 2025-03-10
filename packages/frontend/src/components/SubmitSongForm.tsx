@@ -61,9 +61,8 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
 
       if (isConnectedWithMego) {
         const userAddress = address || loggedAs;
-        const signMessageForTransaction = "Add song: "+audioUri;
-        //const signMessageForTransaction = "Add song: " + title;
-        //const signMessageForTransaction = "Add song: TEST";
+        const signMessageForTransaction = btoa("Add song: " + normalizedAudioUri);
+        // const signMessageForTransaction = Buffer.from("Add song: " + audioUri).toString('base64')
         openPopup({
           title: 'Submitting song...',
           message: 'Please wait while we submit your audio to the smart contract.',
@@ -71,8 +70,8 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
         });
         setMegoPendingDate("addSong",
           [normalizedAudioUri, normalizedImageUri, title, tagBytes32],
-          signMessageForTransaction, "Submitting...", "Submitting song..." + title, "playlist", userAddress as string);
-        createSignatureWithMego(signMessageForTransaction);
+          signMessageForTransaction, "Submitting...", "Submitting song..." + title, "playlist", userAddress as string, "Add song: " + normalizedAudioUri);
+        createSignatureWithMego(signMessageForTransaction, true);
         return;
       }
 
@@ -94,7 +93,7 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
 
 
 
-      const signMessageForTransaction = "Add to playlist: " + title;
+      const signMessageForTransaction = "Add to playlist: " + normalizedAudioUri;
       const signature = await signMessage(config, { message: signMessageForTransaction });
 
       const tx = await writeContract(config, {
