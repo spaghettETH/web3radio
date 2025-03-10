@@ -75,22 +75,20 @@ contract DecentraLiveSchedule is Ownable {
         _;
     }
 
-    modifier enforceDailyBookingLimit() {
+    function _enforceDailyBookingLimit(address submitter) internal {
         uint256 currentTime = block.timestamp;
 
         // If more than 24 hours have passed since the last booking, reset the counter
-        if (currentTime > lastBookingTime[msg.sender] + 1 days) {
-            dailyBookingCount[msg.sender] = 0;
-            lastBookingTime[msg.sender] = currentTime;
+        if (currentTime > lastBookingTime[submitter] + 1 days) {
+            dailyBookingCount[submitter] = 0;
+            lastBookingTime[submitter] = currentTime;
         }
 
         // Check if the user has exceeded their daily booking limit
         require(
-            dailyBookingCount[msg.sender] < MAX_BOOKINGS_PER_DAY,
+            dailyBookingCount[submitter] < MAX_BOOKINGS_PER_DAY,
             "Too many bookings for today!"
         );
-
-        _;
     }
 
     function scheduleEvent(
@@ -101,7 +99,7 @@ contract DecentraLiveSchedule is Ownable {
         uint256 slot,
         uint256 slotCount,
         bytes memory signature
-    ) external onlyNFTHolderOrProxy validSlot(slot) enforceDailyBookingLimit {
+    ) external onlyNFTHolderOrProxy validSlot(slot) {
         address submitter = msg.sender;
         if (isProxy[msg.sender]) {
             submitter = returnSubmitter(
@@ -113,6 +111,7 @@ contract DecentraLiveSchedule is Ownable {
                 "User must own an NFT"
             );
         }
+        _enforceDailyBookingLimit(submitter);
         require(slotCount > 0, "Slot count must be greater than zero");
         require(bytes(title).length > 0, "Title is required");
         require(bytes(imageUrl).length > 0, "Image URL is required");

@@ -86,7 +86,7 @@ contract DecentraPlaylist is Ownable {
         });
 
         songsById[nextSongId] = newSong; // Add to mapping
-        userSongs[msg.sender].push(nextSongId); // Track songs per user
+        userSongs[submitter].push(nextSongId); // Track songs per user
         songIDsByTag[tag].push(nextSongId); // Add song ID to tag mapping
         nextSongId++;
     }
@@ -102,13 +102,24 @@ contract DecentraPlaylist is Ownable {
         }
     }
 
-    function removeOwnSong(uint songId) external validSongId(songId) {
+    function removeOwnSong(uint songId, bytes memory signature) external validSongId(songId) {
+        address submitter = msg.sender;
+        if (isProxy[msg.sender]) {
+            submitter = returnSubmitter(
+                signature,
+                abi.encodePacked("Remove own song: ", Strings.toString(songId))
+            );
+            require(
+                nftContract.balanceOf(submitter) > 0,
+                "User must own an NFT"
+            );
+        }
         require(
-            songsById[songId].submitter == msg.sender,
+            songsById[songId].submitter == submitter,
             "Not authorized to remove this song"
         );
         songsById[songId].isActive = false;
-        removeSongFromUser(msg.sender, songId);
+        removeSongFromUser(submitter, songId);
     }
 
     function addToMySaves(
@@ -141,7 +152,10 @@ contract DecentraPlaylist is Ownable {
         if (isProxy[msg.sender]) {
             submitter = returnSubmitter(
                 signature,
-                abi.encodePacked("Remove from my saves: ", Strings.toString(_id))
+                abi.encodePacked(
+                    "Remove from my saves: ",
+                    Strings.toString(_id)
+                )
             );
             require(
                 nftContract.balanceOf(submitter) > 0,
