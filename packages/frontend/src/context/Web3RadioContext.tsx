@@ -296,7 +296,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const removeSubmittedUserSong = useCallback(async (id: any) => {
 
         const songId = id.replace("p-", ""); //This is for de-sync playlist and liveschedule SC (id policy)
-        const signMessageForTransaction = "Remove song: " + songId;
+        const signMessageForTransaction = "Remove own song: " + songId;
         if(isConnectedWithMego()) {
             setMegoPendingDate("removeOwnSong", songId, signMessageForTransaction, "Removing...", "Removing song " + songId, "playlist", loggedAs as string);
             createSignatureWithMego(signMessageForTransaction);
