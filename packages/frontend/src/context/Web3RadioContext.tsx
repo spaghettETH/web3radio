@@ -295,22 +295,21 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     const removeSubmittedUserSong = useCallback(async (id: any) => {
 
+        const songId = id.replace("p-", ""); //This is for de-sync playlist and liveschedule SC (id policy)
+        const signMessageForTransaction = "Remove song: " + songId;
         if(isConnectedWithMego()) {
-            openPopup({
-                title: 'Error',
-                message: 'Mego implementation is not available yet.',
-                type: 'info'
-            });
+            setMegoPendingDate("removeOwnSong", songId, signMessageForTransaction, "Removing...", "Removing song " + songId, "playlist", loggedAs as string);
+            createSignatureWithMego(signMessageForTransaction);
             return BlockChainOperationResult.PENDING;
         }
         
-        const songId = id.replace("p-", ""); //This is for de-sync playlist and liveschedule SC (id policy)
         if (userHasSBT) {
+            const signature = await signMessage(config, { message: signMessageForTransaction });
             const tx = await writeContract(config, {
                 abi: getPlaylistABI(),
                 address: getPlaylistAddress() as `0x${string}`,
                 functionName: "removeOwnSong",
-                args: [songId]
+                args: [songId, signature]
             });
 
             await waitForTransactionReceipt(config, { hash: tx });
@@ -455,10 +454,10 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     const scheduleLive = useCallback(async (title: string, imageUrl: string, streamUrl: string, startTime: number, duration: number, tagBytes32: string) => {
         
-        const signMessageForTransaction = "Schedule live: " + title;
+        const signMessageForTransaction = btoa("Schedule event: "+ title);
         if(isConnectedWithMego()) {
-            setMegoPendingDate("scheduleLive", [title, imageUrl, streamUrl, tagBytes32, startTime, duration], signMessageForTransaction, "Scheduling...", "Scheduling live " + title, "scheduleLive", loggedAs as string);
-            createSignatureWithMego(signMessageForTransaction);
+            setMegoPendingDate("scheduleEvent", [title, imageUrl, streamUrl, tagBytes32, startTime, duration], signMessageForTransaction, "Scheduling...", "Scheduling live " + title, "live", loggedAs as string, "Schedule event: "+ title);
+            createSignatureWithMego(signMessageForTransaction, true);
             return BlockChainOperationResult.PENDING;
         }
         if (userHasSBT) {
@@ -479,11 +478,8 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const deleteScheduledEvent = useCallback(async (eventId: any) => {
 
         if(isConnectedWithMego()) {
-            openPopup({
-                title: 'Error',
-                message: 'Mego implementation is not available yet.',
-                type: 'info'
-            });
+            setMegoPendingDate("deleteEvent", eventId, "Delete scheduled event: " + eventId, "Deleting...", "Deleting scheduled event " + eventId, "live", loggedAs as string, "Delete scheduled event: " + eventId);
+            createSignatureWithMego("Delete scheduled event: " + eventId);
             return BlockChainOperationResult.PENDING;
         }
         if (userHasSBT) {
@@ -652,9 +648,6 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             return false;
         }
     }
-
-
-
 
 
     return (
