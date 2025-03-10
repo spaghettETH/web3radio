@@ -3,10 +3,10 @@ const fs = require('fs');
 
 async function main() {
     const configs = JSON.parse(fs.readFileSync(process.env.CONFIG).toString())
-    const ABI = JSON.parse(fs.readFileSync('../contracts/artifacts/contracts/DecentraPlaylist.sol/DecentraPlaylist.json').toString())
+    const ABI = JSON.parse(fs.readFileSync('../contracts/artifacts/contracts/DecentraLiveSchedule.sol/DecentraLiveSchedule.json').toString())
     const provider = new ethers.providers.JsonRpcProvider(configs.provider);
     let wallet = new ethers.Wallet(configs.owner_key).connect(provider)
-    const contract = new ethers.Contract(configs.contract_addresses.Playlist, ABI.abi, wallet)
+    const contract = new ethers.Contract(configs.contract_addresses.ScheduleLive, ABI.abi, wallet)
 
     try {
         const result = await contract.setProxyAddress(
