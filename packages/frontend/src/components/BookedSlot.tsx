@@ -40,7 +40,7 @@ const BookedSlot: React.FC<BookedSlotProps> = ({ slot, isCompact = false, canDel
             const res = await deleteScheduledEvent(id);
             if (res === BlockChainOperationResult.SUCCESS) {
                 openPopup({ title: "Success", message: "Scheduled event deleted successfully", type: "success" });
-            } else {
+            } else if(res === BlockChainOperationResult.ERROR) {
                 openPopup({ title: "Error", message: "Error deleting scheduled event", type: "error" });
             }
         } catch (error) {
