@@ -593,11 +593,17 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                     signature
                 ]
             })
+            const transactionHash = result.data.transactionHash;
+            await waitForTransactionReceipt(config, { hash: transactionHash });
             openPopup({
                 title: 'Success',
                 message: 'Operation executed successfully',
                 type: 'success'
             }); 
+            //await 1000ms
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            //Reload page
+            window.location.reload();
         } catch (error) {
             console.log("[mego] Error during operation", error);
             const message = error?.response?.data?.error?.cause?.reason || "Error during operation"
