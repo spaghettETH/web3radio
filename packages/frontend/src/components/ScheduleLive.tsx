@@ -16,9 +16,9 @@ interface ScheduleLiveProps {
 }
 
 const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
-  const [title, setTitle] = useState<string>("Live schedule");
-  const [imageUrl, setImageUrl] = useState<string>("https://www.dropbox.com/scl/fi/2n8habl5p6017w2s0zwjl/Screenshot-2025-02-06-alle-09.23.38.png?rlkey=kpdqiyd14wzsu9g491430r74k&st=t7l4f88f&dl=0");
-  const [streamUrl, setStreamUrl] = useState<string>("https://www.twitch.tv/lofigirl");
+  const [title, setTitle] = useState<string>("");
+  const [imageUrl, setImageUrl] = useState<string>("");
+  const [streamUrl, setStreamUrl] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [duration, setDuration] = useState<number>(1); // Default: 30 minutes
   const [tag, setTag] = useState<string>("");
