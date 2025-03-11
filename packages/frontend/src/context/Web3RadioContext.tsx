@@ -78,18 +78,21 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     }, [loggedAs]);
 
     const initializeProvider = useCallback(async () => {
-        if (loggedAs) {
+        const userWallet = loggedAs || address;
+        if (userWallet) {
             try {
-
+                
                 setIsConnected(true);
                 //TODO: Controllare se l'utente ha il SBT
                 console.log("ABI: ", getSoulBoundTokenABI());
                 console.log("ADDRESS: ", getSoulBoundTokenAddress());
+                console.log("USER WALLET: ", userWallet);
+
                 const hasSBT = await readContract(config, {
                     abi: getSoulBoundTokenABI(),
                     address: getSoulBoundTokenAddress() as `0x${string}`,
                     functionName: "balanceOf",
-                    args: [loggedAs]
+                    args: [userWallet]
                 });
                 console.log("hasSBT", hasSBT);
 
@@ -456,7 +459,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         
         const signMessageForTransaction = `Schedule event: ${title}`;
         if(isConnectedWithMego()) {
-            setMegoPendingDate("scheduleEvent", [title, imageUrl, streamUrl, tagBytes32, startTime, duration], signMessageForTransaction, "Scheduling...", "Scheduling live " + title, "live", loggedAs as string, `Schedule event: ${title}`);
+            setMegoPendingDate("scheduleEvent", [`${title}`, imageUrl, streamUrl, tagBytes32, startTime, duration], signMessageForTransaction, "Scheduling...", "Scheduling live " + title, "live", loggedAs as string,`Schedule event: ${title}`);
             createSignatureWithMego(signMessageForTransaction, false);
             return BlockChainOperationResult.PENDING;
         }
@@ -478,8 +481,9 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const deleteScheduledEvent = useCallback(async (eventId: any) => {
 
         if(isConnectedWithMego()) {
-            setMegoPendingDate("deleteEvent", eventId, "Delete scheduled event: " + eventId, "Deleting...", "Deleting scheduled event " + eventId, "live", loggedAs as string, "Delete scheduled event: " + eventId);
-            createSignatureWithMego("Delete scheduled event: " + eventId);
+            const signMessageForTransaction = "Delete event: " + eventId;
+            setMegoPendingDate("deleteEvent", `${eventId}`, signMessageForTransaction, "Deleting...", "Deleting scheduled event " + eventId, "live", loggedAs as string);
+            createSignatureWithMego(signMessageForTransaction, false);
             return BlockChainOperationResult.PENDING;
         }
         if (userHasSBT) {
@@ -596,9 +600,11 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             }); 
         } catch (error) {
             console.log("[mego] Error during operation", error);
+            const message = error?.response?.data?.error?.cause?.reason || "Error during operation"
+            console.log(error)
             openPopup({
                 title: 'Error',
-                message: 'Error during operation',
+                message,
                 type: 'error'
             });
         } finally {

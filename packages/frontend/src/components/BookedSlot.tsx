@@ -1,3 +1,4 @@
+import React from "react";
 import { usePopup } from "../context/PopupContext";
 import { useWeb3Radio } from "../context/Web3RadioContext";
 import { BlockChainOperationResult } from "../interfaces/interface";
@@ -30,11 +31,14 @@ const BookedSlot: React.FC<BookedSlotProps> = ({ slot, isCompact = false, canDel
     const { deleteScheduledEvent } = useWeb3Radio();
     const { openPopup } = usePopup();
 
-    const handleDelete = async () => {
+    const handleDelete = async (id: string) => {
+        if(!slot || !slot.id){
+            return;
+        }
         try {
             openPopup({ title: "Delete Scheduled Event", message: "Are you sure you want to delete this scheduled event?", type: "loading" });
-            const res = await deleteScheduledEvent(slot.id);
-            if(res === BlockChainOperationResult.SUCCESS) {
+            const res = await deleteScheduledEvent(id);
+            if (res === BlockChainOperationResult.SUCCESS) {
                 openPopup({ title: "Success", message: "Scheduled event deleted successfully", type: "success" });
             } else {
                 openPopup({ title: "Error", message: "Error deleting scheduled event", type: "error" });
@@ -58,7 +62,7 @@ const BookedSlot: React.FC<BookedSlotProps> = ({ slot, isCompact = false, canDel
                 <div className="flex flex-col items-start md:items-start">
                     <p>{slot.title}</p>
                     <p>{slot.startTime + " - " + slot.endTime}</p>
-                    {canDelete && <button onClick={handleDelete} className="text-xs text-red-500 hover:text-red-700">Delete</button>}
+                    {canDelete && <button onClick={() => handleDelete(slot.id)} className="text-xs text-red-500 hover:text-red-700">Delete</button>}
                 </div>
             </div>
         );
@@ -78,7 +82,7 @@ const BookedSlot: React.FC<BookedSlotProps> = ({ slot, isCompact = false, canDel
                 <p>{"Start Time: " + slot.startTime}</p>
                 <p>{"End Time: " + slot.endTime}</p>
                 <p>{"Status: " + (isLive ? "Live" : isFinished ? "Finished" : "Scheduled")}</p>
-                {canDelete && <button onClick={handleDelete}>Delete</button>}
+                {canDelete && <button onClick={() => handleDelete(slot.id)}>Delete</button>}
             </div>
         </div>
     )
