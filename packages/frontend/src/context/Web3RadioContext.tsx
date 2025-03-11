@@ -454,10 +454,10 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     const scheduleLive = useCallback(async (title: string, imageUrl: string, streamUrl: string, startTime: number, duration: number, tagBytes32: string) => {
         
-        const signMessageForTransaction = btoa("Schedule event: "+ title);
+        const signMessageForTransaction = `Schedule event: ${title}`;
         if(isConnectedWithMego()) {
-            setMegoPendingDate("scheduleEvent", [title, imageUrl, streamUrl, tagBytes32, startTime, duration], signMessageForTransaction, "Scheduling...", "Scheduling live " + title, "live", loggedAs as string, "Schedule event: "+ title);
-            createSignatureWithMego(signMessageForTransaction, true);
+            setMegoPendingDate("scheduleEvent", [title, imageUrl, streamUrl, tagBytes32, startTime, duration], signMessageForTransaction, "Scheduling...", "Scheduling live " + title, "live", loggedAs as string, `Schedule event: ${title}`);
+            createSignatureWithMego(signMessageForTransaction, false);
             return BlockChainOperationResult.PENDING;
         }
         if (userHasSBT) {
