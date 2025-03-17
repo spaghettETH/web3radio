@@ -330,7 +330,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
         const isMego = isConnectedWithMego();
         if (isMego) {
-            setMegoPendingDate("removeFromMySaves", songId, signMessageForTransaction, "Removing...", "Removing song " + songId, "playlist", loggedAs as string);
+            setMegoPendingDate("removeFromMySaves", [`${songId}`], signMessageForTransaction, "Removing...", "Removing song " + songId, "playlist", loggedAs as string);
             createSignatureWithMego(signMessageForTransaction);
             return BlockChainOperationResult.PENDING; 
         }
@@ -357,7 +357,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         const isMego = isConnectedWithMego();
         //Convert songId to number
         if (isMego && provider) {
-            setMegoPendingDate("addToMySaves", songId, signMessageForTransaction, "Saving...", "Saving song " + songId, "playlist", loggedAs as string);
+            setMegoPendingDate("addToMySaves", [`${songId}`], signMessageForTransaction, "Saving...", "Saving song " + songId, "playlist", loggedAs as string);
             createSignatureWithMego(signMessageForTransaction);
             return BlockChainOperationResult.PENDING;
         }
