@@ -105,7 +105,13 @@ const Web3AudioPlayer: React.FC<Web3AudioPlayerProps> = () => {
                     onEnded={handleEnded}
                   />
                 }
+                {radioModality == RadioMode.PLAYLIST && (
+                  <p className="text-white text-left pl-2">
+                    { "Now Playing: " + (currentSong?.title || "Untitled")}
+                  </p>
+                )}
               </div>
+
             </div>
             <div className="absolute top-10 right-5 m-2 z-50">
               <ReportAbuse />
