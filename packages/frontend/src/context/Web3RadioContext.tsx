@@ -483,7 +483,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
         if(isConnectedWithMego()) {
             const signMessageForTransaction = "Delete event: " + eventId;
-            setMegoPendingDate("deleteEvent", `${eventId}`, signMessageForTransaction, "Deleting...", "Deleting scheduled event " + eventId, "live", loggedAs as string);
+            setMegoPendingDate("deleteEvent", [`${eventId}`], signMessageForTransaction, "Deleting...", "Deleting scheduled event " + eventId, "live", loggedAs as string);
             createSignatureWithMego(signMessageForTransaction, false);
             return BlockChainOperationResult.PENDING;
         }
