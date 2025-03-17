@@ -11,7 +11,8 @@ import '@rainbow-me/rainbowkit/styles.css';
 import "@megotickets/wallet/dist/index.css";
 
 
-import { Web3Provider, Web3MegoClientProvider } from "@megotickets/wallet";
+import { Web3MegoClientProvider } from "@megotickets/wallet";
+import {Web3Provider } from "@megotickets/core";
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 

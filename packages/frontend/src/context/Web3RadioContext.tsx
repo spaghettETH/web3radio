@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
-import { useWeb3Context, readContract, writeContract, config, useAccount, waitForTransactionReceipt, signMessage } from "@megotickets/wallet";
+import { useWeb3Context } from "@megotickets/wallet";
+import {readContract, writeContract, config, useAccount, waitForTransactionReceipt, signMessage} from "@megotickets/core";
 import { Contract } from "ethers";
 import { getPlaylistABI, getPlaylistAddress } from "../contracts/DecentralizePlaylist/contract";
 import { getScheduleLiveABI, getScheduleLiveAddress } from "../contracts/ScheduleLive/contract";

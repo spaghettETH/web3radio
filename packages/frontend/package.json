@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@megotickets/wallet": "workspace:*",
+    "@megotickets/wallet": "workspace:wallet",
+    "@megotickets/core": "workspace:core",
     "@rainbow-me/rainbowkit": "^2.2.3",
     "@tanstack/react-query": "^5.66.0",
     "@testing-library/jest-dom": "^5.17.0",

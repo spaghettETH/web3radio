@@ -4,7 +4,9 @@ import { FaMusic, FaFileAudio, FaImage } from 'react-icons/fa';
 import { useWeb3Radio } from "../context/Web3RadioContext";
 import { usePopup } from "../context/PopupContext";
 import FormatBannerInfo from "./FormatBannerInfo";
-import { useWeb3Context, readContract, writeContract, config, waitForTransactionReceipt, signMessage, useAccount } from "@megotickets/wallet";
+import { useWeb3Context } from "@megotickets/wallet";
+import {readContract, writeContract, config, waitForTransactionReceipt, signMessage, useAccount} from "@megotickets/core";
+
 import { getPlaylistABI, getPlaylistAddress } from "../contracts/DecentralizePlaylist/contract";
 import { ethers } from "ethers";
 import { Tags } from "./utils/Tags";

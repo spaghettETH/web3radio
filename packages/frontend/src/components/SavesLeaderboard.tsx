@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import LeaderboardTable from "./LeaderboardTable";
 import LoaderSkeleton from "./LoaderSkelethon";
 import { useWeb3Radio } from "../context/Web3RadioContext";
-import { useAccount, readContract, config, useWeb3Context } from "@megotickets/wallet";
+import { useWeb3Context } from "@megotickets/wallet";
+import { useAccount, readContract, config } from "@megotickets/core";
 import { getPlaylistABI, getPlaylistAddress } from "../contracts/DecentralizePlaylist/contract";
 // Helper to resolve IPFS URIs
 

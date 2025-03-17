@@ -6,10 +6,18 @@
   "scripts": {
     "start": "pnpm --filter frontend start",
     "init:submodule": "git submodule update --init --recursive",
+    
+    "build:core": "pnpm --filter @megotickets/core build",
+    "dev:core": "pnpm --filter @megotickets/core dev",
+
     "build:mego": "pnpm --filter @megotickets/wallet build",
     "dev:mego": "pnpm --filter @megotickets/wallet dev",
+
+    "build:test": "pnpm --filter @my-web3/web build",
+    "dev:test": "pnpm --filter @my-web3/web dev",
+
     "build:web3": "pnpm --filter frontend build",
-    "deploy:web3": "pnpm init:submodule && pnpm install && pnpm build:mego && pnpm build:web3"
+    "deploy:web3": "pnpm init:submodule && pnpm install && pnpm build:core && pnpm build:mego && pnpm build:web3"
   },
   "keywords": [],
   "author": "",
