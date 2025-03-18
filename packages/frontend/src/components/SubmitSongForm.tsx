@@ -100,6 +100,7 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
 
       const tx = await writeContract(config, {
         abi: getPlaylistABI(),
+        chainId: 10,
         address: getPlaylistAddress() as `0x${string}`,
         functionName: "addSong",
         args: [normalizedAudioUri, normalizedImageUri, title, tagBytes32, signature],

@@ -30,6 +30,7 @@ const SavesLeaderboard: React.FC<SavesLeaderboardProps> = () => {
       console.log("[fetchLeaderboard] -> address", address);
       const songIds = await readContract(config, {
         address: getPlaylistAddress() as `0x${string}`,
+        chainId: 10,
         abi: getPlaylistABI(),
         functionName: "viewPlaylist",
         account: userWalletAddress as `0x${string}`
@@ -42,6 +43,7 @@ const SavesLeaderboard: React.FC<SavesLeaderboardProps> = () => {
           const score = await readContract(config, {
             address: getPlaylistAddress() as `0x${string}`,
             abi: getPlaylistABI(),
+            chainId: 10,
             functionName: "songScores",
             args: [id],
             account: userWalletAddress as `0x${string}`
@@ -60,6 +62,7 @@ const SavesLeaderboard: React.FC<SavesLeaderboardProps> = () => {
           const song = await readContract(config, {
             address: getPlaylistAddress() as `0x${string}`,
             abi: getPlaylistABI(),
+            chainId: 10,
             functionName: "songsById",
             args: [id]
           }) as any;

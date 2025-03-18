@@ -91,6 +91,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
                 const hasSBT = await readContract(config, {
                     abi: getSoulBoundTokenABI(),
+                    chainId: 10,
                     address: getSoulBoundTokenAddress() as `0x${string}`,
                     functionName: "balanceOf",
                     args: [userWallet]
@@ -126,6 +127,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             try {
                 const playlistIds = await readContract(config, {
                     abi: getPlaylistABI(),
+                    chainId: 10,
                     address: getPlaylistAddress() as `0x${string}`,
                     functionName: "viewPlaylist"
                 }) as Array<Number>;
@@ -136,6 +138,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                     playlistIds.map(async (id: any) => {
                         const song = await readContract(config, {
                             abi: getPlaylistABI(),
+                            chainId: 10,
                             address: getPlaylistAddress() as `0x${string}`,
                             functionName: "getSongDetails",
                             args: [id]
@@ -174,6 +177,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 console.log("[fetchUserSongs] -> userAddress", userAddress);
                 const userSongIds = await readContract(config, {
                     abi: getPlaylistABI(),
+                    chainId: 10,
                     address: getPlaylistAddress() as `0x${string}`,
                     functionName: "getUserSongs",
                     args: [userAddress]
@@ -183,6 +187,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                     userSongIds.map(async (id: any) => {
                         const song = await readContract(config, {
                             abi: getPlaylistABI(),
+                            chainId: 10,
                             address: getPlaylistAddress() as `0x${string}`,
                             functionName: "getSongDetails",
                             args: [id]
@@ -216,6 +221,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             try {
                 const savedSongIds = await readContract(config, {
                     abi: getPlaylistABI(),
+                    chainId: 10,
                     address: getPlaylistAddress() as `0x${string}`,
                     functionName: "retrieveMySaves",
                     account: userAddress as `0x${string}`,
@@ -231,6 +237,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                         console.log("[fetchMySaves] -> id", id);
                         const song = await readContract(config, {
                             abi: getPlaylistABI(),
+                            chainId: 10,
                             address: getPlaylistAddress() as `0x${string}`,
                             functionName: "songsById",
                             args: [id]
@@ -260,6 +267,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             if (userHasSBT) {
                 const onAirInformation = await readContract(config, {
                     abi: getScheduleLiveABI(),
+                    chainId: 10,
                     address: getScheduleLiveAddress() as `0x${string}`,
                     functionName: "onAirNow"
                 }) as any;
@@ -311,6 +319,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             const signature = await signMessage(config, { message: signMessageForTransaction });
             const tx = await writeContract(config, {
                 abi: getPlaylistABI(),
+                chainId: 10,
                 address: getPlaylistAddress() as `0x${string}`,
                 functionName: "removeOwnSong",
                 args: [songId, signature]
@@ -339,6 +348,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             const signature = await signMessage(config, { message: signMessageForTransaction });
             const tx = await writeContract(config, {
                 abi: getPlaylistABI(),
+                chainId: 10,
                 address: getPlaylistAddress() as `0x${string}`,
                 functionName: "removeFromMySaves",
                 args: [songId, signature]
@@ -366,6 +376,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             const signature = await signMessage(config, { message: signMessageForTransaction });
             const tx = await writeContract(config, {
                 abi: getPlaylistABI(),
+                chainId: 10,
                 address: getPlaylistAddress() as `0x${string}`,
                 functionName: "addToMySaves",
                 args: [songId, signature]
@@ -386,6 +397,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 console.log("[fetchBookedSlots] Fetching because user has SBT");
                 const eventIds = await readContract(config, {
                     abi: getScheduleLiveABI(),
+                    chainId: 10,
                     address: getScheduleLiveAddress() as `0x${string}`,
                     functionName: "getMyBookedShows",
                     account: userAddress as `0x${string}`,
@@ -396,6 +408,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                     eventIds.map(async (eventId: any) => {
                         const event = await readContract(config, {
                             abi: getScheduleLiveABI(),
+                            chainId: 10,
                             address: getScheduleLiveAddress() as `0x${string}`,
                             functionName: "getEventDetails",
                             args: [eventId]
@@ -425,6 +438,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             try {
                 const eventIds = await readContract(config, {
                     abi: getScheduleLiveABI(),
+                    chainId: 10,
                     address: getScheduleLiveAddress() as `0x${string}`,
                     functionName: "getLiveShowsInNext24Hours"
                 }) as Array<Number>;
@@ -433,6 +447,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                     eventIds.map(async (eventId: any) => {
                         const event = await readContract(config, {
                             abi: getScheduleLiveABI(),
+                            chainId: 10,
                             address: getScheduleLiveAddress() as `0x${string}`,
                             functionName: "getEventDetails",
                             args: [eventId]
@@ -468,6 +483,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             const signature = await signMessage(config, { message: signMessageForTransaction });
             const tx = await writeContract(config, {
                 abi: getScheduleLiveABI(),
+                chainId: 10,
                 address: getScheduleLiveAddress() as `0x${string}`,
                 functionName: "scheduleEvent",
                 args: [title, imageUrl, streamUrl, tagBytes32, startTime, duration, signature]
@@ -493,6 +509,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             const signature = await signMessage(config, { message: signMessageForTransaction });
             const tx = await writeContract(config, {
                 abi: getScheduleLiveABI(),
+                chainId: 10,
                 address: getScheduleLiveAddress() as `0x${string}`,
                 functionName: "deleteEvent",
                 args: [eventId, signature]
