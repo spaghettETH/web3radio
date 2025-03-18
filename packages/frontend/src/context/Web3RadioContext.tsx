@@ -325,7 +325,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 args: [songId, signature]
             });
 
-            await waitForTransactionReceipt(config, { hash: tx });
+            await waitForTransactionReceipt(config, { hash: tx, chainId: 10 });
 
             fetchUserSongs();
         }
@@ -353,7 +353,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 functionName: "removeFromMySaves",
                 args: [songId, signature]
             });
-            await waitForTransactionReceipt(config, { hash: tx });
+            await waitForTransactionReceipt(config, { hash: tx, chainId: 10 });
             fetchMySaves();
         }
         return BlockChainOperationResult.SUCCESS;
@@ -381,7 +381,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 functionName: "addToMySaves",
                 args: [songId, signature]
             });
-            await waitForTransactionReceipt(config, { hash: tx });
+            await waitForTransactionReceipt(config, { hash: tx, chainId: 10 });
             fetchMySaves();
         }
         return BlockChainOperationResult.SUCCESS;
@@ -488,7 +488,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 functionName: "scheduleEvent",
                 args: [title, imageUrl, streamUrl, tagBytes32, startTime, duration, signature]
             });
-            await waitForTransactionReceipt(config, { hash: tx });
+            await waitForTransactionReceipt(config, { hash: tx, chainId: 10 });
             fetchBookedSlots();
             fetchNext24HoursEvents();
         }
@@ -514,7 +514,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 functionName: "deleteEvent",
                 args: [eventId, signature]
             });
-            await waitForTransactionReceipt(config, { hash: tx });
+            await waitForTransactionReceipt(config, { hash: tx, chainId: 10 });
             console.log("[deleteScheduledEvent] Event deleted");
             fetchBookedSlots();
             fetchNext24HoursEvents();
@@ -611,8 +611,10 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                     signature
                 ]
             })
+            console.log("[mego] result", result);
             const transactionHash = result.data.transactionHash;
-            await waitForTransactionReceipt(config, { hash: transactionHash });
+            console.log("[mego] transactionHash", transactionHash);
+            await waitForTransactionReceipt(config, { hash: transactionHash, chainId: 10 });
             openPopup({
                 title: 'Success',
                 message: 'Operation executed successfully',

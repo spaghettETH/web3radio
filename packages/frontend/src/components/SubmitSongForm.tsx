@@ -106,7 +106,7 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
         args: [normalizedAudioUri, normalizedImageUri, title, tagBytes32, signature],
       });
 
-      await waitForTransactionReceipt(config, { hash: tx });
+      await waitForTransactionReceipt(config, { hash: tx, chainId: 10 });
 
       openPopup({
         title: 'Submitted!',
