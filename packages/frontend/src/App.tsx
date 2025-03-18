@@ -9,29 +9,27 @@ import ClaimSoulBoundToken from "./components/ClaimSoulBoundToken";
 import ConnectWithMego from "./components/ConnectWithMego";
 import { MegoWalletButton } from "@megotickets/wallet";
 import { optimism, custom, createWalletClient } from "@megotickets/core";
+
 const App: React.FC = () => {
     const { isConnected, userHasSBT } = useWeb3Radio();
 
     //AddChain to wallet if there is
-/*     const addChain = async () => {
+    const addChain = async () => {
         try {
-            if (window.ethereum) {
-                const walletClient = createWalletClient({
-                    chain: optimism,
-                    transport: custom(window.ethereum!),
-                });
-                await walletClient.addChain({ chain: optimism });
-            }
+            const walletClient = createWalletClient({
+                chain: optimism,
+                transport: custom(window.ethereum!),
+            });
+            await walletClient.addChain({ chain: optimism });
         } catch (error) {
-            //reload page
-            window.location.reload();
+            
         }
     }
 
     //AddChain to wallet for security
     useEffect(() => {
         addChain();
-    }, []); */
+    }, []);
 
     return (
         <>
