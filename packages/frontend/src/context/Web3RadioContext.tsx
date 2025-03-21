@@ -9,7 +9,7 @@ import { getLivePlatformFromUri } from "../utils/Utils";
 import { getSoulBoundTokenABI, getSoulBoundTokenAddress } from "../contracts/SoulBoundToken/contract";
 import { usePopup } from "./PopupContext";
 import axios from "axios";
-
+import { signMessageWithApple, signMessageWithGoogle } from "@megotickets/core";
 interface Web3RadioContextType {
     playlistContract: Contract | null;
     playlist: any[];
@@ -49,7 +49,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const [currentSong, setCurrentSong] = useState<any>(null);
 
     const [liveStreamPlatform, setLiveStreamPlatform] = useState<LiveStreamPlatform>(LiveStreamPlatform.NOT_SPECIFIED);
-    const { loggedAs, getProvider, isLoading, openMegoModal, provider, signMessageWithGoogle, signMessageWithApple, isConnectedWithMego } = useWeb3Context();
+    const { loggedAs, getProvider, isLoading, openMegoModal, provider, isConnectedWithMego } = useWeb3Context();
 
     // Contracts
     const [playlistContract, setPlaylistContract] = useState<Contract | null>(null);

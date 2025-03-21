@@ -185,11 +185,42 @@ importers:
         specifier: ^5.0.0
         version: 5.7.3
 
+  packages/submodules/react-components/packages/payments:
+    dependencies:
+      '@megotickets/core':
+        specifier: workspace:core
+        version: link:../core
+      '@react-google-maps/api':
+        specifier: ^2.20.6
+        version: 2.20.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@stripe/stripe-js':
+        specifier: ^5.8.0
+        version: 5.8.0
+      axios:
+        specifier: ^1.7.7
+        version: 1.8.1
+    devDependencies:
+      '@types/react':
+        specifier: ^18.2.0
+        version: 18.3.18
+      '@types/react-dom':
+        specifier: ^18.2.0
+        version: 18.3.5(@types/react@18.3.18)
+      tsup:
+        specifier: ^8.0.1
+        version: 8.3.6(jiti@1.21.7)(postcss@8.5.3)(typescript@5.7.3)(yaml@2.7.0)
+      typescript:
+        specifier: ^5.0.0
+        version: 5.7.3
+
   packages/submodules/react-components/packages/test:
     dependencies:
       '@megotickets/core':
         specifier: workspace:core
         version: link:../core
+      '@megotickets/payments':
+        specifier: workspace:payments
+        version: link:../payments
       '@megotickets/wallet':
         specifier: workspace:wallet
         version: link:../wallet
@@ -251,12 +282,6 @@ importers:
       '@rainbow-me/rainbowkit':
         specifier: ^2.0.0
         version: 2.2.3(@tanstack/react-query@5.66.3(react@18.3.1))(@types/react@18.3.18)(babel-plugin-macros@3.1.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10))(wagmi@2.14.11(@tanstack/query-core@5.66.3)(@tanstack/react-query@5.66.3(react@18.3.1))(@types/react@18.3.18)(bufferutil@4.0.9)(encoding@0.1.13)(immer@9.0.21)(react@18.3.1)(typescript@5.7.3)(utf-8-validate@5.0.10)(viem@2.23.2(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)))
-      '@react-google-maps/api':
-        specifier: ^2.20.6
-        version: 2.20.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@stripe/stripe-js':
-        specifier: ^5.8.0
-        version: 5.8.0
       '@tanstack/react-query':
         specifier: ^5.0.0
         version: 5.66.3(react@18.3.1)
