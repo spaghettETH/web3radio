@@ -1,6 +1,7 @@
+import React from "react";
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import { useWeb3Context } from "@megotickets/wallet";
-import {readContract, writeContract, config, useAccount, waitForTransactionReceipt, signMessage} from "@megotickets/core";
+import { readContract, writeContract, config, useAccount, waitForTransactionReceipt, signMessage } from "@megotickets/core";
 import { Contract } from "ethers";
 import { getPlaylistABI, getPlaylistAddress } from "../contracts/DecentralizePlaylist/contract";
 import { getScheduleLiveABI, getScheduleLiveAddress } from "../contracts/ScheduleLive/contract";
@@ -9,7 +10,7 @@ import { getLivePlatformFromUri } from "../utils/Utils";
 import { getSoulBoundTokenABI, getSoulBoundTokenAddress } from "../contracts/SoulBoundToken/contract";
 import { usePopup } from "./PopupContext";
 import axios from "axios";
-import { signMessageWithApple, signMessageWithGoogle } from "@megotickets/core";
+import PopupMegoAuth from "../PopupMegoAuth/PopupMegoAuth";
 interface Web3RadioContextType {
     playlistContract: Contract | null;
     playlist: any[];
@@ -68,7 +69,13 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     const { address } = useAccount();
     const { openPopup } = usePopup();
 
+    const [isActiveMegoAuth, setIsActiveMegoAuth] = useState<boolean>(false);
+    const [messageMegoAuth, setMessageMegoAuth] = useState<string>("");
+    const [encodedMegoAuth, setEncodedMegoAuth] = useState<boolean>(false);
+
     let count = 0;
+
+    const [megoFallback, setMegoFallback] = useState<boolean>(false);
 
     useEffect(() => {
         const isUserLogged = localStorage.getItem("loggedAs");
@@ -82,7 +89,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         const userWallet = loggedAs || address;
         if (userWallet) {
             try {
-                
+
                 setIsConnected(true);
                 //TODO: Controllare se l'utente ha il SBT
                 console.log("ABI: ", getSoulBoundTokenABI());
@@ -309,12 +316,12 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
         const songId = id.replace("p-", ""); //This is for de-sync playlist and liveschedule SC (id policy)
         const signMessageForTransaction = "Remove own song: " + songId;
-        if(isConnectedWithMego()) {
+        if (isConnectedWithMego()) {
             setMegoPendingDate("removeOwnSong", [`${songId}`], signMessageForTransaction, "Removing...", "Removing song " + songId, "playlist", loggedAs as string);
             createSignatureWithMego(signMessageForTransaction);
             return BlockChainOperationResult.PENDING;
         }
-        
+
         if (userHasSBT) {
             const signature = await signMessage(config, { message: signMessageForTransaction });
             const tx = await writeContract(config, {
@@ -341,7 +348,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         if (isMego) {
             setMegoPendingDate("removeFromMySaves", [`${songId}`], signMessageForTransaction, "Removing...", "Removing song " + songId, "playlist", loggedAs as string);
             createSignatureWithMego(signMessageForTransaction);
-            return BlockChainOperationResult.PENDING; 
+            return BlockChainOperationResult.PENDING;
         }
 
         if (userHasSBT) {
@@ -472,10 +479,10 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     }, [scheduleLiveContract, getProvider, userHasSBT]);
 
     const scheduleLive = useCallback(async (title: string, imageUrl: string, streamUrl: string, startTime: number, duration: number, tagBytes32: string) => {
-        
+
         const signMessageForTransaction = `Schedule event: ${title}`;
-        if(isConnectedWithMego()) {
-            setMegoPendingDate("scheduleEvent", [`${title}`, imageUrl, streamUrl, tagBytes32, startTime, duration], signMessageForTransaction, "Scheduling...", "Scheduling live " + title, "live", loggedAs as string,`Schedule event: ${title}`);
+        if (isConnectedWithMego()) {
+            setMegoPendingDate("scheduleEvent", [`${title}`, imageUrl, streamUrl, tagBytes32, startTime, duration], signMessageForTransaction, "Scheduling...", "Scheduling live " + title, "live", loggedAs as string, `Schedule event: ${title}`);
             createSignatureWithMego(signMessageForTransaction, false);
             return BlockChainOperationResult.PENDING;
         }
@@ -497,7 +504,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     const deleteScheduledEvent = useCallback(async (eventId: any) => {
 
-        if(isConnectedWithMego()) {
+        if (isConnectedWithMego()) {
             const signMessageForTransaction = "Delete event: " + eventId;
             setMegoPendingDate("deleteEvent", [`${eventId}`], signMessageForTransaction, "Deleting...", "Deleting scheduled event " + eventId, "live", loggedAs as string);
             createSignatureWithMego(signMessageForTransaction, false);
@@ -556,7 +563,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
     }, [playlistContract, fetchStaticData, fetchAllData]);
 
 
-    const executeMegoPendingOp = async () => {
+    const executeMegoPendingOp = async (fast_signature?: string) => {
         const megoWritePendingOp = localStorage.getItem("megoWritePendingOp");
         const megoWritePendingData = localStorage.getItem("megoWritePendingData");
         const megoSignatureMessage = localStorage.getItem("megoSignatureMessage");
@@ -574,7 +581,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
         //Read signature from mego (query params)
         const urlParams = new URLSearchParams(window.location.search);
-        const signature = urlParams.get('signature');
+        const signature = fast_signature || urlParams.get('signature');
         if (!signature) {
             console.log("[mego] No signature found");
             cleanMegoPendingDate();
@@ -619,7 +626,7 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 title: 'Success',
                 message: 'Operation executed successfully',
                 type: 'success'
-            }); 
+            });
             //await 1000ms
             await new Promise(resolve => setTimeout(resolve, 1000));
             //Reload page
@@ -637,14 +644,6 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
             cleanMegoPendingDate();
         }
     }
-
-    // Check last blockchain operation started with mego
-    useEffect(() => {
-        if(count === 0) {
-            executeMegoPendingOp();
-            count++;
-        }
-    }, []);
 
     const setMegoPendingDate = (op: string, data: any, signMessage: string, popupTitle: string, popupMessage: string, contract: string, userAddress: string, message?: string) => {
         localStorage.setItem("megoWritePendingOp", op);
@@ -668,16 +667,19 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
         localStorage.removeItem("megoUserAddress");
     }
 
-    const createSignatureWithMego = (message: string, encoded: boolean = false) => {
-        const isConnectedWithMego = provider !== 'walletConnect'
-        if (isConnectedWithMego && provider) {
-            const redirectUrl = window.location.origin
-            if (provider.includes("google")) {
-                signMessageWithGoogle(redirectUrl, message, encoded);
-            } else if (provider.includes("apple")) {
-                signMessageWithApple(redirectUrl, message, encoded);
-            }
-            return false;
+    const createSignatureWithMego = async (message: string, encoded: boolean = false) => {
+        try {
+            const isConnectedWithMego = provider !== 'walletConnect'
+            setMessageMegoAuth(message);
+            setEncodedMegoAuth(encoded);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            setIsActiveMegoAuth(true);
+        } catch (error) {
+            openPopup({
+                title: 'Error',
+                message: 'Error creating signature',
+                type: 'error'
+            });
         }
     }
 
@@ -713,6 +715,19 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 setMegoPendingDate
             }}
         >
+            <PopupMegoAuth
+                isActive={isActiveMegoAuth}
+                message={messageMegoAuth}
+                encoded={encodedMegoAuth}
+                onSuccess={(signature)=>{
+                    console.log("[mego] signature", signature);
+                    setIsActiveMegoAuth(false);
+                    executeMegoPendingOp(signature);
+                }}
+                onFallback={(error:any)=>{
+                    setMegoFallback(true);
+                }}
+            />
             {children}
         </Web3RadioContext.Provider>
     );
