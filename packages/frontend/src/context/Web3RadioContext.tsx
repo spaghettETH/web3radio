@@ -727,6 +727,14 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 onFallback={(error:any)=>{
                     setMegoFallback(true);
                 }}
+                onPopupClosed={()=>{
+                    setIsActiveMegoAuth(false);
+                    openPopup({
+                        title: 'Cancelled',
+                        message: 'Operation cancelled by user',
+                        type: 'error'
+                    });
+                }}
             />
             {children}
         </Web3RadioContext.Provider>

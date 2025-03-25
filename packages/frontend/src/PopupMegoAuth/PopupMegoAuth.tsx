@@ -1,5 +1,5 @@
 import { useWeb3Context } from '@megotickets/wallet';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 interface PopupMegoAuthProps {
     isActive: boolean;
@@ -7,10 +7,13 @@ interface PopupMegoAuthProps {
     encoded?: boolean;
     onSuccess?: (signature: string) => void;
     onFallback?: (error: string) => void;
+    onPopupClosed?: () => void;
 }
 
-const PopupMegoAuth = ({ isActive, message, encoded = false, onSuccess, onFallback }: PopupMegoAuthProps) => {
+const PopupMegoAuth = ({ isActive, message, encoded = false, onSuccess, onFallback, onPopupClosed }: PopupMegoAuthProps) => {
     const { provider } = useWeb3Context();
+    const popupWindowRef = useRef<Window | null>(null);
+    const checkPopupIntervalRef = useRef<number | null>(null);
 
     useEffect(() => {
         if (!isActive || !provider) return;
@@ -34,46 +37,56 @@ const PopupMegoAuth = ({ isActive, message, encoded = false, onSuccess, onFallba
 
         const megoUrl = `${baseUrl}?${params.toString()}`;
 
-        // Open popup
-        const popupWindow = window.open(
+        // Apri il popup
+        popupWindowRef.current = window.open(
             megoUrl,
             'MegoAuth',
             `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no,scrollbars=yes,resizable=yes,location=no,status=no`
         );
 
-        // Controlla periodicamente l'URL del popup
-        const checkPopupUrl = setInterval(() => {
-            if (!popupWindow || popupWindow.closed) {
-                clearInterval(checkPopupUrl);
-                onFallback?.('Autenticazione annullata');
+        // Controlla periodicamente lo stato del popup
+        checkPopupIntervalRef.current = window.setInterval(() => {
+            if (!popupWindowRef.current || popupWindowRef.current.closed) {
+                // Se il popup è chiuso
+                if (checkPopupIntervalRef.current) {
+                    clearInterval(checkPopupIntervalRef.current);
+                }
+                onPopupClosed?.();
                 return;
             }
 
             try {
-                // Check popup URL
-                const currentUrl = popupWindow.location.href;
-                // If we are back to our domain, check the signature
+                // Controlla l'URL del popup
+                const currentUrl = popupWindowRef.current.location.href;
+                
+                // Se siamo tornati al nostro dominio, controlliamo la signature
                 if (currentUrl.includes(window.location.origin)) {
                     const url = new URL(currentUrl);
                     const signature = url.searchParams.get('signature');
                     
                     if (signature) {
                         onSuccess?.(signature);
-                        popupWindow.close();
+                        popupWindowRef.current.close();
                     }
-                    clearInterval(checkPopupUrl);
+                    if (checkPopupIntervalRef.current) {
+                        clearInterval(checkPopupIntervalRef.current);
+                    }
                 }
             } catch (error) {
                 // Ignora gli errori di same-origin policy
-                // Questo errore si verifica quando il popup è su wallet.mego.tools
             }
         }, 500);
 
         // Cleanup
         return () => {
-            clearInterval(checkPopupUrl);
+            if (checkPopupIntervalRef.current) {
+                clearInterval(checkPopupIntervalRef.current);
+            }
+            if (popupWindowRef.current && !popupWindowRef.current.closed) {
+                popupWindowRef.current.close();
+            }
         };
-    }, [isActive, provider, message, encoded, onSuccess, onFallback]);
+    }, [isActive, provider, message, encoded, onSuccess, onFallback, onPopupClosed]);
 
     // Questo componente non renderizza nulla visivamente
     return null;
