@@ -76,10 +76,13 @@ const SavesLeaderboard: React.FC<SavesLeaderboardProps> = () => {
         })
       );
 
-      // Sort by score descending
-      leaderboardData.sort((a, b) => b.score - a.score);
+      // Sort by score descending, filter out zero scores, and limit to 20 items
+      const filteredData = leaderboardData
+        .filter(item => parseInt(item.score) > 0)
+        .sort((a, b) => parseInt(b.score) - parseInt(a.score))
+        .slice(0, 20);
 
-      setLeaderboard(leaderboardData);
+      setLeaderboard(filteredData);
     } catch (err) {
       console.error("[fetchLeaderboard] -> Error fetching leaderboard:", err);
       setError("Failed to fetch the leaderboard. Please try again later.");
@@ -98,7 +101,7 @@ const SavesLeaderboard: React.FC<SavesLeaderboardProps> = () => {
     <div className="w-full bg-black p-6">
       <div className="flex flex-row items-center gap-2">
         <h2 className="text-white text-2xl font-bold uppercase">Most Saved</h2>
-        <p className="text-white text-sm uppercase">Leaderboard</p>
+        <p className="text-white text-sm uppercase">Leaderboard (top 20)</p>
       </div>
 
       {/* Loading State */}
