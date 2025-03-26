@@ -20,10 +20,10 @@ const ClaimTokenNotice: React.FC = () => {
       className="flex flex-col items-center justify-center gap-4 bg-black/90 text-white py-8 px-6 rounded-xl shadow-2xl"
     >
       <h2 className="text-2xl font-bold uppercase">
-        Non possiedi il token {tokenName}!
+        You don't own the token {tokenName}!
       </h2>
       <p className="text-lg text-gray-300 text-center">
-        Effettua il claim per ottenere il tuo token e accedere alle funzionalità esclusive.
+        Claim the SpaghettETH Passport Sould Bound Token to access Web3Radio features.
       </p>
       <motion.button
         whileHover={{ scale: 1.05 }}
