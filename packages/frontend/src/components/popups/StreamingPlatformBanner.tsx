@@ -15,7 +15,7 @@ const StreamPlatformBanner = () => {
   return (
     <div className="bg-white shadow rounded-lg p-4">
       <h3 className="text-lg font-medium text-gray-900 mb-3">
-        Piattaforme disponibili
+        Available platforms
       </h3>
       <div className="space-y-2">
         {platforms.map((platform) => (
