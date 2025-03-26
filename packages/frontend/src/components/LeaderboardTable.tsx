@@ -1,4 +1,5 @@
 import { resolveCloudLinkUrl } from "../utils/Utils";
+import React from "react";
 
 interface LeaderboardTableProps {
     leaderboard: any[];
@@ -34,7 +35,7 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ leaderboard }) => {
                         leaderboard.map((song) => (
                             <tr key={song.id} className="border-b border-1 border-[#2b2b2b] py-2">
                                 <td className="flex justify-start sm:flex-row text-white flex items-center gap-2">
-                                    <img src={song.img ?? "/mp3_placeholder.jpg"} alt={song.title} className="w-8 h-8 rounded-sm" />
+                                    <img src={resolveCloudLinkUrl(song.img, 'img')} alt={song.title} className="w-8 h-8 rounded-sm" />
                                     <div className="overflow-hidden relative flex-1 mr-2 group">
                                         <h1 className="text-white uppercase font-bold whitespace-nowrap group-hover:animate-scrollText inline-block">
                                             {song.title}
