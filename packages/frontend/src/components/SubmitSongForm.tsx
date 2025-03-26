@@ -308,7 +308,7 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
                     aria-label="Music Genre"
                     className="w-full border border-white rounded-md bg-black text-white p-2"
                   >
-                    <option value="">Seleziona un genere</option>
+                    <option value="">Select a genre</option>
                     {musicTags.map((musicTag) => (
                       <option key={musicTag} value={musicTag}>
                         {musicTag}
