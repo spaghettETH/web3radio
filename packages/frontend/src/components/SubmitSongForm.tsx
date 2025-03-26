@@ -169,7 +169,7 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
         >
           <h4 className="text-xl font-bold uppercase">Contribute</h4>
           <p className="text-5xl uppercase">
-            Join the web3 music<br />revolution!
+            Join the webradio<br />revolution!
           </p>
           <motion.div
             style={{ height: "-webkit-fill-available" }}
@@ -283,7 +283,7 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
                     value={audioUri}
                     onChange={(e) => setAudioUri(e.target.value)}
                     required
-                    placeholder="https://Link to song"
+                    placeholder="https://Link to audio"
                     aria-label="Audio File URL"
                     className="w-full border border-white rounded-md bg-black text-white p-2"
                   />
@@ -298,7 +298,7 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
                 >
                   <label htmlFor="tag" className="flex items-center">
                     <FaMusic className="mr-2" />
-                    <p>GENERE MUSICALE</p>
+                    <p>GENRE</p>
                   </label>
                   <select
                     id="tag"
@@ -308,7 +308,7 @@ const SubmitSongForm: React.FC<SubmitSongFormProps> = () => {
                     aria-label="Music Genre"
                     className="w-full border border-white rounded-md bg-black text-white p-2"
                   >
-                    <option value="">Seleziona un genere</option>
+                    <option value="">Select a genre</option>
                     {musicTags.map((musicTag) => (
                       <option key={musicTag} value={musicTag}>
                         {musicTag}
