@@ -193,7 +193,7 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
                 <FormatBannerInfo
                   bannerData={{
                     title: "Accepted Stream URL Links:",
-                    description: "HLS (.m3u e .m3u8), Youtube, Twitch, Livepeer, traditional server",
+                    description: "HLS (.m3u e .m3u8), Livepeer, Youtube, Twitch, traditional server",
                     icon: <FaVideo />
                   }}
                   circleWidth={20}
@@ -220,14 +220,14 @@ const ScheduleLive: React.FC<ScheduleLiveProps> = () => {
             >
               <label htmlFor="tag" className="flex items-center">
                 <FaMusic className="mr-2" />
-                <p>GENERE MUSICALE</p>
+                <p>GENRE</p>
               </label>
               <select
                 id="tag"
                 value={tag}
                 onChange={(e) => setTag(e.target.value)}
                 required
-                aria-label="Music Genre"
+                aria-label="Audio Genre"
                 className="w-full border border-white rounded-md bg-black text-white p-2"
               >
                 <option value="">Seleziona un genere</option>
