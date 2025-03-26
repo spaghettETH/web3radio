@@ -22,23 +22,23 @@ const MySavesAudio: React.FC<MySavesProps> = () => {
     console.log("[handleSaveSong] currentSong", currentSong);
 
     if (!currentSong || !currentSong.id) {
-      openPopup({ title: 'Error', message: `No song is currently playing or the song data is incomplete.`, type: 'info' });
+      openPopup({ title: 'Error', message: `No audio is currently playing or the audio data is incomplete.`, type: 'info' });
       return;
     }
-    openPopup({ title: 'Saving...', message: `Saving song: ${currentSong.title}`, type: 'loading' });
+    openPopup({ title: 'Saving...', message: `Saving audio: ${currentSong.title}`, type: 'loading' });
     try {
-      console.log(`Saving song: ${currentSong.title}`);
+      console.log(`Saving audio: ${currentSong.title}`);
       console.log("[handleSaveSong] currentSong.id", currentSong.id);
       const res = await saveSongToMySaves(currentSong.id);
       if (res === BlockChainOperationResult.SUCCESS) {
-        openPopup({ title: 'Saved!', message: `Song "${currentSong.title}" saved successfully!`, type: 'success' });
+        openPopup({ title: 'Saved!', message: `Audio "${currentSong.title}" saved successfully!`, type: 'success' });
         fetchMySaves(); // Refresh the saved songs list after saving
       } else if (res === BlockChainOperationResult.ERROR) {
-        openPopup({ title: 'Error', message: `Failed to save the song. Ensure you're connected and authorized.`, type: 'error' });
+        openPopup({ title: 'Error', message: `Failed to save the audio. Ensure you're connected and authorized.`, type: 'error' });
       }
     } catch (error) {
       console.error("Error saving the song:", error);
-      openPopup({ title: 'Error', message: `Failed to save the song. Ensure you're connected and authorized.`, type: 'error' });
+      openPopup({ title: 'Error', message: `Failed to save the audio. Ensure you're connected and authorized.`, type: 'error' });
     }
   };
 
@@ -47,28 +47,28 @@ const MySavesAudio: React.FC<MySavesProps> = () => {
     try {
       openPopup({
         title: 'Deleting...',
-        message: `Deleting saved song: ${id}`,
+        message: `Deleting saved audio: ${id}`,
         type: 'loading'
       });
       const res = await removeSavedSong(id);
       if (res === BlockChainOperationResult.SUCCESS) {
         openPopup({
           title: 'Deleted!',
-          message: `Song "${id}" deleted successfully!`,
+          message: `Audio "${id}" deleted successfully!`,
           type: 'success'
         });
       } else if (res === BlockChainOperationResult.ERROR) {
         openPopup({
           title: 'Error',
-          message: `Failed to delete the song. Ensure you're connected and authorized.`,
+          message: `Failed to delete the audio. Ensure you're connected and authorized.`,
           type: 'error'
         });
       }
     } catch (error) {
-      console.error("Error deleting the song:", error);
+      console.error("Error deleting the audio:", error);
       openPopup({
         title: 'Error',
-        message: `Failed to delete the song. Ensure you're connected and authorized.`,
+        message: `Failed to delete the audio. Ensure you're connected and authorized.`,
         type: 'error'
       });
     }
