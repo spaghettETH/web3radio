@@ -31,7 +31,7 @@ const Footer: React.FC = () => {
               <FaTelegram size={24} />
             </a>
             <a 
-              href="https://github.com/web3radioitaly" 
+              href="https://github.com/spaghettETH/web3radio" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-gray-400 hover:text-white transition-colors"
