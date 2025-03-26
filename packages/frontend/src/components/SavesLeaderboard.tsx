@@ -69,6 +69,7 @@ const SavesLeaderboard: React.FC<SavesLeaderboardProps> = () => {
           console.log("[fetchLeaderboard] -> song", song, "index", index);
           return {
             id: song[0].toString(),
+            img: song[2] ?? "/mp3_placeholder.jpg",
             title: song[3],
             uri: song[1],
             score: scores[index].score,
