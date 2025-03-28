@@ -8,7 +8,7 @@ import { Web3RadioProvider } from './context/Web3RadioContext';
 import { PopupProvider } from './context/PopupContext';
 //RainbowKit
 import '@rainbow-me/rainbowkit/styles.css';
-import "@megotickets/wallet/dist/index.css";
+
 
 
 import { Web3MegoClientProvider } from "@megotickets/wallet";
