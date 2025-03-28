@@ -1,7 +1,7 @@
 import React from "react";
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import { useWeb3Context } from "@megotickets/wallet";
-import { readContract, writeContract, config, useAccount, waitForTransactionReceipt, signMessage } from "@megotickets/core";
+import { readContract, writeContract, config, useAccount, waitForTransactionReceipt, signMessage, signMessageWithPopupGoogle, signMessageWithPopupApple } from "@megotickets/core";
 import { Contract } from "ethers";
 import { getPlaylistABI, getPlaylistAddress } from "../contracts/DecentralizePlaylist/contract";
 import { getScheduleLiveABI, getScheduleLiveAddress } from "../contracts/ScheduleLive/contract";
@@ -10,7 +10,6 @@ import { getLivePlatformFromUri } from "../utils/Utils";
 import { getSoulBoundTokenABI, getSoulBoundTokenAddress } from "../contracts/SoulBoundToken/contract";
 import { usePopup } from "./PopupContext";
 import axios from "axios";
-import PopupMegoAuth from "../PopupMegoAuth/PopupMegoAuth";
 interface Web3RadioContextType {
     playlistContract: Contract | null;
     playlist: any[];
@@ -669,15 +668,38 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     const createSignatureWithMego = async (message: string, encoded: boolean = false) => {
         try {
-            const isConnectedWithMego = provider !== 'walletConnect'
-            setMessageMegoAuth(message);
-            setEncodedMegoAuth(encoded);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            setIsActiveMegoAuth(true);
+            const isConnectedWithMego = provider !== 'walletConnect';
+            const origin = window.location.origin;
+
+            let result;
+            if (provider?.toLowerCase().includes('google')) {
+                result = await signMessageWithPopupGoogle(origin, message, encoded);
+            } else if (provider?.toLowerCase().includes('apple')) {
+                result = await signMessageWithPopupApple(origin, message, encoded);
+            } else {
+                openPopup({
+                    title: 'Error',
+                    message: 'Provider not supported',
+                    type: 'error'
+                });
+                return;
+            }
+
+            if (result.error) {
+                openPopup({
+                    title: 'Error',
+                    message: 'Error creating signature',
+                    type: 'error'
+                });
+                return;
+            }
+
+            // Esegui l'operazione pendente con la firma ottenuta
+            executeMegoPendingOp(result.signature);
         } catch (error) {
             openPopup({
                 title: 'Error',
-                message: 'Error creating signature',
+                message: error.message || 'Error creating signature',
                 type: 'error'
             });
         }
@@ -715,27 +737,6 @@ export const Web3RadioProvider: React.FC<{ children: ReactNode }> = ({ children 
                 setMegoPendingDate
             }}
         >
-            <PopupMegoAuth
-                isActive={isActiveMegoAuth}
-                message={messageMegoAuth}
-                encoded={encodedMegoAuth}
-                onSuccess={(signature)=>{
-                    console.log("[mego] signature", signature);
-                    setIsActiveMegoAuth(false);
-                    executeMegoPendingOp(signature);
-                }}
-                onFallback={(error:any)=>{
-                    setMegoFallback(true);
-                }}
-                onPopupClosed={()=>{
-                    setIsActiveMegoAuth(false);
-                    openPopup({
-                        title: 'Cancelled',
-                        message: 'Operation cancelled by user',
-                        type: 'error'
-                    });
-                }}
-            />
             {children}
         </Web3RadioContext.Provider>
     );
