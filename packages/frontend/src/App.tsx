@@ -7,29 +7,35 @@ import RadioModality from "./components/RadioModality";
 import { useWeb3Radio } from "./context/Web3RadioContext";
 import ClaimSoulBoundToken from "./components/ClaimSoulBoundToken";
 import ConnectWithMego from "./components/ConnectWithMego";
-import { MegoWalletButton } from "@megotickets/wallet";
+import { MegoWalletButton, useWeb3Context } from "@megotickets/wallet";
 import { optimism, custom, createWalletClient } from "@megotickets/core";
 
 const App: React.FC = () => {
     const { isConnected, userHasSBT } = useWeb3Radio();
+    const { provider, isConnectedWithMego } = useWeb3Context();
 
-    //AddChain to wallet if there is
+    //AddChain to wallet if there is (only for external wallets like Metamask)
     const addChain = async () => {
         try {
-            const walletClient = createWalletClient({
-                chain: optimism,
-                transport: custom(window.ethereum!),
-            });
-            await walletClient.addChain({ chain: optimism });
+            // Only if not connected via Mego (Google/Apple) and if window.ethereum is available
+            if (!isConnectedWithMego() && window.ethereum) {
+                const walletClient = createWalletClient({
+                    chain: optimism,
+                    transport: custom(window.ethereum!),
+                });
+                await walletClient.addChain({ chain: optimism });
+            }
         } catch (error) {
-            
+            console.log("Errore durante l'aggiunta della chain:", error);
         }
     }
 
-    //AddChain to wallet for security
+    //AddChain to wallet for security (only for external wallets)
     useEffect(() => {
-        addChain();
-    }, []);
+        if (isConnected && !isConnectedWithMego()) {
+            addChain();
+        }
+    }, [isConnected, provider]);
 
     return (
         <>
