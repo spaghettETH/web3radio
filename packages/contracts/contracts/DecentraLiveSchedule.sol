@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 contract DecentraLiveSchedule is Ownable {
-    IERC721 public nftContract;
 
     uint256 public constant SLOT_DURATION = 1800; // 30 minutes in seconds
     uint256 public constant MAX_BOOKINGS_PER_DAY = 3; // Maximum bookings allowed per user in 24 hours
@@ -41,15 +39,11 @@ contract DecentraLiveSchedule is Ownable {
     );
     event EventDeleted(uint256 indexed id, address indexed creator);
 
-    constructor(address _nftContract) Ownable(msg.sender) {
-        nftContract = IERC721(_nftContract);
+    constructor() Ownable() {
     }
 
-    modifier onlyNFTHolderOrProxy() {
-        require(
-            nftContract.balanceOf(msg.sender) > 0 || isProxy[msg.sender],
-            "Must own an NFT or be a proxy"
-        );
+    modifier onlyProxyOrAnyone() {
+        // Removed NFT requirement - now anyone can interact or only proxy if needed
         _;
     }
 
@@ -99,17 +93,14 @@ contract DecentraLiveSchedule is Ownable {
         uint256 slot,
         uint256 slotCount,
         bytes memory signature
-    ) external onlyNFTHolderOrProxy validSlot(slot) {
+    ) external onlyProxyOrAnyone validSlot(slot) {
         address submitter = msg.sender;
         if (isProxy[msg.sender]) {
             submitter = returnSubmitter(
                 signature,
                 abi.encodePacked("Schedule event: ", title)
             );
-            require(
-                nftContract.balanceOf(submitter) > 0,
-                "User must own an NFT"
-            );
+            // Removed NFT requirement
         }
         _enforceDailyBookingLimit(submitter);
         require(slotCount > 0, "Slot count must be greater than zero");
@@ -169,10 +160,7 @@ contract DecentraLiveSchedule is Ownable {
                 signature,
                 abi.encodePacked("Delete event: ", Strings.toString(eventId))
             );
-            require(
-                nftContract.balanceOf(submitter) > 0,
-                "User must own an NFT"
-            );
+            // Removed NFT requirement
         }
         require(eventId < nextEventId, "Invalid event ID");
         LiveEvent storage eventDetails = eventsById[eventId];

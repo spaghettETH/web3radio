@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 contract DecentraPlaylist is Ownable {
-    IERC721 public nftContract;
 
     uint public nextSongId = 1; // Start IDs from 1
 
@@ -28,8 +26,7 @@ contract DecentraPlaylist is Ownable {
     mapping(address => bool) public isProxy;
     mapping(bytes32 => uint[]) public songIDsByTag; // Map tag to list of song IDs
 
-    constructor(address _nftContract) Ownable(msg.sender) {
-        nftContract = IERC721(_nftContract);
+    constructor() Ownable() {
     }
 
     modifier validSongId(uint _id) {
@@ -37,11 +34,8 @@ contract DecentraPlaylist is Ownable {
         _;
     }
 
-    modifier onlyNFTHolderOrProxy() {
-        require(
-            nftContract.balanceOf(msg.sender) > 0 || isProxy[msg.sender],
-            "Must own an NFT or be a proxy"
-        );
+    modifier onlyProxyOrAnyone() {
+        // Removed NFT requirement - now anyone can interact or only proxy if needed
         _;
     }
 
@@ -63,17 +57,14 @@ contract DecentraPlaylist is Ownable {
         string memory title,
         bytes32 tag, // Added tag parameter
         bytes memory signature
-    ) external onlyNFTHolderOrProxy {
+    ) external onlyProxyOrAnyone {
         address submitter = msg.sender;
         if (isProxy[msg.sender]) {
             submitter = returnSubmitter(
                 signature,
                 abi.encodePacked("Add song: ", uri)
             );
-            require(
-                nftContract.balanceOf(submitter) > 0,
-                "User must own an NFT"
-            );
+            // Removed NFT requirement
         }
         Song memory newSong = Song({
             id: nextSongId,
@@ -109,10 +100,7 @@ contract DecentraPlaylist is Ownable {
                 signature,
                 abi.encodePacked("Remove own song: ", Strings.toString(songId))
             );
-            require(
-                nftContract.balanceOf(submitter) > 0,
-                "User must own an NFT"
-            );
+            // Removed NFT requirement
         }
         require(
             songsById[songId].submitter == submitter,
@@ -125,17 +113,14 @@ contract DecentraPlaylist is Ownable {
     function addToMySaves(
         uint _id,
         bytes memory signature
-    ) external onlyNFTHolderOrProxy validSongId(_id) {
+    ) external onlyProxyOrAnyone validSongId(_id) {
         address submitter = msg.sender;
         if (isProxy[msg.sender]) {
             submitter = returnSubmitter(
                 signature,
                 abi.encodePacked("Add to my saves: ", Strings.toString(_id))
             );
-            require(
-                nftContract.balanceOf(submitter) > 0,
-                "User must own an NFT"
-            );
+            // Removed NFT requirement
         }
         for (uint i = 0; i < userSaves[submitter].length; i++) {
             require(userSaves[submitter][i] != _id, "Song already saved");
@@ -147,7 +132,7 @@ contract DecentraPlaylist is Ownable {
     function removeFromMySaves(
         uint _id,
         bytes memory signature
-    ) external onlyNFTHolderOrProxy validSongId(_id) {
+    ) external onlyProxyOrAnyone validSongId(_id) {
         address submitter = msg.sender;
         if (isProxy[msg.sender]) {
             submitter = returnSubmitter(
@@ -157,10 +142,7 @@ contract DecentraPlaylist is Ownable {
                     Strings.toString(_id)
                 )
             );
-            require(
-                nftContract.balanceOf(submitter) > 0,
-                "User must own an NFT"
-            );
+            // Removed NFT requirement
         }
         uint[] storage saves = userSaves[submitter];
         for (uint i = 0; i < saves.length; i++) {

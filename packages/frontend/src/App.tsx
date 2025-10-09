@@ -5,13 +5,12 @@ import Logo from "./components/Logo";
 import Title from "./components/Title";
 import RadioModality from "./components/RadioModality";
 import { useWeb3Radio } from "./context/Web3RadioContext";
-import ClaimSoulBoundToken from "./components/ClaimSoulBoundToken";
 import ConnectWithMego from "./components/ConnectWithMego";
 import { MegoWalletButton, useWeb3Context } from "@megotickets/wallet";
 import { optimism, custom, createWalletClient } from "@megotickets/core";
 
 const App: React.FC = () => {
-    const { isConnected, userHasSBT } = useWeb3Radio();
+    const { isConnected } = useWeb3Radio(); // Removed userHasSBT
     const { provider, isConnectedWithMego } = useWeb3Context();
 
     //AddChain to wallet if there is (only for external wallets like Metamask)
@@ -64,7 +63,7 @@ const App: React.FC = () => {
                 <Title />
 
                 {
-                    isConnected && userHasSBT &&
+                    isConnected &&
                     <>
                         <Web3AudioPlayer />
                         <Donate />
@@ -77,10 +76,6 @@ const App: React.FC = () => {
                 {
                     !isConnected &&
                     <ConnectWithMego />
-                }
-                {
-                    isConnected && !userHasSBT &&
-                    <ClaimSoulBoundToken />
                 }
             </div>
         </>
